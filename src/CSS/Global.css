@@ -1,0 +1,16 @@
+:root {
+    --main-bg-color: #CFDBD5;
+    --main-fg-color: #E8EDDF;
+    --main-base-color: #F5CB5C;
+}
+
+body{
+    background-color: var(--main-bg-color);
+}
+
+.content{
+    padding-top: 20px;
+    padding-bottom: 20px;
+    background-color:var(--main-base-color);
+    text-align: center;
+}
