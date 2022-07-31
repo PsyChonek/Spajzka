@@ -1,4 +1,7 @@
-export function importIDB(dname: string, sname: string, arr: Array<any>) {
+import { Type } from "typescript"
+import { Item } from "../API/Items"
+
+export function importAll(dname: string, sname: string, arr: Array<any>) {
     return new Promise(function (resolve) {
         var r = window.indexedDB.open(dname)
         r.onupgradeneeded = function () {
@@ -20,7 +23,7 @@ export function importIDB(dname: string, sname: string, arr: Array<any>) {
     })
 }
 
-export async function getIDB(dname: string, sname: string, key: string) {
+export async function getID(dname: string, sname: string, key: string) {
     return new Promise(function (resolve) {
         var r = indexedDB.open(dname)
         r.onsuccess = function (e) {
@@ -32,6 +35,24 @@ export async function getIDB(dname: string, sname: string, key: string) {
                 resolve(data.result)
             }
             tactn.oncomplete = function () {
+                idb.close()
+            }
+        }
+    })
+}
+
+export function getAll(dname: string, sname: string) {
+    return new Promise<any>(function (resolve) {
+        var db = indexedDB.open(dname)
+        db.onsuccess = function (e) {
+            var idb = db.result
+            const tx = idb.transaction(sname, 'readonly');
+            const store = tx.objectStore(sname);
+            var data = store.getAll();
+            data.onsuccess = function () {
+                resolve(data.result)
+            }
+            tx.oncomplete = function (e) {
                 idb.close()
             }
         }

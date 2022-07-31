@@ -1,50 +1,50 @@
 import '../CSS/Global.css'
 
-import React, { FC, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Container from 'react-bootstrap/Container';
 import SearchBar from '../Components/SearchBar';
-import { debug } from 'console';
-import { importIDB } from '../Other/indexDB';
 import SearchItem from '../Components/SearchItem';
-
-
-interface SourceItemsObject {
-  Items: Array<SourceItem>
-}
-
-export interface SourceItem {
-  name: string;
-  price: number;
-}
-
-var jsonTestData = '{"Items":[{"id":"sd51asd","name":"jablko","price":25},{"id":"dsdasdasda","name":"hruška","price":35},{"id":"dasddds","name":"pomeranč","price":87},{"id":"xascass","name":"kokos","price":96}]}';
+import { GetItems, Item } from '../API/Items';
+import { Console } from 'console';
+import SearchAdd from '../Components/SearchAdd';
 
 const Search = () => {
-  const [allData, setAllData] = useState<SourceItem[]>([]);
-  const [results, setResults] = useState<SourceItem[]>([]);
+  const [allData, setAllData] = useState<Item[]>([]);
+  const [results, setResults] = useState<Item[]>([]);
+  const [query, setQuery] = useState<string>('');
 
   // On page load, set all data
   useEffect(() => {
-    loadAllResults();
+    GetItems().then((items) => {
+      setAllData(items);
+    })
   }, []) // Empty array means it only run once
 
-  const loadAllResults = () => {
-    var arr_from_json: SourceItemsObject = JSON.parse(jsonTestData);
-    setAllData(arr_from_json.Items);
-    setResults(allData);
-  }
+  // Update current result when new all data
+  useEffect(() => {
+    updateResults();
+  }, [allData])
+
+  // Query updated
+  useEffect(() => {
+    updateResults();
+  }, [query])
 
   const onSearchSubmit = (term: string) => {
-    var termLower = term.toLowerCase();
-    let results = Array<SourceItem>();
+    setQuery(term);
+  }
 
-    if (term.length == 0) {
+  const updateResults = () => {
+    var queryLower = query.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    let results = Array<Item>();
+
+    if (query.length == 0) {
       setResults(allData);
       return;
     }
 
     for (let index = 0; index < allData.length; index++) {
-      if (allData[index].name.includes(termLower)) {
+      if (allData[index].name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(queryLower)) {
         results.push(allData[index]);
       }
     }
@@ -52,12 +52,10 @@ const Search = () => {
     setResults(results)
   }
 
-  const clearResults = () => setResults([]);
-
   const renderedResults = results.map((results, i) => {
-    console.log(results)
     return <SearchItem item={results} key={i} />
   })
+
 
   return (
     <Container className='content'>
@@ -65,6 +63,7 @@ const Search = () => {
       <SearchBar onSearchSubmit={onSearchSubmit} />
       <Container>
         {renderedResults}
+        {renderedResults.length == 0 && <SearchAdd/>}
       </Container>
     </Container>
   );

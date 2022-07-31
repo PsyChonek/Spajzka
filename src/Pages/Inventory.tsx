@@ -8,8 +8,6 @@ function Inventory() {
     return (
         <Container className="content"  >
             <h1>Špajz</h1>
-
-            <input></input>
         </Container>
     );
 }

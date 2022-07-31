@@ -1,6 +1,6 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import Search from './Pages/Search';
 import * as serviceWorkerRegistration from './Other/serviceWorkerRegistration';
@@ -9,10 +9,14 @@ import { BrowserRouter, Link, Navigate, Route, Routes } from 'react-router-dom';
 import { Container, Nav, Navbar } from 'react-bootstrap';
 import Buylist from './Pages/Buylist';
 import Inventory from './Pages/Inventory';
+import * as Items from './API/Items';
+
+console.log('Load');
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
+
 root.render(
   <BrowserRouter>
     <React.StrictMode>

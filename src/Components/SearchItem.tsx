@@ -1,8 +1,8 @@
 import { FC, useEffect, useState } from "react";
 import { Container } from "react-bootstrap";
-import { SourceItem } from "../Pages/Search";
+import { Item } from "../API/Items";
 
-const SearchItem = (props: {item:SourceItem}) => {
+const SearchItem = (props: {item:Item}) => {
     return (
         <Container>
             <h1>{props.item.name}</h1>
