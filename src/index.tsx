@@ -11,6 +11,7 @@ import Buylist from './Pages/Buylist';
 import Inventory from './Pages/Inventory';
 import * as Items from './API/Items';
 
+
 console.log('Load');
 
 const root = ReactDOM.createRoot(

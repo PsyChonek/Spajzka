@@ -7,6 +7,9 @@ import SearchItem from '../Components/SearchItem';
 import { GetItems, Item } from '../API/Items';
 import { Console } from 'console';
 import SearchAdd from '../Components/SearchAdd';
+import SearchItemSeparator from '../Components/SearchItemSeparator';
+import SearchItemHead from '../Components/SearchItemHead';
+import SearchNavigation from '../Components/SearchNavigation';
 
 const Search = () => {
   const [allData, setAllData] = useState<Item[]>([]);
@@ -53,19 +56,26 @@ const Search = () => {
   }
 
   const renderedResults = results.map((results, i) => {
-    return <SearchItem item={results} key={i} />
+    return [
+      <SearchItemSeparator />,
+      <SearchItem item={results} key={i} />,
+      // <SearchItemSeparator/>
+    ]
   })
 
 
   return (
     <Container className='content'>
-      <h1>Vyhledávaní</h1>
+      <h1>Vyhledávání</h1>
       <SearchBar onSearchSubmit={onSearchSubmit} />
       <Container>
+        <SearchItemHead />
         {renderedResults}
-        {renderedResults.length == 0 && <SearchAdd/>}
+        {renderedResults.length == 0 && <SearchAdd />}
+        {renderedResults.length >= 4 && <SearchNavigation />}
+
       </Container>
-    </Container>
+    </Container >
   );
 }
 export default Search;

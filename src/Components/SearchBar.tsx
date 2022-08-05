@@ -1,4 +1,4 @@
-import '../CSS/SearchBar.css'
+import '../CSS/Search.css'
 
 import React, { FC, useEffect, useState } from 'react';
 
