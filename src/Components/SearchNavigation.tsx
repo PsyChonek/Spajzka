@@ -1,3 +1,4 @@
+
 import { Container, Pagination } from "react-bootstrap";
 
 function SearchNavigation() {

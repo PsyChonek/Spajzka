@@ -23,3 +23,9 @@ body {
     background-color: var(--main-base-color);
     text-align: center;
 }
+
+.popupwindow {  
+    width:  500px;
+    height: 250px;
+    background-color: green;
+}

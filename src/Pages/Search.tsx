@@ -10,6 +10,7 @@ import SearchAdd from '../Components/SearchAdd';
 import SearchItemSeparator from '../Components/SearchItemSeparator';
 import SearchItemHead from '../Components/SearchItemHead';
 import SearchNavigation from '../Components/SearchNavigation';
+import PopUpWindow from '../Components/PopUpWindow';
 
 const Search = () => {
   const [allData, setAllData] = useState<Item[]>([]);
@@ -73,6 +74,8 @@ const Search = () => {
         {renderedResults}
         {renderedResults.length == 0 && <SearchAdd />}
         {renderedResults.length >= 4 && <SearchNavigation />}
+
+        <PopUpWindow></PopUpWindow>
 
       </Container>
     </Container >
