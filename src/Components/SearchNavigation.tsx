@@ -1,4 +1,4 @@
-
+import React, { FC, useEffect, useState } from 'react';
 import { Container, Pagination } from "react-bootstrap";
 
 function SearchNavigation() {

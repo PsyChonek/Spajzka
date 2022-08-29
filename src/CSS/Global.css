@@ -24,8 +24,17 @@ body {
     text-align: center;
 }
 
-.popupwindow {  
-    width:  500px;
-    height: 250px;
+.popupwindow {
+    width: 80%;
+    height: 20%;
+    max-width: 500px;
+    max-height: 250px;
+    min-width: 200px;
+    min-height: 100px;
     background-color: green;
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
 }
