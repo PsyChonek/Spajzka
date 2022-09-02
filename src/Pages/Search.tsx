@@ -74,9 +74,6 @@ const Search = () => {
         {renderedResults}
         {renderedResults.length == 0 && <SearchAdd />}
         {renderedResults.length >= 4 && <SearchNavigation />}
-
-        <PopUpWindow></PopUpWindow>
-
       </Container>
     </Container >
   );

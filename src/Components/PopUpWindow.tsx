@@ -1,22 +1,19 @@
-import React, { FC, useEffect, useState } from 'react';
-import '../CSS/Global.css'
+import '../CSS/Popup.css'
 import { Button, Col, Container, Row } from "react-bootstrap";
 
-const PopUpWindow = () => {
-    return (
-        <Container className="popupwindow">
-                
+const PopUpWindow = (props: {trigger: any, setTrigger: any, title: string, content: string }) => {
 
-            <Row>
-                <Col>Text</Col>
-            </Row>
-            <Row >
-                <Col className="align-self-end"><Button variant="info">OK</Button></Col>
-                <Col><Button variant="success">YES</Button></Col>
-                <Col><Button variant="danger">NO</Button></Col>
-            </Row>
-        </Container>
-    );
+    return (props.trigger) ? (
+        <div onClick={() => props.setTrigger(false)}>
+            <Container className="popup-container">
+                <div className='popup-top'><h1>{props.title}</h1></div>
+                <div className='popup-middle'>{props.content}</div>
+                <div className='popup-bottom'>
+                    <Button onClick={() => props.setTrigger(false)}>Děkuji za informace</Button>
+                </div>
+            </Container>
+        </div>
+    ) : <></>;
 }
 
 export default PopUpWindow;

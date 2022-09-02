@@ -1,0 +1,22 @@
+.popup-container {
+    background-color: white;
+    box-shadow: 1px 1px 10px black;
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+    padding: 1em;
+}
+
+.popup-top {
+    padding: 1em;
+}
+
+.popup-middle {
+    padding: 1em;
+}
+
+.popup-bottom {
+    padding: 1em;
+}
