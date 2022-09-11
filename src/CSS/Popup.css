@@ -7,6 +7,7 @@
     transform: translate(-50%, -50%);
     z-index: 10;
     padding: 1em;
+    max-width: 800px;
 }
 
 .popup-top {

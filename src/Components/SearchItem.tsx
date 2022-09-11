@@ -5,23 +5,9 @@ import PopUpWindow from "./PopUpWindow";
 
 const SearchItem = (props: { item: Item }) => {
     const [showDetail, setDetail] = useState(false);
-    const element = React.useRef(null);
-
-    useEffect(() => {
-
-        const closeDetail = (e: any) => {
-            if (e.path[0] === element.current) {
-                setDetail(false);
-            }
-        }
-
-        document.body.addEventListener('click', closeDetail);
-
-        return () => document.body.removeEventListener('click', closeDetail);
-    })
 
     return (
-        <Container ref={element}>
+        <Container>
 
             <div className="gridContainer">
                 <div>{props.item.name}</div>
