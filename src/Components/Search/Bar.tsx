@@ -1,5 +1,5 @@
 import React, { FC, useEffect, useState } from 'react';
-import '../CSS/Search.css'
+import '../../CSS/Search.css'
 
 const SearchBar = (props: { onSearchSubmit: Function }) => {
     const [term, setTerm] = useState('');

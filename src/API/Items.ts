@@ -1,27 +1,71 @@
 import * as DB from "../Other/indexDB";
+import {ObjectID} from "bson";
+import {maxHeaderSize} from "http";
 
 export interface ItemsObject {
     Items: Array<Item>
 }
 
-export interface Item {
+interface IItem {
+    ID: ObjectID;
     name: string;
     price: number;
+    description: string;
+    image: string;
+    buylist: number;
 }
+
+export class Item implements IItem {
+    public ID: ObjectID = new ObjectID();
+    public name: string = '';
+
+    private _price: number = 0;
+    public get price(): number {
+        return Math.max(this._price, 0);
+    }
+    public set price(v: number) {
+        this._price = Math.max(v, 0);
+    }
+
+    public description: string = '';
+    public image: string = '';
+
+    private _buylist: number = 0;
+    public get buylist(): number {
+        console.log('Buy get ' + this._buylist)
+        return Math.max(this._buylist, 0);
+    }
+    public set buylist(v: number) {
+        // console.log('Buy set ' + v)
+        this._buylist = Math.max(v, 0);
+    }
+
+}
+
 
 var dbName = 'Resources';
 var sName = 'Items'
 
-var jsonTestData = '{"Items":[{"id":"sd51asd","name":"JABLKO","price":25},{"id":"dsdasdasda","name":"hruška","price":35},{"id":"dasddds","name":"pomeranč","price":87},{"id":"xascass","name":"kokos","price":96}]} ';
+var jsonTestData = '{"Items":[{"id":"sd51asd","name":"JABLKO","price":25, "buylist":10},{"id":"dsdasdasda","name":"hruška","price":35},{"id":"dasddds","name":"pomeranč","price":87},{"id":"xascass","name":"kokos","price":96}]} ';
 
-export async function GetItems(){
-    if (navigator.onLine) 
-    {
+export async function GetItems() {
+    if (navigator.onLine && await DB.getAll(dbName, sName).then((data) => {
+        return data.length == 0;
+    })) {
+        await DB.getAll(dbName, sName).then((data) => {
+            console.log(data.length);
+        })
+
         SaveItems(JSON.parse(jsonTestData).Items);
-    } 
-    return await DB.getAll(dbName,sName);
+    }
+
+    return await DB.getAll(dbName, sName);
 }
 
-export function SaveItems(items:Item[]) {
+export function SaveItems(items: Item[]) {
     DB.importAll(dbName, sName, items);
+}
+
+export function SaveItem(item: Item) {
+    DB.saveItem(dbName, sName, item);
 }

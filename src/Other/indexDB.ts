@@ -1,12 +1,12 @@
-import { Type } from "typescript"
-import { Item } from "../API/Items"
+import {Type} from "typescript"
+import {Item} from "../API/Items"
 
 export function importAll(dname: string, sname: string, arr: Array<any>) {
     return new Promise(function (resolve) {
         var r = window.indexedDB.open(dname)
         r.onupgradeneeded = function () {
             var idb = r.result
-            var store = idb.createObjectStore(sname, { keyPath: "id" })
+            var store = idb.createObjectStore(sname, {keyPath: "ID", autoIncrement: false})
         }
         r.onsuccess = function () {
             var idb = r.result
@@ -23,7 +23,27 @@ export function importAll(dname: string, sname: string, arr: Array<any>) {
     })
 }
 
-export async function getID(dname: string, sname: string, key: string) {
+export async function saveItem(dname: string, sname: string, item: Item) {
+    return new Promise(function (resolve) {
+        var r = window.indexedDB.open(dname)
+        r.onupgradeneeded = function () {
+            var idb = r.result
+            var store = idb.createObjectStore(sname, {keyPath: "ID", autoIncrement: false})
+        }
+        r.onsuccess = function () {
+            var idb = r.result
+            let tactn = idb.transaction(sname, "readwrite")
+            var store = tactn.objectStore(sname)
+            let data = store.put(item)
+            resolve(idb)
+        }
+        r.onerror = function (e) {
+            alert("Enable to access IndexedDB, ");
+        }
+    })
+}
+
+export async function getItem(dname: string, sname: string, key: string) {
     return new Promise(function (resolve) {
         var r = indexedDB.open(dname)
         r.onsuccess = function (e) {

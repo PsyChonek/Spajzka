@@ -2,14 +2,14 @@ import '../CSS/Global.css'
 
 import React, { useEffect, useState } from 'react';
 import Container from 'react-bootstrap/Container';
-import SearchBar from '../Components/SearchBar';
-import SearchItem from '../Components/SearchItem';
+import SearchBar from '../Components/Search/Bar';
+import SearchItem from '../Components/Search/Item';
 import { GetItems, Item } from '../API/Items';
 import { Console } from 'console';
-import SearchAdd from '../Components/SearchAdd';
-import SearchItemSeparator from '../Components/SearchItemSeparator';
-import SearchItemHead from '../Components/SearchItemHead';
-import SearchNavigation from '../Components/SearchNavigation';
+import SearchAdd from '../Components/Search/Add';
+import SearchItemSeparator from '../Components/Search/ItemSeparator';
+import SearchItemHead from '../Components/Search/ItemHead';
+import SearchNavigation from '../Components/Search/Navigation';
 import PopUpWindow from '../Components/PopUpWindow';
 
 const Search = () => {
@@ -42,7 +42,7 @@ const Search = () => {
     var queryLower = query.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     let results = Array<Item>();
 
-    if (query.length == 0) {
+    if (query.length === 0) {
       setResults(allData);
       return;
     }
@@ -72,7 +72,7 @@ const Search = () => {
       <Container>
         <SearchItemHead />
         {renderedResults}
-        {renderedResults.length == 0 && <SearchAdd />}
+        {renderedResults.length === 0 && <SearchAdd />}
         {renderedResults.length >= 4 && <SearchNavigation />}
       </Container>
     </Container >
