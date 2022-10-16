@@ -11,6 +11,7 @@ import SearchItemSeparator from '../Components/Search/ItemSeparator';
 import SearchItemHead from '../Components/Search/ItemHead';
 import SearchNavigation from '../Components/Search/Navigation';
 import PopUpWindow from '../Components/PopUpWindow';
+import {forEach} from "react-bootstrap/ElementChildren";
 
 const Search = () => {
   const [allData, setAllData] = useState<Item[]>([]);
@@ -57,6 +58,7 @@ const Search = () => {
   }
 
   const renderedResults = results.map((results, i) => {
+    console.log(i);
     return [
       <SearchItemSeparator />,
       <SearchItem item={results} key={i} />,

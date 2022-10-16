@@ -16,6 +16,15 @@ interface IItem {
 }
 
 export class Item implements IItem {
+    constructor(item:Item) {
+        this.ID = item.ID;
+        this.name = item.name;
+        this.price = item.price;
+        this.description = item.description;
+        this.image = item.image;
+        this.buylist = item.buylist || this._buylist;
+    }
+    
     public ID: ObjectID = new ObjectID();
     public name: string = '';
 
@@ -23,6 +32,7 @@ export class Item implements IItem {
     public get price(): number {
         return Math.max(this._price, 0);
     }
+
     public set price(v: number) {
         this._price = Math.max(v, 0);
     }
@@ -31,12 +41,14 @@ export class Item implements IItem {
     public image: string = '';
 
     private _buylist: number = 0;
+
     public get buylist(): number {
         console.log('Buy get ' + this._buylist)
         return Math.max(this._buylist, 0);
     }
+
     public set buylist(v: number) {
-        // console.log('Buy set ' + v)
+        console.log('Buy set ' + v)
         this._buylist = Math.max(v, 0);
     }
 

@@ -4,20 +4,22 @@ import {Item, SaveItem, SaveItems} from "../../API/Items";
 import PopUpWindow from "../PopUpWindow";
 
 const SearchItem = (props: { item: Item }) => {
+    let newItem: Item = new Item(props.item);
+    
     const [showDetail, setDetail] = useState(false);
-    const [itemBuylist, changeItemBuylist] = useState(props.item.buylist);
+    const [itemBuylist, changeItemBuylist] = useState(newItem.buylist);
 
     useEffect(() => {
-        props.item.buylist = itemBuylist;
-        SaveItem(props.item);
+        newItem.buylist = itemBuylist;
+        SaveItem(newItem);
     }, [itemBuylist]);
 
     return (
         <Container>
 
             <div className="gridContainer">
-                <div><b>{props.item.name.toLowerCase().charAt(0).toUpperCase() + props.item.name.slice(1).toLowerCase()}</b></div>
-                <div>{props.item.price}</div>
+                <div><b>{newItem.name.toLowerCase().charAt(0).toUpperCase() + newItem.name.slice(1).toLowerCase()}</b></div>
+                <div>{newItem.price}</div>
                 <Button variant="primary" onClick={() => setDetail(true)}>Detail</Button>
                 <div>
                     <Button variant="danger" onClick={() => changeItemBuylist(itemBuylist - 1)}>-</Button>
@@ -29,8 +31,8 @@ const SearchItem = (props: { item: Item }) => {
             <PopUpWindow
                 trigger={showDetail}
                 setTrigger={setDetail}
-                title={props.item.name.replace(/^./, props.item.name[0].toUpperCase())}
-                content={`${props.item.name.replace(/^./, props.item.name[0].toUpperCase())} právě stojí ${props.item.price} Kč`}
+                title={newItem.name.replace(/^./, newItem.name[0].toUpperCase())}
+                content={`${newItem.name.replace(/^./, newItem.name[0].toUpperCase())} právě stojí ${newItem.price} Kč`}
             />
 
         </Container>
