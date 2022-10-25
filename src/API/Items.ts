@@ -12,7 +12,7 @@ interface IItem {
     price: number;
     description: string;
     image: string;
-    buylist: number;
+    amount: number;
 }
 
 export class Item implements IItem {
@@ -40,16 +40,15 @@ export class Item implements IItem {
     public description: string = '';
     public image: string = '';
 
-    private _buylist: number = 0;
-
-    public get buylist(): number {
-        console.log('Buy get ' + this._buylist)
-        return Math.max(this._buylist, 0);
+    private _amount: number = 0;
+    public get amount(): number {
+        console.log('Buy get ' + this._amount)
+        return Math.max(this._amount, 0);
     }
 
-    public set buylist(v: number) {
+    public set amount(v: number) {
         console.log('Buy set ' + v)
-        this._buylist = Math.max(v, 0);
+        this._amount = Math.max(v, 0);
     }
 
 }
@@ -58,7 +57,7 @@ export class Item implements IItem {
 var dbName = 'Resources';
 var sName = 'Items'
 
-var jsonTestData = '{"Items":[{"id":"sd51asd","name":"JABLKO","price":25, "buylist":10},{"id":"dsdasdasda","name":"hruška","price":35},{"id":"dasddds","name":"pomeranč","price":87},{"id":"xascass","name":"kokos","price":96}]} ';
+var jsonTestData = '{"Items":[{"id":"sd51asd","name":"JABLKO","price":25, "amount":10},{"id":"dsdasdasda","name":"hruška","price":35},{"id":"dasddds","name":"pomeranč","price":87},{"id":"xascass","name":"kokos","price":96}]} ';
 
 export async function GetItems() {
     if (navigator.onLine && await DB.getAll(dbName, sName).then((data) => {

@@ -50,6 +50,23 @@
     border: 1px rgba(128, 128, 128, 0.316) solid;
 }
 
+.amountButtonsContainer {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.5em;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    justify-content: center;
+}
+
+.amountButton {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+}
+
 @media only screen and (max-width: 480px) {
     .searchbar-input {
         padding: 5%;

@@ -75,7 +75,7 @@ const Search = () => {
         <SearchItemHead />
         {renderedResults}
         {renderedResults.length === 0 && <SearchAdd />}
-        {renderedResults.length >= 4 && <SearchNavigation />}
+        {renderedResults.length >= 10 && <SearchNavigation />}
       </Container>
     </Container >
   );
