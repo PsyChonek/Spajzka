@@ -1,11 +1,11 @@
-import React, {FC, useEffect, useRef, useState} from "react";
+import React, {useEffect, useState} from "react";
 import {Button, Container} from "react-bootstrap";
-import {Item, SaveItem, SaveItems} from "../../API/Items";
-import PopUpWindow from "../PopUpWindow";
+import {Item, SaveItem} from "../../API/Items";
+import PopUpWindow, {PopUpWindowState} from "../PopUpWindow";
 
 
 const SearchItem = (props: { item: Item }) => {
-    const [showDetail, setDetail] = useState(false);
+    const [popUpState, setPopUpState] = useState(PopUpWindowState.Hidden);
     const [itemBuyAmount, setItemBuyAmount] = useState(props.item.amount || 0);
 
     useEffect(() => {
@@ -19,7 +19,7 @@ const SearchItem = (props: { item: Item }) => {
             <div className="gridContainer">
                 <div><b>{props.item.name.toLowerCase().charAt(0).toUpperCase() + props.item.name.slice(1).toLowerCase()}</b></div>
                 <div>{props.item.price}</div>
-                <Button variant="primary" onClick={() => setDetail(true)}>Detail</Button>
+                <Button variant="primary" onClick={() => setPopUpState(PopUpWindowState.WaitingOK)}>Detail</Button>
                 <div className="amountButtonsContainer">
                     <Button className="amountButton" variant="danger" onClick={() => setItemBuyAmount(Math.max((itemBuyAmount - 1), 0))}>-</Button>
                     <b className="amountButton">{itemBuyAmount}</b>
@@ -28,10 +28,11 @@ const SearchItem = (props: { item: Item }) => {
             </div>
 
             <PopUpWindow
-                trigger={showDetail}
-                setTrigger={setDetail}
+                state={popUpState}
+                setState={setPopUpState}
                 title={props.item.name.replace(/^./, props.item.name[0].toUpperCase())}
                 content={`${props.item.name.replace(/^./, props.item.name[0].toUpperCase())} právě stojí ${props.item.price} Kč`}
+                buttonText={"Jasně"}
             />
 
         </Container>

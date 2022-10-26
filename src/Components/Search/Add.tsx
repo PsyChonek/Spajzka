@@ -1,10 +1,31 @@
-import React, { FC, useEffect, useState } from 'react';
-import { Button } from "react-bootstrap";
+import React, {useState} from 'react';
+import {Button, Container} from "react-bootstrap";
+import PopUpWindow, {PopUpWindowState} from "../PopUpWindow";
+import Input from "../Input";
+
 
 function SearchAdd() {
-    return ( 
-        <Button variant="primary">Přidat</Button>
-     );
+    const [popUpState, setPopUpState] = useState(PopUpWindowState.Hidden);
+    return (
+        <Container>
+            <Button onClick={() => setPopUpState(PopUpWindowState.WaitingResult)} variant="primary">Přidat</Button>
+
+            <PopUpWindow
+                state={popUpState}
+                setState={setPopUpState}
+                title={"Přidat položku"}
+                content={<Input
+                    title={"Název"}
+                    type={"text"}
+                    placeholder={"Okurka"}
+                />}
+                buttonText={"Přidat"}
+
+            />
+        </Container>
+
+
+    );
 }
 
 export default SearchAdd;
