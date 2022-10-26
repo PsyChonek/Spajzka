@@ -6,58 +6,17 @@ export interface ItemsObject {
     Items: Array<Item>
 }
 
-interface IItem {
-    ID: ObjectID;
-    name: string;
-    price: number;
-    description: string;
-    image: string;
-    amount: number;
-}
-
-export class Item implements IItem {
-    constructor(item:Item) {
-        this.ID = item.ID;
-        this.name = item.name;
-        this.price = item.price;
-        this.description = item.description;
-        this.image = item.image;
-        this.amount = item.amount || this._amount;
-    }
-    
-    public ID: ObjectID = new ObjectID();
+export class Item {
+    public id: string = new ObjectID().toString();
     public name: string = '';
-
-    private _price: number = 0;
-    public get price(): number {
-        return Math.max(this._price, 0);
-    }
-
-    public set price(v: number) {
-        this._price = Math.max(v, 0);
-    }
-
+    public price: number = 0;
     public description: string = '';
     public image: string = '';
-
-    private _amount: number = 0;
-    public get amount(): number {
-        console.log('Buy get ' + this._amount)
-        return Math.max(this._amount, 0);
-    }
-
-    public set amount(v: number) {
-        console.log('Buy set ' + v)
-        this._amount = Math.max(v, 0);
-    }
-
+    public amount: number = 0;
 }
-
 
 var dbName = 'Resources';
 var sName = 'Items'
-
-var jsonTestData = '{"Items":[{"id":"sd51asd","name":"JABLKO","price":25, "amount":10},{"id":"dsdasdasda","name":"hruška","price":35},{"id":"dasddds","name":"pomeranč","price":87},{"id":"xascass","name":"kokos","price":96}]} ';
 
 export async function GetItems() {
     if (navigator.onLine && await DB.getAll(dbName, sName).then((data) => {
@@ -66,8 +25,6 @@ export async function GetItems() {
         await DB.getAll(dbName, sName).then((data) => {
             console.log(data.length);
         })
-
-        SaveItems(JSON.parse(jsonTestData).Items);
     }
 
     return await DB.getAll(dbName, sName);

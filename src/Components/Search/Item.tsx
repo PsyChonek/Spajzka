@@ -15,7 +15,6 @@ const SearchItem = (props: { item: Item }) => {
 
     return (
         <Container>
-
             <div className="gridContainer">
                 <div><b>{props.item.name.toLowerCase().charAt(0).toUpperCase() + props.item.name.slice(1).toLowerCase()}</b></div>
                 <div>{props.item.price}</div>

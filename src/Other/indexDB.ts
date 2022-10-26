@@ -1,7 +1,7 @@
 import {Type} from "typescript"
 import {Item} from "../API/Items"
 
-export function importAll(dname: string, sname: string, arr: Array<any>) {
+export function importAll(dname: string, sname: string, arr: Array<Item>) {
     return new Promise(function (resolve) {
         var r = window.indexedDB.open(dname)
         r.onupgradeneeded = function () {
