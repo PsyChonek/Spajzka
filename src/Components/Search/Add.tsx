@@ -14,9 +14,9 @@ function SearchAdd(props: { callbackUpdate: any, query: string }) {
     }, [value]);
 
     useEffect(() => {
-        if (popUpState == PopUpWindowState.Accept && (value != "" && props.query != "")) {
+        if (popUpState == PopUpWindowState.Accept && (value != "" || props.query != "")) {
             let newItem = new Item()
-            newItem.name = value != "" ? props.query : value;
+            newItem.name = value == "" ? props.query : value;
             SaveItem(newItem);
             setPopUpState(PopUpWindowState.Hidden)
             console.log("Accept")

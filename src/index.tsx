@@ -2,13 +2,12 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import Search from './Pages/Search';
-import * as serviceWorkerRegistration from './Other/serviceWorkerRegistration';
-import reportWebVitals from './Other/reportWebVitals';
 import {BrowserRouter, Link, Navigate, Route, Routes} from 'react-router-dom';
 import {Container, Nav, Navbar} from 'react-bootstrap';
-import Buylist from './Pages/Buylist';
-import Inventory from './Pages/Inventory';
+import * as serviceWorkerRegistration from './Other/serviceWorkerRegistration';
+import reportWebVitals from "./Other/reportWebVitals";
+import Search from "./Components/Search/Search";
+import Spajz from "./Pages/Spajz";
 
 const root = ReactDOM.createRoot(
     document.getElementById('root') as HTMLElement
@@ -22,8 +21,6 @@ root.render(
                 <Container>
                     <Navbar.Brand as={Link} to="/">Špajzka</Navbar.Brand>
                     <Nav className="me-auto">
-                        <Nav.Link as={Link} to="/search">Hledání</Nav.Link>
-                        <Nav.Link as={Link} to="/inventory">Špajz</Nav.Link>
                         <Nav.Link as={Link} to="/buylist">Nákupní lístek</Nav.Link>
                     </Nav>
                 </Container>
@@ -31,11 +28,7 @@ root.render(
 
 
             <Routes>
-                <Route path="/" element={<Navigate to="/search"/>}/>
-
-                <Route path="/search" element={<Search/>}/>
-                <Route path="/buylist" element={<Buylist/>}/>
-                <Route path="/inventory" element={<Inventory/>}/>
+                <Route path="/" element={<Spajz/>}/>
             </Routes>
 
 

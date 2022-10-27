@@ -8,7 +8,7 @@ function SearchItemHead() {
                 <div>Název</div>
                 <div>Cena</div>
                 <div>Detail</div>
-                <div>Nákupní lístek</div>
+                <div>Na skladě</div>
             </div>
         </Container>
     );

@@ -2,13 +2,14 @@ import '../CSS/Global.css'
 
 import React from "react";
 import {Container} from "react-bootstrap";
+import Search from "../Components/Search/Search";
 
-function Inventory() {
+function Spajz() {
     return (
         <Container className="content">
-            <h1>Špajz</h1>
+            <Search/>
         </Container>
     );
 }
 
-export default Inventory;
+export default Spajz;

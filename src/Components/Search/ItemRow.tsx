@@ -4,7 +4,7 @@ import {Item, SaveItem} from "../../API/Items";
 import PopUpWindow, {PopUpWindowState} from "../PopUpWindow";
 
 
-const SearchItem = (props: { item: Item }) => {
+const ItemRow = (props: { item: Item }) => {
     const [popUpState, setPopUpState] = useState(PopUpWindowState.Hidden);
     const [itemBuyAmount, setItemBuyAmount] = useState(props.item.amount || 0);
 
@@ -38,4 +38,4 @@ const SearchItem = (props: { item: Item }) => {
     );
 }
 
-export default SearchItem;
+export default ItemRow;

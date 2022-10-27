@@ -1,14 +1,14 @@
-import '../CSS/Global.css'
+import '../../CSS/Global.css'
 
 import React, {useEffect, useState} from 'react';
 import Container from 'react-bootstrap/Container';
-import SearchBar from '../Components/Search/Bar';
-import SearchItem from '../Components/Search/Item';
-import {GetItems, Item} from '../API/Items';
-import SearchAdd from '../Components/Search/Add';
-import SearchItemSeparator from '../Components/Search/ItemSeparator';
-import SearchItemHead from '../Components/Search/ItemHead';
-import SearchNavigation from '../Components/Search/Navigation';
+import SearchItemSeparator from "./ItemSeparator";
+import ItemRow from "./ItemRow";
+import SearchBar from "./Bar";
+import SearchItemHead from "./ItemHead";
+import SearchAdd from "./Add";
+import SearchNavigation from "./Navigation";
+import {GetItems, Item} from "../../API/Items";
 
 const Search = () => {
     const [allData, setAllData] = useState<Item[]>([]);
@@ -62,14 +62,12 @@ const Search = () => {
     const renderedResults = results.map((results, i) => {
         return [
             <SearchItemSeparator/>,
-            <SearchItem item={results} key={i}/>,
-            <SearchItemSeparator/>
+            <ItemRow item={results} key={i}/>,
         ]
     })
 
     return (
         <Container className='content'>
-            <h1>Vyhledávání</h1>
             <SearchBar onSearchSubmit={onSearchSubmit}/>
             <Container>
                 <SearchItemHead/>
