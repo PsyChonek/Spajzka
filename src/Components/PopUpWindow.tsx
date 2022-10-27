@@ -1,6 +1,6 @@
 import '../CSS/Popup.css'
 import {Button, Col, Container, Row} from "react-bootstrap";
-import React, {FC, useEffect, useRef, useState} from "react";
+import React, {useEffect} from "react";
 
 export enum PopUpWindowState {
     WaitingOK,

@@ -1,7 +1,7 @@
 import '../CSS/Global.css'
 
 import React from "react";
-import { Container } from "react-bootstrap";
+import {Container} from "react-bootstrap";
 
 function Buylist() {
     return (

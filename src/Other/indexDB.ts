@@ -1,4 +1,3 @@
-import {Type} from "typescript"
 import {Item} from "../API/Items"
 
 export function importAll(dname: string, sname: string, arr: Array<Item>) {
@@ -61,7 +60,7 @@ export async function getItem(dname: string, sname: string, key: string) {
     })
 }
 
-export function getAll(dname: string, sname: string) {
+export function getAll(dname: string, sname: string): Promise<Item[]> {
     return new Promise<any>(function (resolve) {
         var db = indexedDB.open(dname)
         db.onsuccess = function (e) {

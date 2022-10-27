@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import '../../CSS/Search.css'
 
 const SearchBar = (props: { onSearchSubmit: Function }) => {
@@ -15,7 +15,7 @@ const SearchBar = (props: { onSearchSubmit: Function }) => {
                 type='text'
                 placeholder="Vyhledej podle názvu. . ."
                 onChange={e => setTerm(e.target.value)}
-                value={term} />
+                value={term}/>
         </div>
     );
 };

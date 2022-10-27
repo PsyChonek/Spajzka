@@ -1,6 +1,5 @@
-import React, { FC, useEffect, useState } from 'react';
-import { Container } from "react-bootstrap";
-import { Item } from "../../API/Items";
+import React from 'react';
+import {Container} from "react-bootstrap";
 
 function SearchItemSeparator() {
     return (

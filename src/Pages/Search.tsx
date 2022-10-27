@@ -5,13 +5,10 @@ import Container from 'react-bootstrap/Container';
 import SearchBar from '../Components/Search/Bar';
 import SearchItem from '../Components/Search/Item';
 import {GetItems, Item} from '../API/Items';
-import {Console} from 'console';
 import SearchAdd from '../Components/Search/Add';
 import SearchItemSeparator from '../Components/Search/ItemSeparator';
 import SearchItemHead from '../Components/Search/ItemHead';
 import SearchNavigation from '../Components/Search/Navigation';
-import PopUpWindow from '../Components/PopUpWindow';
-import {forEach} from "react-bootstrap/ElementChildren";
 
 const Search = () => {
     const [allData, setAllData] = useState<Item[]>([]);
@@ -25,12 +22,12 @@ const Search = () => {
 
     // Update current result when new all data
     useEffect(() => {
-        UpdateResults();
+        updateResults();
     }, [allData])
 
     // Query updated
     useEffect(() => {
-        UpdateResults();
+        updateResults();
     }, [query])
 
     const onSearchSubmit = (term: string) => {
@@ -38,13 +35,13 @@ const Search = () => {
     }
 
     const updateAllData = () => {
-        GetItems().then((items) => {
+        GetItems().then((items:Item[]) => {
+           console.log(items.length)
             setAllData(items);
         })
     }
 
-    const UpdateResults = () => {
-        console.log("Updating results");
+    const updateResults = () => {
         var queryLower = query.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
         let results = Array<Item>();
 
@@ -66,10 +63,10 @@ const Search = () => {
         return [
             <SearchItemSeparator/>,
             <SearchItem item={results} key={i}/>,
-            // <SearchItemSeparator/>
+            <SearchItemSeparator/>
         ]
     })
-    
+
     return (
         <Container className='content'>
             <h1>Vyhledávání</h1>
