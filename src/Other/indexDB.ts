@@ -47,6 +47,7 @@ export async function getItem(dname: string, dversion: number, sname: string, ke
         var r = indexedDB.open(dname,dversion)
         r.onsuccess = function (e) {
             var idb = r.result
+            if (idb == null) return
             let tactn = idb.transaction(sname, "readonly")
             let store = tactn.objectStore(sname)
             let data = store.get(key)
@@ -65,6 +66,7 @@ export function getAll(dname: string, dversion: number, sname: string): Promise<
         var db = indexedDB.open(dname,dversion)
         db.onsuccess = function (e) {
             var idb = db.result
+            if (idb == null) return
             const tx = idb.transaction(sname, 'readonly');
             const store = tx.objectStore(sname);
             var data = store.getAll();
