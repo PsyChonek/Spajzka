@@ -16,15 +16,16 @@ export class Item {
 
 var dbName = 'Resources';
 var sName = 'Items'
+var dVersion = 2;
 
 export const GetItems = async (): Promise<Item[]> => {
-        return await DB.getAll(dbName, sName);
+    return await DB.getAll(dbName, dVersion, sName);
 };
 
 export function SaveItems(items: Item[]) {
-    DB.importAll(dbName, sName, items);
+    DB.importAll(dbName, dVersion, sName, items);
 }
 
 export function SaveItem(item: Item) {
-    DB.saveItem(dbName, sName, item);
+    DB.saveItem(dbName, dVersion, sName, item);
 }

@@ -1,8 +1,8 @@
 import {Item} from "../API/Items"
 
-export function importAll(dname: string, sname: string, arr: Array<Item>) {
+export function importAll(dname: string, dversion: number, sname: string, arr: Array<Item>) {
     return new Promise(function (resolve) {
-        var r = window.indexedDB.open(dname)
+        var r = indexedDB.open(dname,dversion)
         r.onupgradeneeded = function () {
             var idb = r.result
             var store = idb.createObjectStore(sname, {keyPath: "ID", autoIncrement: false})
@@ -22,9 +22,9 @@ export function importAll(dname: string, sname: string, arr: Array<Item>) {
     })
 }
 
-export async function saveItem(dname: string, sname: string, item: Item) {
+export async function saveItem(dname: string, dversion: number, sname: string, item: Item) {
     return new Promise(function (resolve) {
-        var r = window.indexedDB.open(dname)
+        var r = indexedDB.open(dname,dversion)
         r.onupgradeneeded = function () {
             var idb = r.result
             var store = idb.createObjectStore(sname, {keyPath: "ID", autoIncrement: false})
@@ -42,9 +42,9 @@ export async function saveItem(dname: string, sname: string, item: Item) {
     })
 }
 
-export async function getItem(dname: string, sname: string, key: string) {
+export async function getItem(dname: string, dversion: number, sname: string, key: string) {
     return new Promise(function (resolve) {
-        var r = indexedDB.open(dname)
+        var r = indexedDB.open(dname,dversion)
         r.onsuccess = function (e) {
             var idb = r.result
             let tactn = idb.transaction(sname, "readonly")
@@ -60,9 +60,9 @@ export async function getItem(dname: string, sname: string, key: string) {
     })
 }
 
-export function getAll(dname: string, sname: string): Promise<Item[]> {
+export function getAll(dname: string, dversion: number, sname: string): Promise<Item[]> {
     return new Promise<any>(function (resolve) {
-        var db = indexedDB.open(dname)
+        var db = indexedDB.open(dname,dversion)
         db.onsuccess = function (e) {
             var idb = db.result
             const tx = idb.transaction(sname, 'readonly');

@@ -22,7 +22,6 @@ root.render(
                     <Navbar.Brand as={Link} to="/">Špajzka</Navbar.Brand>
                     <Nav className="me-auto">
                         <Nav.Link as={Link} to="/buylist">Nákupní lístek</Nav.Link>
-                        <Nav.Link as={Link} to="/">Novinky</Nav.Link>
                     </Nav>
                 </Container>
             </Navbar>
