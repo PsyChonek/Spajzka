@@ -1,6 +1,6 @@
 :root {
-    --main-bg-color: #CFDBD5;
-    --main-fg-color: #E8EDDF;
+    --main-bg-color: #eeedef;
+    --main-fg-color: #d6d0de;
     --main-base-color: #F5CB5C;
 }
 
@@ -36,7 +36,7 @@ html {
 .content {
     padding-top: 76px;
     padding-bottom: 20px;
-    background-color: var(--main-base-color);
+    background-color: var(--main-fg-color);
     text-align: center;
     min-height: 100%;
     position: absolute;
