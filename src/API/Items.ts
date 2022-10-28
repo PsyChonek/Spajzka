@@ -16,7 +16,7 @@ export class Item {
 
 var dbName = 'Resources';
 var sName = 'Items'
-var dVersion = 5;
+var dVersion = 8;
 
 export const GetItems = async (): Promise<Item[]> => {
     return await DB.getAll(dbName, dVersion, sName);

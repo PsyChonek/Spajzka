@@ -7,11 +7,11 @@ export function importAll(dname: string, dversion: number, sname: string, arr: A
 }
 
 export async function saveItem(dname: string, dversion: number, sname: string, item: Item) {
-    return new Promise(function (resolve) {
-        var r = indexedDB.open(dname, dversion)
-        r.onupgradeneeded = function () {
-            var idb = r.result
-            var store = idb.createObjectStore(sname, {keyPath: "id", autoIncrement: false})
+    return new Promise(async function (resolve) {
+        var r = await indexedDB.open(dname, dversion)
+        r.onupgradeneeded = async function () {
+            var idb = r.result;
+            var store = await idb.createObjectStore(sname, {keyPath: "id", autoIncrement: false});
         }
         r.onsuccess = function () {
             var idb = r.result
@@ -38,7 +38,6 @@ export async function getItem(dname: string, dversion: number, sname: string, ke
     return new Promise(function (resolve) {
         var r = indexedDB.open(dname, dversion)
         r.onsuccess = function (e) {
-            debugger;
             var idb = r.result
             let tactn = idb.transaction(sname, "readonly")
             let store = tactn.objectStore(sname)
@@ -61,7 +60,10 @@ export function getAll(dname: string, dversion: number, sname: string): Promise<
         var db = indexedDB.open(dname, dversion)
         db.onsuccess = function (e) {
             var idb = db.result
-            if (idb == null) return
+            if (!idb.objectStoreNames.contains(sname)) {
+                resolve([])
+                return
+            }
             const tx = idb.transaction(sname, 'readonly');
             const store = tx.objectStore(sname);
             var data = store.getAll();
