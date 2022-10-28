@@ -2,9 +2,10 @@ import React, {useEffect, useState} from "react";
 import {Button, Container} from "react-bootstrap";
 import {Item, SaveItem} from "../../API/Items";
 import PopUpWindow, {PopUpWindowState} from "../PopUpWindow";
+import ItemDetail from "./ItemDetail";
 
 
-const ItemRow = (props: { item: Item }) => {
+const ItemRow = (props: { item: Item, updateCallback: any }) => {
     const [popUpState, setPopUpState] = useState(PopUpWindowState.Hidden);
     const [itemBuyAmount, setItemBuyAmount] = useState(props.item.amount || 0);
 
@@ -12,6 +13,10 @@ const ItemRow = (props: { item: Item }) => {
         props.item.amount = itemBuyAmount;
         SaveItem(props.item);
     }, [itemBuyAmount]);
+
+    useEffect(() => {
+        props.updateCallback();
+    }, [popUpState]);
 
     return (
         <Container>
@@ -30,7 +35,9 @@ const ItemRow = (props: { item: Item }) => {
                 state={popUpState}
                 setState={setPopUpState}
                 title={props.item.name.replace(/^./, props.item.name[0].toUpperCase())}
-                content={`${props.item.name.replace(/^./, props.item.name[0].toUpperCase())} právě stojí ${props.item.price} Kč`}
+                content={
+                    <ItemDetail item={props.item} popUpState={setPopUpState}/>
+                }
                 buttonText={"Jasně"}
             />
 

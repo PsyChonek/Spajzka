@@ -35,7 +35,7 @@ const Search = () => {
     }
 
     const updateAllData = () => {
-        GetItems().then((items:Item[]) => {
+        GetItems().then((items: Item[]) => {
             setAllData(items);
         })
     }
@@ -61,15 +61,15 @@ const Search = () => {
     const renderedResults = results.map((results, i) => {
         return [
             <SearchItemSeparator/>,
-            <ItemRow item={results} key={i}/>,
+            <ItemRow item={results} updateCallback={updateAllData}/>,
         ]
     })
 
     return (
-        <Container className='content'>
+        <Container>
             <SearchBar onSearchSubmit={onSearchSubmit}/>
             <Container>
-                <SearchItemHead/>
+                {renderedResults.length > 0 && <SearchItemHead/>}
                 {renderedResults}
                 {renderedResults.length === 0 && <SearchAdd callbackUpdate={updateAllData} query={query}/>}
                 {renderedResults.length >= 10 && <SearchNavigation/>}

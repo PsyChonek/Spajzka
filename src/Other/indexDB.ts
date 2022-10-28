@@ -74,3 +74,24 @@ export function getAll(dname: string, dversion: number, sname: string): Promise<
         }
     })
 }
+
+export async function deleteItem(dname: string, dversion: number, sname: string, item: Item) {
+    return new Promise(function (resolve) {
+        var r = indexedDB.open(dname, dversion)
+        r.onsuccess = function (e) {
+            var idb = r.result
+            let tactn = idb.transaction(sname, "readwrite")
+            let store = tactn.objectStore(sname)
+            let data = store.delete(item.id)
+            data.onsuccess = function () {
+                resolve(data.result)
+            }
+            data.onerror = function () {
+                resolve(null)
+            }
+            tactn.oncomplete = function () {
+                idb.close()
+            }
+        }
+    })
+}

@@ -17,7 +17,7 @@ root.render(
     <BrowserRouter>
         <React.StrictMode>
 
-            <Navbar bg="dark" variant="dark">
+            <Navbar className="navbar" bg="dark" variant="dark">
                 <Container>
                     <Navbar.Brand as={Link} to="/">Špajzka</Navbar.Brand>
                     <Nav className="me-auto">

@@ -29,3 +29,7 @@ export function SaveItems(items: Item[]) {
 export function SaveItem(item: Item) {
     DB.saveItem(dbName, dVersion, sName, item);
 }
+
+export function DeleteItem(item: Item) {
+    DB.deleteItem(dbName, dVersion, sName, item);
+}

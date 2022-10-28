@@ -15,11 +15,34 @@
 
 body {
     background-color: var(--main-bg-color);
+    height: 100%;
+    margin: 0;
+}
+
+html {
+    height: 100%;
+    margin: 0;
+}
+
+#root {
+    height: 100%;
+    margin: 0;
+}
+
+.navbar {
+    z-index: 1;
 }
 
 .content {
-    padding-top: 20px;
+    padding-top: 76px;
     padding-bottom: 20px;
     background-color: var(--main-base-color);
     text-align: center;
+    min-height: 100%;
+    position: absolute;
+    z-index: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
 }

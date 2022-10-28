@@ -15,7 +15,6 @@ function SearchAdd(props: { callbackUpdate: any, query: string }) {
             newItem.name = value == "" ? props.query : value;
             SaveItem(newItem);
             setPopUpState(PopUpWindowState.Hidden)
-            console.log("Accept")
             props.callbackUpdate();
         }
     }, [popUpState]);
