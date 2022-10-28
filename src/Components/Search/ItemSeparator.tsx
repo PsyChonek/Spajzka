@@ -3,7 +3,7 @@ import {Container} from "react-bootstrap";
 
 function SearchItemSeparator() {
     return (
-        <Container>
+        <Container className="searchContainer">
             <div className="gridContainer-separator">
             </div>
         </Container>

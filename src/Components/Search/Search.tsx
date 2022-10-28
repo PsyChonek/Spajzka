@@ -68,7 +68,7 @@ const Search = () => {
     return (
         <Container>
             <SearchBar onSearchSubmit={onSearchSubmit}/>
-            <Container>
+            <Container className="searchContainer">
                 {renderedResults.length > 0 && <SearchItemHead/>}
                 {renderedResults}
                 {renderedResults.length === 0 && <SearchAdd callbackUpdate={updateAllData} query={query}/>}

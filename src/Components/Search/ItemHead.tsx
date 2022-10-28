@@ -3,7 +3,7 @@ import {Container} from "react-bootstrap";
 
 function SearchItemHead() {
     return (
-        <Container>
+        <Container className="searchContainer">
             <div className="gridContainer-head">
                 <div>Název</div>
                 <div>Cena</div>

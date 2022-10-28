@@ -1,6 +1,6 @@
 .searchbar {
     width: 100%;
-    padding: 5%;
+    padding: 0%;
     padding-top: 0;
 }
 
@@ -18,27 +18,35 @@
     border: solid 1px aquamarine;
 }
 
+.searchContainer{
+    width: 100%;
+    padding: 0%;
+    margin: auto;
+    padding-top: 0;
+}
+
 .gridContainer {
     display: grid;
-    gap: 0.5em;
     /* border: 5px black; */
     width: 100%;
     grid-template-columns: 25% 25% 25% 25%;
     padding: 10px;
+    padding-right: 0;
+    padding-left: 0;
     /* border-top: 2px grey solid; */
     align-items: center;
 }
 
 .gridContainer-head {
     display: grid;
-    gap: 0.5em;
     /* border: 5px black; */
     width: 100%;
     grid-template-columns: 25% 25% 25% 25%;
     padding: 10px;
     /* border-top: 2px grey solid; */
     align-items: center;
-
+    padding-right: 0;
+    padding-left: 0;
     /* .gridContainer; */
 
     font-weight: bold;
@@ -51,10 +59,9 @@
 
 .amountButtonsContainer {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 0.5em;
+    grid-template-columns: 0.5fr 2fr 0.5fr;
     width: 100%;
-    padding: 0;
+    padding-left: 1.5em;
     margin: 0;
     justify-content: center;
 }
@@ -64,7 +71,6 @@
     justify-content: center;
     align-items: center;
     font-weight: bold;
-    width: 2em;
     overflow: hidden;
 }
 
