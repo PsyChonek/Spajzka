@@ -1,4 +1,5 @@
 import {Item} from "../API/Items"
+import {openDB} from "idb";
 
 export function importAll(dname: string, dversion: number, sname: string, arr: Array<Item>) {
     for (let i = 0; i < arr.length; i++) {
@@ -6,94 +7,28 @@ export function importAll(dname: string, dversion: number, sname: string, arr: A
     }
 }
 
+const dbPromise = (dname: string, dversion: number, sname:string) => {
+    return openDB(dname, dversion, {
+        upgrade(db) {
+            db.createObjectStore(sname, {keyPath: 'id'});
+        },
+    });
+}
+
 export async function saveItem(dname: string, dversion: number, sname: string, item: Item) {
-    return new Promise(async function (resolve) {
-        var r = await indexedDB.open(dname, dversion)
-        r.onupgradeneeded = async function () {
-            var idb = r.result;
-            var store = await idb.createObjectStore(sname, {keyPath: "id", autoIncrement: false});
-        }
-        r.onsuccess = function () {
-            var idb = r.result
-            let tactn = idb.transaction(sname, "readwrite")
-            var store = tactn.objectStore(sname)
-            let data = store.put(item)
-            data.onsuccess = function () {
-                resolve(idb)
-            }
-            data.onerror = function () {
-                resolve(null)
-            }
-            tactn.oncomplete = function () {
-                idb.close()
-            }
-        }
-        r.onerror = function (e) {
-            alert("Enable to access IndexedDB, ");
-        }
-    })
+    return (await dbPromise(dname,dversion,sname)).put(sname, item);
 }
 
 export async function getItem(dname: string, dversion: number, sname: string, key: string) {
-    return new Promise(function (resolve) {
-        var r = indexedDB.open(dname, dversion)
-        r.onsuccess = function (e) {
-            var idb = r.result
-            let tactn = idb.transaction(sname, "readonly")
-            let store = tactn.objectStore(sname)
-            let data = store.get(key)
-            data.onsuccess = function () {
-                resolve(data.result)
-            }
-            data.onerror = function () {
-                resolve(null)
-            }
-            tactn.oncomplete = function () {
-                idb.close()
-            }
-        }
-    })
+    return (await dbPromise(dname,dversion,sname)).get(sname, key);
 }
 
 export function getAll(dname: string, dversion: number, sname: string): Promise<Item[]> {
-    return new Promise<any>(function (resolve) {
-        var db = indexedDB.open(dname, dversion)
-        db.onsuccess = function (e) {
-            var idb = db.result
-            if (!idb.objectStoreNames.contains(sname)) {
-                resolve([])
-                return
-            }
-            const tx = idb.transaction(sname, 'readonly');
-            const store = tx.objectStore(sname);
-            var data = store.getAll();
-            data.onsuccess = function () {
-                resolve(data.result)
-            }
-            tx.oncomplete = function (e) {
-                idb.close()
-            }
-        }
-    })
+    return (dbPromise(dname,dversion,sname)).then(db => {
+        return db.getAll(sname);
+    });
 }
 
 export async function deleteItem(dname: string, dversion: number, sname: string, item: Item) {
-    return new Promise(function (resolve) {
-        var r = indexedDB.open(dname, dversion)
-        r.onsuccess = function (e) {
-            var idb = r.result
-            let tactn = idb.transaction(sname, "readwrite")
-            let store = tactn.objectStore(sname)
-            let data = store.delete(item.id)
-            data.onsuccess = function () {
-                resolve(data.result)
-            }
-            data.onerror = function () {
-                resolve(null)
-            }
-            tactn.oncomplete = function () {
-                idb.close()
-            }
-        }
-    })
+    return (await dbPromise(dname,dversion,sname)).delete(sname, item.id);
 }
