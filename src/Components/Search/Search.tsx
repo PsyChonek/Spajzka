@@ -36,7 +36,6 @@ const Search = () => {
 
     const updateAllData = () => {
         GetItems().then((items:Item[]) => {
-           console.log(items.length)
             setAllData(items);
         })
     }
