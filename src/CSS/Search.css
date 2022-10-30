@@ -22,7 +22,6 @@
     width: 100%;
     padding: 0%;
     margin: auto;
-    padding-top: 0;
 }
 
 .gridContainer {
@@ -72,6 +71,12 @@
     align-items: center;
     font-weight: bold;
     overflow: hidden;
+}
+.amountCount{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 5px;
 }
 
 @media only screen and (max-width: 480px) {

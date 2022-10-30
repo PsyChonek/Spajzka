@@ -20,7 +20,7 @@ function SearchAdd(props: { callbackUpdate: any, query: string }) {
     }, [popUpState]);
 
     return (
-        <Container>
+        <Container style={{paddingTop: 20}}>
             <Button onClick={() => setPopUpState(PopUpWindowState.WaitingAccept)} variant="primary">Přidat</Button>
             <PopUpWindow
                 state={popUpState}

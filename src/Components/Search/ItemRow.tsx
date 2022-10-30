@@ -26,7 +26,7 @@ const ItemRow = (props: { item: Item, updateCallback: any }) => {
                 <Button variant="primary" onClick={() => setPopUpState(PopUpWindowState.WaitingOK)}>Detail</Button>
                 <div className="amountButtonsContainer">
                     <Button className="amountButton" variant="danger" onClick={() => setItemBuyAmount(Math.max((itemBuyAmount - 1), 0))}>-</Button>
-                    <b className="amountButton">{itemBuyAmount}</b>
+                    <b className="amountCount">{itemBuyAmount}</b>
                     <Button className="amountButton" variant="success" onClick={() => setItemBuyAmount(Math.max((itemBuyAmount + 1), 0))}>+</Button>
                 </div>
             </div>
