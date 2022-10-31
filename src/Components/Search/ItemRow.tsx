@@ -20,7 +20,7 @@ const ItemRow = (props: { item: Item, updateCallback: any }) => {
 
     return (
         <Container>
-            <div className="gridContainer">
+            <div className="gridContainer itemContainer">
                 <div><b>{props.item.name.toLowerCase().charAt(0).toUpperCase() + props.item.name.slice(1).toLowerCase()}</b></div>
                 <div>{props.item.price}</div>
                 <Button variant="primary" onClick={() => setPopUpState(PopUpWindowState.WaitingOK)}>Detail</Button>

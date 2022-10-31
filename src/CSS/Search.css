@@ -18,10 +18,15 @@
     border: solid 1px aquamarine;
 }
 
-.searchContainer{
+.searchContainer {
     width: 100%;
     padding: 0%;
     margin: auto;
+}
+
+.itemContainer {
+    background-color: rgba(7, 255, 162, 0.11);
+    
 }
 
 .gridContainer {
@@ -72,7 +77,8 @@
     font-weight: bold;
     overflow: hidden;
 }
-.amountCount{
+
+.amountCount {
     display: flex;
     justify-content: center;
     align-items: center;
