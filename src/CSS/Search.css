@@ -31,22 +31,24 @@
 .gridContainer-item-spajz {
     display: grid;
     width: 100%;
-    grid-template-columns: 25% 25% 25% 25%;
+    grid-template-columns: 35% 15% 25% 25%;
     padding: 10px;
     padding-right: 0;
-    padding-left: 0;
-    align-items: center;
+    padding-left: 4vw;
+    align-items: center ;
     height: 4em;
+    text-align: left;
 }
 .gridContainer-item-buylist {
     display: grid;
     width: 100%;
-    grid-template-columns: 25% 125%;
-    /*padding: 10px;*/
+    grid-template-columns: 86% 10%;
+    padding: 10px;
     padding-right: 0;
-    padding-left: 0;
+    padding-left: 4vw;
     align-items: center;
     height: 4em;
+    text-align: left;
 }
 
 .gridContainer-head-spajz {
