@@ -1,7 +1,7 @@
 import React from 'react';
 import {Container} from "react-bootstrap";
 
-function SearchItemSeparator() {
+function ItemSeparator() {
     return (
         <Container className="searchContainer">
             <div className="gridContainer-separator">
@@ -10,4 +10,4 @@ function SearchItemSeparator() {
     );
 }
 
-export default SearchItemSeparator;
+export default ItemSeparator;

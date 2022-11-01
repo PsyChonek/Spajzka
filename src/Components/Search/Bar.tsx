@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import '../../CSS/Search.css'
 
-const SearchBar = (props: { onSearchSubmit: Function }) => {
+const Bar = (props: { onSearchSubmit: Function }) => {
     const [term, setTerm] = useState('');
 
     useEffect(() => {
@@ -20,4 +20,4 @@ const SearchBar = (props: { onSearchSubmit: Function }) => {
     );
 };
 
-export default SearchBar;
+export default Bar;

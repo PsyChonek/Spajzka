@@ -2,15 +2,24 @@ import '../../CSS/Global.css'
 
 import React, {useEffect, useState} from 'react';
 import Container from 'react-bootstrap/Container';
-import SearchItemSeparator from "./ItemSeparator";
-import ItemRow from "./ItemRow";
-import SearchBar from "./Bar";
-import SearchItemHead from "./ItemHead";
-import SearchAdd from "./Add";
-import SearchNavigation from "./Navigation";
+import ItemSeparator from "./ItemSeparator";
+import ItemRow_Spajz from "./ItemRow_Spajz";
+import Bar from "./Bar";
+import ItemHead_Spajz from "./ItemHead_Spajz";
+import Add from "./Add";
+import Navigation from "./Navigation";
 import {GetItems, Item} from "../../API/Items";
+import {scryRenderedComponentsWithType} from "react-dom/test-utils";
+import ItemRow_BuyList from "./ItemRow_BuyList";
+import ItemHead_BuyList from "./ItemHead_BuyList";
 
-const Search = () => {
+export enum SearchStyle {
+    Spajz = 0,
+    BuyList = 1,
+}
+
+const Search = (props: { type: SearchStyle }) => {
+
     const [allData, setAllData] = useState<Item[]>([]);
     const [results, setResults] = useState<Item[]>([]);
     const [query, setQuery] = useState<string>('');
@@ -58,21 +67,38 @@ const Search = () => {
         setResults(results)
     }
 
-    const renderedResults = results.map((results, i) => {
+    const itemType = (result: Item) => {
+        switch (props.type) {
+            case SearchStyle.Spajz:
+                return (<ItemRow_Spajz item={result} updateCallback={updateAllData}/>);
+            case SearchStyle.BuyList:
+                return (<ItemRow_BuyList item={result} updateCallback={updateAllData}/>);
+        }
+    }
+
+    const headType = () => {
+        switch (props.type) {
+            case SearchStyle.Spajz:
+                return (<ItemHead_Spajz/>);
+            case SearchStyle.BuyList:
+                return (<ItemHead_BuyList/>);
+        }
+    }
+    const renderedResults = results.map((result, i) => {
         return [
-            <SearchItemSeparator/>,
-            <ItemRow item={results} updateCallback={updateAllData}/>,
+            <ItemSeparator/>,
+            itemType(result),
         ]
     })
 
     return (
         <Container>
-            <SearchBar onSearchSubmit={onSearchSubmit}/>
+            <Bar onSearchSubmit={onSearchSubmit}/>
             <Container className="searchContainer">
-                {renderedResults.length > 0 && <SearchItemHead/>}
+                {renderedResults.length > 0 && headType()}
                 {renderedResults}
-                {renderedResults.length === 0 && <SearchAdd callbackUpdate={updateAllData} query={query}/>}
-                {renderedResults.length >= 10 && <SearchNavigation/>}
+                {renderedResults.length === 0 && <Add callbackUpdate={updateAllData} query={query}/>}
+                {renderedResults.length >= 10 && <Navigation/>}
             </Container>
         </Container>
     );

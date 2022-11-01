@@ -5,7 +5,7 @@ import Input from "../Input";
 import {Item, SaveItem} from "../../API/Items";
 
 
-function SearchAdd(props: { callbackUpdate: any, query: string }) {
+function Add(props: { callbackUpdate: any, query: string }) {
     const [popUpState, setPopUpState] = useState(PopUpWindowState.Hidden);
     const [value, setValue] = useState("");
 
@@ -43,4 +43,4 @@ function SearchAdd(props: { callbackUpdate: any, query: string }) {
     );
 }
 
-export default SearchAdd;
+export default Add;

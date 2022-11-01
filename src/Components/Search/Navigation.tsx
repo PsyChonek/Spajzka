@@ -1,7 +1,7 @@
 import React from 'react';
 import {Container, Pagination} from "react-bootstrap";
 
-function SearchNavigation() {
+function Navigation() {
     return (
         <Container>
             <Pagination className="justify-content-center">
@@ -13,4 +13,4 @@ function SearchNavigation() {
     );
 }
 
-export default SearchNavigation;
+export default Navigation;

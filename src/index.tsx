@@ -8,6 +8,7 @@ import * as serviceWorkerRegistration from './Other/serviceWorkerRegistration';
 import reportWebVitals from "./Other/reportWebVitals";
 import Search from "./Components/Search/Search";
 import Spajz from "./Pages/Spajz";
+import Buylist from "./Pages/Buylist";
 
 const root = ReactDOM.createRoot(
     document.getElementById('root') as HTMLElement
@@ -29,6 +30,7 @@ root.render(
 
             <Routes>
                 <Route path="/" element={<Spajz/>}/>
+                <Route path="/buylist" element={<Buylist/>}/>
             </Routes>
 
 

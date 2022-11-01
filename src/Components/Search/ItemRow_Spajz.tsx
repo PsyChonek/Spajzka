@@ -5,7 +5,7 @@ import PopUpWindow, {PopUpWindowState} from "../PopUpWindow";
 import ItemDetail from "./ItemDetail";
 
 
-const ItemRow = (props: { item: Item, updateCallback: any }) => {
+const ItemRow_Spajz = (props: { item: Item, updateCallback: any }) => {
     const [popUpState, setPopUpState] = useState(PopUpWindowState.Hidden);
     const [itemBuyAmount, setItemBuyAmount] = useState(props.item.amount || 0);
 
@@ -19,8 +19,8 @@ const ItemRow = (props: { item: Item, updateCallback: any }) => {
     }, [popUpState]);
 
     return (
-        <Container>
-            <div className="gridContainer-item">
+        <div>
+            <div className="gridContainer-item-spajz">
                 <div><b>{props.item.name.toLowerCase().charAt(0).toUpperCase() + props.item.name.slice(1).toLowerCase()}</b></div>
                 <div>{props.item.price}</div>
                 <Button variant="primary" onClick={() => setPopUpState(PopUpWindowState.WaitingOK)}>Detail</Button>
@@ -41,8 +41,8 @@ const ItemRow = (props: { item: Item, updateCallback: any }) => {
                 buttonText={"Jasně"}
             />
 
-        </Container>
+        </div>
     );
 }
 
-export default ItemRow;
+export default ItemRow_Spajz;
