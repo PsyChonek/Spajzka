@@ -1,7 +1,7 @@
 import React from 'react';
 import {Container} from "react-bootstrap";
 
-function ItemHead_BuyList() {
+function ItemHead_Buylist() {
     return (
         <Container className="searchContainer">
             <div className="gridContainer-head-buylist">
@@ -12,4 +12,4 @@ function ItemHead_BuyList() {
     );
 }
 
-export default ItemHead_BuyList;
+export default ItemHead_Buylist;

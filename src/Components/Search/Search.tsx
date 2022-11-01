@@ -9,13 +9,13 @@ import {GetItems, Item} from "../../API/Items";
 import {scryRenderedComponentsWithType} from "react-dom/test-utils";
 import Add from "./Add";
 import ItemRow_Spajz from "./Spajz/ItemRow_Spajz";
-import ItemRow_BuyList from "./BuyList/ItemRow_BuyList";
+import ItemRow_Buylist from "./Buylist/ItemRow_Buylist";
 import ItemHead_Spajz from "./Spajz/ItemHead_Spajz";
-import ItemHead_BuyList from "./BuyList/ItemHead_BuyList";
+import ItemHead_Buylist from "./Buylist/ItemHead_Buylist";
 
 export enum SearchStyle {
     Spajz = 0,
-    BuyList = 1,
+    Buylist = 1,
 }
 
 const Search = (props: { type: SearchStyle }) => {
@@ -71,8 +71,8 @@ const Search = (props: { type: SearchStyle }) => {
         switch (props.type) {
             case SearchStyle.Spajz:
                 return (<ItemRow_Spajz item={result} updateCallback={updateAllData}/>);
-            case SearchStyle.BuyList:
-                return (<ItemRow_BuyList item={result} updateCallback={updateAllData}></ItemRow_BuyList>);
+            case SearchStyle.Buylist:
+                return (<ItemRow_Buylist item={result} updateCallback={updateAllData}></ItemRow_Buylist>);
         }
     }
 
@@ -80,8 +80,8 @@ const Search = (props: { type: SearchStyle }) => {
         switch (props.type) {
             case SearchStyle.Spajz:
                 return (<ItemHead_Spajz/>);
-            case SearchStyle.BuyList:
-                return (<ItemHead_BuyList/>);
+            case SearchStyle.Buylist:
+                return (<ItemHead_Buylist/>);
         }
     }
     const renderedResults = results.map((result, i) => {

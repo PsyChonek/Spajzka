@@ -12,7 +12,7 @@ export class Item {
     public description: string = '';
     public image: string = '';
     public amount: number = 0;
-    public isOnBuyList: boolean = false;
+    public isOnBuylist: boolean = false;
 }
 
 var dbName = 'Resources';

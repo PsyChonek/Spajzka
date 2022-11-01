@@ -5,7 +5,8 @@ import Input from "../Input";
 import {Item, SaveItem} from "../../API/Items";
 import {SearchStyle} from "./Search";
 import AddButton_Spajz from "./Spajz/AddButton_Spajz";
-import AddButton_BuyList from "./BuyList/AddButton_BuyList";
+import AddButton_Buylist from "./Buylist/AddButton_Buylist";
+
 
 function Add(props: { type: SearchStyle, callbackUpdate: any, query: string }) {
     const [popUpState, setPopUpState] = useState(PopUpWindowState.Hidden);
@@ -18,10 +19,10 @@ function Add(props: { type: SearchStyle, callbackUpdate: any, query: string }) {
         }
     }, [popUpState]);
 
-    const SaveNewItem = (isOnBuyList: boolean = false) => {
+    const SaveNewItem = (isOnBuylist: boolean = false) => {
         let newItem = new Item()
         newItem.name = value == "" ? props.query : value;
-        newItem.isOnBuyList = isOnBuyList;
+        newItem.isOnBuylist = isOnBuylist;
         SaveItem(newItem);
         props.callbackUpdate();
     }
@@ -30,8 +31,8 @@ function Add(props: { type: SearchStyle, callbackUpdate: any, query: string }) {
         switch (props.type) {
             case SearchStyle.Spajz:
                 return (AddButton_Spajz(popUpState, setPopUpState, setValue, props.query));
-            case SearchStyle.BuyList:
-                return (AddButton_BuyList(SaveNewItem, props.query))
+            case SearchStyle.Buylist:
+                return (AddButton_Buylist(SaveNewItem, props.query))
         }
     }
 

@@ -7,7 +7,7 @@ import Search, {SearchStyle} from "../Components/Search/Search";
 function Buylist() {
     return (
         <Container className="content">
-            <Search type={SearchStyle.BuyList}/>
+            <Search type={SearchStyle.Buylist}/>
         </Container>
     );
 }
