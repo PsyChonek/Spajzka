@@ -25,11 +25,10 @@
 }
 
 .itemContainer {
-    background-color: rgba(7, 255, 162, 0.11);
-    
+    width: 100%;
 }
 
-.gridContainer {
+.gridContainer-item {
     display: grid;
     /* border: 5px black; */
     width: 100%;
