@@ -32,23 +32,22 @@
     display: grid;
     width: 100%;
     grid-template-columns: 35% 15% 25% 25%;
-    padding: 10px;
     padding-right: 0;
     padding-left: 4vw;
     align-items: center ;
-    height: 4em;
+    height: 3em;
     text-align: left;
 }
 .gridContainer-item-buylist {
     display: grid;
     width: 100%;
-    grid-template-columns: 86% 10%;
-    padding: 10px;
-    padding-right: 0;
-    padding-left: 4vw;
+    grid-template-columns: 90% 10%;
     align-items: center;
-    height: 4em;
+    height: 2em;
+    padding-left: 1em;
+    padding-right: 1em;
     text-align: left;
+    justify-content: space-evenly;
 }
 
 .gridContainer-head-spajz {
@@ -60,18 +59,19 @@
     padding-right: 0;
     padding-left: 0;
     font-weight: bold;
+    justify-content: space-evenly;
 }
 
 .gridContainer-head-buylist {
     display: grid;
     width: 100%;
-    grid-template-columns: 25% 125%;
+    grid-template-columns: 50% 50%;
     padding: 10px;
     align-items: center;
     padding-right: 0;
     padding-left: 0;
     font-weight: bold;
-
+    justify-content: space-evenly;
 }
 
 .gridContainer-separator {
@@ -100,6 +100,16 @@
     justify-content: center;
     align-items: center;
     padding: 5px;
+}
+
+.cross{
+    left: 6.5vw;
+    position: absolute; 
+    background-color: rgba(0, 0, 0, 0.38);
+    width: 85vw;
+    height: 25px;
+    border: solid 1px rgba(0, 0, 0, 0.38);
+    border-radius: 5px;
 }
 
 @media only screen and (max-width: 480px) {

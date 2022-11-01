@@ -12,11 +12,12 @@ export class Item {
     public description: string = '';
     public image: string = '';
     public amount: number = 0;
+    public isOnBuyList: boolean = false;
 }
 
 var dbName = 'Resources';
 var sName = 'Items'
-var dVersion = 8;
+var dVersion = 1;
 
 export const GetItems = async (): Promise<Item[]> => {
     return await DB.getAll(dbName, dVersion, sName);

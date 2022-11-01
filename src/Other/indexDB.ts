@@ -10,7 +10,10 @@ export function importAll(dname: string, dversion: number, sname: string, arr: A
 const dbPromise = (dname: string, dversion: number, sname:string) => {
     return openDB(dname, dversion, {
         upgrade(db) {
-            db.createObjectStore(sname, {keyPath: 'id'});
+            console.log('Database upgraded');
+            if (!db.objectStoreNames.contains(sname)) {
+                db.createObjectStore(sname, {keyPath: 'id'});
+            }
         },
     });
 }

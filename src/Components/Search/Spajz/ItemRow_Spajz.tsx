@@ -1,9 +1,8 @@
 import React, {useEffect, useState} from "react";
 import {Button, Container} from "react-bootstrap";
-import {Item, SaveItem} from "../../API/Items";
-import PopUpWindow, {PopUpWindowState} from "../PopUpWindow";
-import ItemDetail from "./ItemDetail";
-
+import {Item, SaveItem} from "../../../API/Items";
+import PopUpWindow, {PopUpWindowState} from "../../PopUpWindow";
+import ItemDetail from "../ItemDetail";
 
 const ItemRow_Spajz = (props: { item: Item, updateCallback: any }) => {
     const [popUpState, setPopUpState] = useState(PopUpWindowState.Hidden);

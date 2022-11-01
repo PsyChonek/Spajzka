@@ -3,15 +3,15 @@ import '../../CSS/Global.css'
 import React, {useEffect, useState} from 'react';
 import Container from 'react-bootstrap/Container';
 import ItemSeparator from "./ItemSeparator";
-import ItemRow_Spajz from "./ItemRow_Spajz";
 import Bar from "./Bar";
-import ItemHead_Spajz from "./ItemHead_Spajz";
-import Add from "./Add";
 import Navigation from "./Navigation";
 import {GetItems, Item} from "../../API/Items";
 import {scryRenderedComponentsWithType} from "react-dom/test-utils";
-import ItemRow_BuyList from "./ItemRow_BuyList";
-import ItemHead_BuyList from "./ItemHead_BuyList";
+import Add from "./Add";
+import ItemRow_Spajz from "./Spajz/ItemRow_Spajz";
+import ItemRow_BuyList from "./BuyList/ItemRow_BuyList";
+import ItemHead_Spajz from "./Spajz/ItemHead_Spajz";
+import ItemHead_BuyList from "./BuyList/ItemHead_BuyList";
 
 export enum SearchStyle {
     Spajz = 0,
@@ -72,7 +72,7 @@ const Search = (props: { type: SearchStyle }) => {
             case SearchStyle.Spajz:
                 return (<ItemRow_Spajz item={result} updateCallback={updateAllData}/>);
             case SearchStyle.BuyList:
-                return (<ItemRow_BuyList item={result} updateCallback={updateAllData}/>);
+                return (<ItemRow_BuyList item={result} updateCallback={updateAllData}></ItemRow_BuyList>);
         }
     }
 
@@ -86,7 +86,6 @@ const Search = (props: { type: SearchStyle }) => {
     }
     const renderedResults = results.map((result, i) => {
         return [
-            <ItemSeparator/>,
             itemType(result),
         ]
     })
@@ -96,8 +95,9 @@ const Search = (props: { type: SearchStyle }) => {
             <Bar onSearchSubmit={onSearchSubmit}/>
             <Container className="searchContainer">
                 {renderedResults.length > 0 && headType()}
+                <ItemSeparator/>
                 {renderedResults}
-                {renderedResults.length === 0 && <Add callbackUpdate={updateAllData} query={query}/>}
+                {renderedResults.length === 0 && <Add type={props.type} callbackUpdate={updateAllData} query={query}/>}
                 {renderedResults.length >= 10 && <Navigation/>}
             </Container>
         </Container>
