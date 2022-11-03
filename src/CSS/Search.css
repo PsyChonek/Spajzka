@@ -32,24 +32,25 @@
     display: grid;
     width: 100%;
     grid-template-columns: 35% 15% 25% 25%;
-    padding-right: 0;
-    padding-left: 4vw;
+    padding-left: 1em;
+    padding-right: 1em;
     align-items: center;
     height: 3em;
     text-align: left;
+    justify-content: space-evenly;
 }
 
 .gridContainer-item-buylist {
     display: grid;
     width: 100%;
     grid-template-columns: 90% 10%;
-    align-items: center;
-    height: 2em;
+    height: 3em;
     padding-left: 1em;
     padding-right: 1em;
     text-align: left;
     justify-content: space-evenly;
     contain: content;
+    align-items: center;
 }
 
 .gridContainer-head-spajz {
@@ -62,6 +63,7 @@
     padding-left: 0;
     font-weight: bold;
     justify-content: space-evenly;
+    contain: content;
 }
 
 .gridContainer-head-buylist {
