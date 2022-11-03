@@ -34,10 +34,11 @@
     grid-template-columns: 35% 15% 25% 25%;
     padding-right: 0;
     padding-left: 4vw;
-    align-items: center ;
+    align-items: center;
     height: 3em;
     text-align: left;
 }
+
 .gridContainer-item-buylist {
     display: grid;
     width: 100%;
@@ -48,6 +49,7 @@
     padding-right: 1em;
     text-align: left;
     justify-content: space-evenly;
+    contain: content;
 }
 
 .gridContainer-head-spajz {
@@ -102,12 +104,12 @@
     padding: 5px;
 }
 
-.cross{
-    left: 6.5vw;
-    position: absolute; 
-    background-color: black;
-    width: 85vw;
+.cross {
     height: 2px;
+    background-color: black;
+    box-sizing: border-box;
+    width: 100%;
+    position: fixed;
 }
 
 @media only screen and (max-width: 480px) {
