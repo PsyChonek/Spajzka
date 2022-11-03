@@ -9,6 +9,7 @@ import reportWebVitals from "./Other/reportWebVitals";
 import Search from "./Components/Search/Search";
 import Spajz from "./Pages/Spajz";
 import Buylist from "./Pages/Buylist";
+import Navigation from "./Navigation";
 
 const root = ReactDOM.createRoot(
     document.getElementById('root') as HTMLElement
@@ -17,23 +18,7 @@ const root = ReactDOM.createRoot(
 root.render(
     <BrowserRouter>
         <React.StrictMode>
-
-            <Navbar className="navbar" bg="dark" variant="dark">
-                <Container>
-                    <Navbar.Brand as={Link} to="/">Špajzka</Navbar.Brand>
-                    <Nav className="me-auto">
-                        <Nav.Link as={Link} to="/buylist">Nákupní lístek</Nav.Link>
-                    </Nav>
-                </Container>
-            </Navbar>
-
-
-            <Routes>
-                <Route path="/" element={<Spajz/>}/>
-                <Route path="/buylist" element={<Buylist/>}/>
-            </Routes>
-
-
+            <Navigation/>
         </React.StrictMode>
     </BrowserRouter>
 );

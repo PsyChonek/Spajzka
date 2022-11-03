@@ -105,11 +105,9 @@
 .cross{
     left: 6.5vw;
     position: absolute; 
-    background-color: rgba(0, 0, 0, 0.38);
+    background-color: black;
     width: 85vw;
-    height: 25px;
-    border: solid 1px rgba(0, 0, 0, 0.38);
-    border-radius: 5px;
+    height: 2px;
 }
 
 @media only screen and (max-width: 480px) {

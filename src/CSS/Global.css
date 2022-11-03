@@ -1,7 +1,7 @@
 :root {
     --main-bg-color: #efefef;
     --main-fg-color: #ffc87a;
-    --main-base-color: #F5CB5C;
+    --main-navbar-color: #414141;
 }
 
 @font-face {
@@ -31,6 +31,20 @@ html {
 
 .navbar {
     z-index: 1;
+    background-color: var(--main-navbar-color) !important;
+    box-shadow: 0px 0px 10px 10px rgba(0, 0, 0, 0.2);
+}
+
+.navbar-link {
+    color: white !important;
+}
+
+.navbar-link:hover {
+    color: purple !important;
+}
+
+.navbar-link:active {
+    color: green !important;
 }
 
 .content {
