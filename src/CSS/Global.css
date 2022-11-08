@@ -7,6 +7,7 @@
 @font-face {
     font-family: 'Quicksand';
     src: local('Quicksand'), url(../Fonts/Quicksand/Quicksand-VariableFont_wght.ttf) format('truetype');
+    font-display: swap;
 }
 
 * {
