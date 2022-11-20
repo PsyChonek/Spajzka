@@ -6,7 +6,7 @@ function ItemHead_Buylist() {
         <Container className="searchContainer">
             <div className="gridContainer-head-buylist">
                 <div>Název</div>
-                <div>Koupit</div>
+                <div>Je ve Špajzu?</div>
             </div>
         </Container>
     );
