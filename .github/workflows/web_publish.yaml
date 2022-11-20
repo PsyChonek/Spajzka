@@ -28,7 +28,7 @@ jobs:
         uses: SamKirkland/FTP-Deploy-Action@4.3.0
         with:
           server: vazacdaniel.com
-          local-dir: build/
+          local-dir: Spajzka.WEB/build/
           server-dir: sub/spajzka.vazacdaniel.com/
           username: github@vazacdaniel.com
           password: ${{ secrets.FTP_GITHUB_PASS }}
