@@ -8,7 +8,7 @@ function ItemHead_Spajz() {
                 <div>Název</div>
                 <div>Cena</div>
                 <div>Detail</div>
-                <div>Na skladě</div>
+                <div>Ve Špajzu</div>
             </div>
         </Container>
     );

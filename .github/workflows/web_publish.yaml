@@ -2,6 +2,8 @@ on:
   push:
     paths:
       - 'Spajzka.WEB/**'
+    branches:
+      - master
 name: 🚀 Deploy website on push
 jobs:
   web-deploy:
@@ -15,7 +17,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Use Node.js 18
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: '18'
 
@@ -25,10 +27,10 @@ jobs:
           npm run cibuild
 
       - name: 📂 Sync files
-        uses: SamKirkland/FTP-Deploy-Action@4.3.0
+        uses: SamKirkland/FTP-Deploy-Action@4.3.2
         with:
           server: vazacdaniel.com
-          local-dir: build/
+          local-dir: Spajzka.WEB/build/
           server-dir: sub/spajzka.vazacdaniel.com/
           username: github@vazacdaniel.com
           password: ${{ secrets.FTP_GITHUB_PASS }}

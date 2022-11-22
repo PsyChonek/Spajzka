@@ -18,7 +18,7 @@ const ItemRow_Buylist = (props: { item: Item, updateCallback: any }) => {
         <div className="gridContainer-item-buylist" onClick={() => UpdateItem(!props.item.isOnBuylist)}>
             {!props.item.isOnBuylist ? <div className="cross"></div> : <></>}
             <div className={props.item.isOnBuylist ? "" : "cross-text"}><b>{props.item.name.toLowerCase().charAt(0).toUpperCase() + props.item.name.slice(1).toLowerCase()}</b></div>
-            {props.item.isOnBuylist ? <>✅</> : <>❌</>}
+            {   props.item.amount > 0 ? <>✅</> : <>❌</>}
         </div>
     );
 }
