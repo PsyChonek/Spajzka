@@ -12,6 +12,7 @@ import ItemRow_Spajz from "./Spajz/ItemRow_Spajz";
 import ItemRow_Buylist from "./Buylist/ItemRow_Buylist";
 import ItemHead_Spajz from "./Spajz/ItemHead_Spajz";
 import ItemHead_Buylist from "./Buylist/ItemHead_Buylist";
+import {ALL} from "dns";
 
 export enum SearchStyle {
     Spajz = 0,
@@ -23,6 +24,7 @@ const Search = (props: { type: SearchStyle }) => {
     const [allData, setAllData] = useState<Item[]>([]);
     const [results, setResults] = useState<Item[]>([]);
     const [query, setQuery] = useState<string>('');
+    const [filters, setFilters] = useState<string[]>([]);
 
     // On page load, set all data
     useEffect(() => {
@@ -39,6 +41,10 @@ const Search = (props: { type: SearchStyle }) => {
         updateResults();
     }, [query])
 
+    useEffect(() => {
+        updateResults();
+    }, [filters])
+
     const onSearchSubmit = (term: string) => {
         setQuery(term);
     }
@@ -52,18 +58,24 @@ const Search = (props: { type: SearchStyle }) => {
     const updateResults = () => {
         var queryLower = query.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
         let results = Array<Item>();
-
-        if (query.length === 0) {
-            setResults(allData);
-            return;
-        }
-
-        for (let index = 0; index < allData.length; index++) {
-            if (allData[index].name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(queryLower)) {
-                results.push(allData[index]);
+        
+        if (query.length > 0) {
+            for (let index = 0; index < allData.length; index++) {
+                if (allData[index].name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(queryLower)) {
+                    results.push(allData[index]);
+                }
             }
+        } else {
+            results = allData;
         }
 
+        if (filters.includes("inSpajz")) {
+            results.sort((a, b) => (a.amount > b.amount) ? -1 : 1);
+        }
+
+        if (filters.includes("name")) {
+            results.sort((a, b) => (a.name > b.name) ? 1 : -1);
+        }
         setResults(results)
     }
 
@@ -81,7 +93,7 @@ const Search = (props: { type: SearchStyle }) => {
             case SearchStyle.Spajz:
                 return (<ItemHead_Spajz/>);
             case SearchStyle.Buylist:
-                return (<ItemHead_Buylist/>);
+                return (<ItemHead_Buylist filters={filters} setFilters={setFilters}/>);
         }
     }
     const renderedResults = results.map((result, i) => {
