@@ -21,15 +21,11 @@ export enum SearchStyle {
 }
 
 const Search = (props: { type: SearchStyle }) => {
-
     const [allData, setAllData] = useState<Item[]>([]);
     const [results, setResults] = useState<Item[]>([]);
     const [query, setQuery] = useState<string>('');
-    
-    // State to store sortopstions 
     const [sorts, setSorts] = useState<SortOptionsItem[]>([new SortOptionsItem("name", true), new SortOptionsItem("inSpajz")]);
     
-
     // On page load, set all data
     useEffect(() => {
         updateAllData();
@@ -46,7 +42,20 @@ const Search = (props: { type: SearchStyle }) => {
     }, [query])
     
     // Sort updated
-    const updateSort = () => {
+    const updateSort = (key:string) => {
+        var sortIndex = sorts.findIndex((sort) => sort.value === key);
+
+        var SortOption:SortOptionsItem = sorts[sortIndex];
+
+        if (SortOption.isActive) {
+            SortOption.isDescending = !SortOption.isDescending;
+        }
+        else {
+            sorts.forEach((sort) => sort.isActive = false);
+            SortOption.isActive = true;
+            SortOption.isDescending = !SortOption.isDescending;
+        }
+        
         updateResults();
     }
     
@@ -135,7 +144,7 @@ const Search = (props: { type: SearchStyle }) => {
                 <ItemSeparator/>
                 {renderedResults}
                 {renderedResults.length === 0 && <Add type={props.type} callbackUpdate={updateAllData} query={query}/>}
-                {renderedResults.length >= 10 && <Navigation/>}
+                {renderedResults.length >= 15 && <Navigation/>}
             </Container>
         </Container>
     );
