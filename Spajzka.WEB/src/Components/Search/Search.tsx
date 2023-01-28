@@ -25,7 +25,10 @@ const Search = (props: { type: SearchStyle }) => {
     const [allData, setAllData] = useState<Item[]>([]);
     const [results, setResults] = useState<Item[]>([]);
     const [query, setQuery] = useState<string>('');
-    const [sorts, setSorts]= useState<SortOptionsItem[]>([new SortOptionsItem("name", true), new SortOptionsItem("inSpajz")]);
+    
+    // State to store sortopstions 
+    const [sorts, setSorts] = useState<SortOptionsItem[]>([new SortOptionsItem("name", true), new SortOptionsItem("inSpajz")]);
+    
 
     // On page load, set all data
     useEffect(() => {
@@ -42,9 +45,15 @@ const Search = (props: { type: SearchStyle }) => {
         updateResults();
     }, [query])
     
-    useEffect(() => {
-        
-    }, [sorts])
+    // Sort updated
+    const updateSort = () => {
+        updateResults();
+    }
+    
+    // Result updated
+    useEffect(() => {   
+        console.log("Results updated");
+    }, [results])
 
     const onSearchSubmit = (term: string) => {
         setQuery(term);
@@ -58,7 +67,9 @@ const Search = (props: { type: SearchStyle }) => {
 
     const updateResults = () => {
         var queryLower = query.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-        let results = Array<Item>();
+        let results = new Array<Item>();
+        
+        setResults(results)
 
         if (query.length > 0) {
             for (let index = 0; index < allData.length; index++) {
@@ -67,33 +78,29 @@ const Search = (props: { type: SearchStyle }) => {
                 }
             }
         } else {
-            results = allData;
+            results = [...allData];
         }
 
-        if (sorts.find(x => x.value === "inSpajz")) {
-            results = results.sort((a, b) => {
-                if (a.amount > 0 && b.amount === 0) {
-                    return sorts.find(x => x.value === "inSpajz" && x.isDescending) ? 1 : -1;
-                } else if (a.amount === 0 && b.amount > 0) {
-                    return sorts.find(x => x.value === "inSpajz" && x.isDescending) ? -1 : 1;
+        if (sorts.find(x => x.value == "inSpajz")?.isActive) {
+            results.sort((a, b) => {
+                if (sorts.find(x => x.value == "inSpajz")?.isDescending) {
+                    return  a.amount - b.amount;
                 } else {
-                    return 0;
-                }
-            });
-        }
-    
-        if (sorts.find(x => x.value === "name")) {
-            results = results.sort((a, b) => {
-                if (a.name > b.name) {
-                    return sorts.find(x => x.value === "name" && x.isDescending) ? 1 : 11;
-                } else if (a.name < b.name) {
-                    return sorts.find(x => x.value === "name" && x.isDescending) ? -1 : 1;
-                } else {
-                    return 0;
-                }
-            });
+                    return b.amount - a.amount ;
+                }    
+            })
         }
 
+        if (sorts.find(x => x.value == "name")?.isActive) {
+            results.sort((a, b) => {
+                if (sorts.find(x => x.value == "name")?.isDescending) {
+                    return a.name.localeCompare(b.name);
+                } else {
+                    return b.name.localeCompare(a.name);
+                }
+            })
+        }
+        
         setResults(results)
     }
 
@@ -111,7 +118,7 @@ const Search = (props: { type: SearchStyle }) => {
             case SearchStyle.Spajz:
                 return (<ItemHead_Spajz/>);
             case SearchStyle.Buylist:
-                return (<ItemHead_Buylist sorts={sorts} setSorts={setSorts}/>);
+                return (<ItemHead_Buylist sorts={sorts} updateSort={updateSort}/>);
         }
     }
     const renderedResults = results.map((result, i) => {

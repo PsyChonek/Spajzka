@@ -18,6 +18,7 @@ export class SortOptionsItem {
 }
 
 const SortOptions = (props: { sorts: SortOptionsItem[], SortOptionType: SortOptionsType }) => {
+    
     const [filters, setFilters] = useState([""]);
 
     return (
