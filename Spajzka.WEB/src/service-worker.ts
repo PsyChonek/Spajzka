@@ -14,8 +14,6 @@ import {createHandlerBoundToURL, precacheAndRoute} from 'workbox-precaching';
 import {registerRoute} from 'workbox-routing';
 import {StaleWhileRevalidate} from 'workbox-strategies';
 
-const webPush = require('web-push')
-
 declare const self: ServiceWorkerGlobalScope;
 
 clientsClaim();
@@ -96,6 +94,5 @@ self.addEventListener('fetch', (event) => {
 self.addEventListener('push', (event) => {
     // Push notification
     // Allow to send push notification from server
-    webPush(event);
     console.log('push', event)
 });
