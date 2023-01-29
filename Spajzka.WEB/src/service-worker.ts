@@ -14,6 +14,8 @@ import {createHandlerBoundToURL, precacheAndRoute} from 'workbox-precaching';
 import {registerRoute} from 'workbox-routing';
 import {StaleWhileRevalidate} from 'workbox-strategies';
 
+const webPush = require('web-push')
+
 declare const self: ServiceWorkerGlobalScope;
 
 clientsClaim();
@@ -73,15 +75,15 @@ registerRoute(
 // registration.waiting.postMessage({type: 'SKIP_WAITING'})
 self.addEventListener('message', (event) => {
     console.log('message', event)
-    
-    if (event.data && event.data.type === 'SKIP_WAITING') {
+
+    if (event.data && event.data.type === 'SKIP_WAITING' || event.data === 'skipWaiting') {
         console.log('skip waiting')
         self.skipWaiting();
     }
 });
 
 self.addEventListener('fetch', (event) => {
-    event.respondWith(async function() : Promise<any>{
+    event.respondWith(async function (): Promise<any> {
         try {
             return await fetch(event.request);
         } catch (err) {
@@ -90,4 +92,10 @@ self.addEventListener('fetch', (event) => {
     }());
 });
 
-// Any other custom service worker logic can go here.
+// Push notification event
+self.addEventListener('push', (event) => {
+    // Push notification
+    // Allow to send push notification from server
+    webPush(event);
+    console.log('push', event)
+});
