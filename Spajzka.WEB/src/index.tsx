@@ -24,12 +24,6 @@ const notificationHelper = (text :string) => {
             });
         });
     }
-    if (window.Notification && Notification.permission === "granted") {
-        var n = new Notification('Spajzka', {
-            body: text,
-            icon: '/images/icon-512x512.png'
-        });
-    }
 }
 
 root.render(
