@@ -1,6 +1,6 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-import React from 'react';
+import React, {useEffect} from 'react';
 import ReactDOM from 'react-dom/client';
 import {BrowserRouter, Link, Navigate, Route, Routes} from 'react-router-dom';
 import {Container, Nav, Navbar} from 'react-bootstrap';
@@ -15,11 +15,26 @@ const root = ReactDOM.createRoot(
     document.getElementById('root') as HTMLElement
 );
 
+const notificationHelper = (text :string) => {
+    if (window.Notification && Notification.permission !== "denied") {
+        Notification.requestPermission(function (status) {
+            var n = new Notification('Spajzka', {
+                body: text,
+                icon: '/images/icon-512x512.png'
+            });
+        });
+    }
+    if (window.Notification && Notification.permission === "granted") {
+        var n = new Notification('Spajzka', {
+            body: text,
+            icon: '/images/icon-512x512.png'
+        });
+    }
+}
+
 root.render(
     <BrowserRouter>
-        <React.StrictMode>
-            <Navigation/>
-        </React.StrictMode>
+        <Navigation/>
     </BrowserRouter>
 );
 
@@ -33,3 +48,5 @@ serviceWorkerRegistration.register();
 // to log results (for example: reportWebVitals(console.log))
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 reportWebVitals();
+
+notificationHelper("Test");

@@ -60,9 +60,9 @@ const Search = (props: { type: SearchStyle }) => {
     }
     
     // Result updated
-    useEffect(() => {   
-        console.log("Results updated");
-    }, [results])
+    // useEffect(() => {   
+    //     console.log("Results updated");
+    // }, [results])
 
     const onSearchSubmit = (term: string) => {
         setQuery(term);
