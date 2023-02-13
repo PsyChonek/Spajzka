@@ -18,9 +18,10 @@ const root = ReactDOM.createRoot(
 const notificationHelper = (text :string) => {
     if (window.Notification && Notification.permission !== "denied") {
         Notification.requestPermission(function (status) {
+            console.log("Notification permission status:", status);
             var n = new Notification('Spajzka', {
                 body: text,
-                icon: '/images/icon-512x512.png'
+                icon: '/logo512.png'
             });
         });
     }
