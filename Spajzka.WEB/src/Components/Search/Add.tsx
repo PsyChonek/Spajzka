@@ -6,6 +6,8 @@ import {Item, SaveItem} from "../../API/Items";
 import {SearchStyle} from "./Search";
 import AddButton_Spajz from "./Spajz/AddButton_Spajz";
 import AddButton_Buylist from "./Buylist/AddButton_Buylist";
+import Notificator from "../../Other/notificator";
+import notificator from "../../Other/notificator";
 
 
 function Add(props: { type: SearchStyle, callbackUpdate: any, query: string }) {
@@ -25,6 +27,8 @@ function Add(props: { type: SearchStyle, callbackUpdate: any, query: string }) {
         newItem.isOnBuylist = isOnBuylist;
         SaveItem(newItem);
         props.callbackUpdate();
+
+        notificator.notify(`Položka ${newItem.name} byla přidána do spážky.`)
     }
 
     const Type = () => {

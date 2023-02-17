@@ -15,17 +15,6 @@ const root = ReactDOM.createRoot(
     document.getElementById('root') as HTMLElement
 );
 
-const notificationHelper = (text :string) => {
-    if (window.Notification && Notification.permission !== "denied") {
-        Notification.requestPermission(function (status) {
-            console.log("Notification permission status:", status);
-            var n = new Notification('Spajzka', {
-                body: text,
-                icon: '/logo512.png'
-            });
-        });
-    }
-}
 
 root.render(
     <BrowserRouter>
@@ -43,5 +32,3 @@ serviceWorkerRegistration.register();
 // to log results (for example: reportWebVitals(console.log))
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 reportWebVitals();
-
-notificationHelper("Test");
