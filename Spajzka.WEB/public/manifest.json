@@ -16,9 +16,15 @@
       "src": "logo512.png",
       "type": "image/png",
       "sizes": "512x512"
+    },
+    {
+      "src": "maskable_icon.png",
+      "sizes": "80x80",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ],
-  "start_url": "/spajz",
+  "start_url": "/",
   "display": "standalone",
   "theme_color": "#000000",
   "background_color": "#ffffff",
