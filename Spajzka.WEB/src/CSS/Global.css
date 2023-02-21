@@ -1,6 +1,6 @@
 :root {
-    --main-bg-color: #efefef;
-    --main-fg-color: #ffc87a;
+    --main-bg-color: #f2f2f2;
+    --main-fg-color: #e1e1e1;
     --main-navbar-color: #121212;
 }
 
@@ -43,7 +43,6 @@ html {
 .navbar-link-active {
     color: #C5BAEE !important;
 }
-
 
 .content {
     padding-top: 76px;

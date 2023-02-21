@@ -74,8 +74,8 @@
     align-items: center;
     padding-right: 0;
     padding-left: 0;
-    font-weight: bold;
-    justify-content: space-evenly;
+    font-weight: bold !important;
+justify-content: space-evenly;
 }
 
 .gridContainer-separator {

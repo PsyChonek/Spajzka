@@ -1,8 +1,8 @@
 ﻿import React, {Component, useEffect} from 'react';
 import {Container, Nav, Navbar} from "react-bootstrap";
 import {Link, Navigate, Route, Routes} from "react-router-dom";
-import Spajz from "./Pages/Spajz";
-import Buylist from "./Pages/Buylist";
+import Spajz from "./Spajz";
+import Buylist from "./Buylist";
 
 const Navigation = () => {
 

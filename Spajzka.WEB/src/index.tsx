@@ -7,9 +7,9 @@ import {Container, Nav, Navbar} from 'react-bootstrap';
 import * as serviceWorkerRegistration from './Other/serviceWorkerRegistration';
 import reportWebVitals from "./Other/reportWebVitals";
 import Search from "./Components/Search/Search";
-import Spajz from "./Pages/Spajz";
-import Buylist from "./Pages/Buylist";
-import Navigation from "./Navigation";
+import Spajz from "./Views/Spajz";
+import Buylist from "./Views/Buylist";
+import Navigation from "./Views/Navigation";
 
 const root = ReactDOM.createRoot(
     document.getElementById('root') as HTMLElement
