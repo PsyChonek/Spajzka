@@ -44,7 +44,6 @@ const Search = (props: { type: SearchStyle }) => {
     // Sort updated
     const updateSort = (key:string) => {
         var sortIndex = sorts.findIndex((sort) => sort.value === key);
-
         var SortOption:SortOptionsItem = sorts[sortIndex];
 
         if (SortOption.isActive) {
@@ -93,9 +92,9 @@ const Search = (props: { type: SearchStyle }) => {
         if (sorts.find(x => x.value == "inSpajz")?.isActive) {
             results.sort((a, b) => {
                 if (sorts.find(x => x.value == "inSpajz")?.isDescending) {
-                    return  a.amount - b.amount;
-                } else {
                     return b.amount - a.amount ;
+                } else {
+                    return  a.amount - b.amount;
                 }    
             })
         }
