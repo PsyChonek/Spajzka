@@ -87,22 +87,22 @@
     align-items: center;
     display: flex;
     justify-content: space-evenly;
-    background: rgba(0,0,0,0);
+    background: rgba(0, 0, 0, 0.1);
     border: none;
     color: black;
 }
+
 .gridContainer-head-buylist-item:hover {
-    background: rgba(0,0,0,0.1) !important;
-    border: none !important;
-    color: black !important;
-}
-.gridContainer-head-buylist-item:checked {
-    background: rgba(0,0,0,0.1) !important;
+    background: rgba(0, 0, 0, 0.2) !important;
     border: none !important;
     color: black !important;
 }
 
-
+.btn-check:checked + .gridContainer-head-buylist-item {
+    background: rgb(196, 167, 224) !important;
+    border: none !important;
+    color: black !important;
+}
 
 .gridContainer-separator {
     border: 1px rgba(128, 128, 128, 0.316) solid;
