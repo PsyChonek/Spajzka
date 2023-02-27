@@ -24,8 +24,9 @@ const Search = (props: { type: SearchStyle }) => {
     const [allData, setAllData] = useState<Item[]>([]);
     const [results, setResults] = useState<Item[]>([]);
     const [query, setQuery] = useState<string>('');
-    const [sorts, setSorts] = useState<SortOptionsItem[]>([new SortOptionsItem("name", true), new SortOptionsItem("inSpajz")]);
-    
+    const [sorts, setSorts] = useState<SortOptionsItem[]>([new SortOptionsItem("name", true), new SortOptionsItem("inSpajz"),
+        new SortOptionsItem("isOnBuylist")]);
+
     // On page load, set all data
     useEffect(() => {
         updateAllData();
@@ -40,24 +41,23 @@ const Search = (props: { type: SearchStyle }) => {
     useEffect(() => {
         updateResults();
     }, [query])
-    
+
     // Sort updated
-    const updateSort = (key:string) => {
+    const updateSort = (key: string) => {
         var sortIndex = sorts.findIndex((sort) => sort.value === key);
-        var SortOption:SortOptionsItem = sorts[sortIndex];
+        var SortOption: SortOptionsItem = sorts[sortIndex];
 
         if (SortOption.isActive) {
             SortOption.isDescending = !SortOption.isDescending;
-        }
-        else {
+        } else {
             sorts.forEach((sort) => sort.isActive = false);
             SortOption.isActive = true;
             SortOption.isDescending = !SortOption.isDescending;
         }
-        
+
         updateResults();
     }
-    
+
     // Result updated
     // useEffect(() => {   
     //     console.log("Results updated");
@@ -76,7 +76,7 @@ const Search = (props: { type: SearchStyle }) => {
     const updateResults = () => {
         var queryLower = query.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
         let results = new Array<Item>();
-        
+
         setResults(results)
 
         if (query.length > 0) {
@@ -92,10 +92,10 @@ const Search = (props: { type: SearchStyle }) => {
         if (sorts.find(x => x.value == "inSpajz")?.isActive) {
             results.sort((a, b) => {
                 if (sorts.find(x => x.value == "inSpajz")?.isDescending) {
-                    return b.amount - a.amount ;
+                    return b.amount - a.amount;
                 } else {
-                    return  a.amount - b.amount;
-                }    
+                    return a.amount - b.amount;
+                }
             })
         }
 
@@ -107,6 +107,16 @@ const Search = (props: { type: SearchStyle }) => {
                     return b.name.localeCompare(a.name);
                 }
             })
+        }
+
+        if (sorts.find(x => x.value == "isOnBuylist")?.isActive) {
+            results.sort((a, b) => {
+                if (sorts.find(x => x.value == "isOnBuylist")?.isDescending) {
+                    return a.isOnBuylist ? 1 : -1
+                } else {
+                    return a.isOnBuylist ? -1 : 1
+                }
+            });
         }
         
         setResults(results)

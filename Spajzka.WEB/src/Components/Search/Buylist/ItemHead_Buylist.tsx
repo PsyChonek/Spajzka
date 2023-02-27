@@ -8,6 +8,13 @@ function ItemHead_Buylist(props: { sorts: SortOptionsItem[], updateSort: any }) 
         <Container className="searchContainer">
             <div className="gridContainer-head-buylist">
                 <ToggleButton className="gridContainer-head-buylist-item" type="checkbox" value={"WHY"}
+                              checked={props.sorts?.find(x => x.value == "isOnBuylist")?.isActive}
+                              onClick={(e) => props.updateSort("isOnBuylist")}>
+                    V nákupním seznamu?
+                    {props.sorts?.find(x => x.value == "isOnBuylist")?.isDescending && <i className="bi-sort-down" style={{WebkitTextStrokeWidth: "0.8px"}}></i>
+                        || <i className="bi-sort-up" style={{WebkitTextStrokeWidth: "0.8px"}}></i>}
+                </ToggleButton>
+                <ToggleButton className="gridContainer-head-buylist-item" type="checkbox" value={"WHY"}
                               checked={props.sorts?.find(x => x.value == "name")?.isActive}
                               onClick={(e) => props.updateSort("name")}>
                     Název
