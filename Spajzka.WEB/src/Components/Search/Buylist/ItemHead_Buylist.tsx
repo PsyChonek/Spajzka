@@ -11,22 +11,22 @@ function ItemHead_Buylist(props: { sorts: SortOptionsItem[], updateSort: any }) 
                               checked={props.sorts?.find(x => x.value == "isOnBuylist")?.isActive}
                               onClick={(e) => props.updateSort("isOnBuylist")}>
                     V nákupním seznamu?
-                    {props.sorts?.find(x => x.value == "isOnBuylist")?.isDescending && <i className="bi-sort-down" style={{WebkitTextStrokeWidth: "0.8px",fontSize:"1.5em"}}></i>
-                        || <i className="bi-sort-up" style={{WebkitTextStrokeWidth: "0.8px",fontSize:"1.5em"}}></i>}
+                    {props.sorts?.find(x => x.value == "isOnBuylist")?.isDescending && <i className="bi-sort-down gridContainer-head-item-icon" ></i>
+                        || <i className="bi-sort-up gridContainer-head-item-icon"></i>}
                 </ToggleButton>
                 <ToggleButton className="gridContainer-head-buylist-item" type="checkbox" value={"WHY"}
                               checked={props.sorts?.find(x => x.value == "name")?.isActive}
                               onClick={(e) => props.updateSort("name")}>
                     Název
-                    {props.sorts?.find(x => x.value == "name")?.isDescending && <i className="bi-sort-down" style={{WebkitTextStrokeWidth: "0.8px",fontSize:"1.5em"}}></i>
-                        || <i className="bi-sort-up" style={{WebkitTextStrokeWidth: "0.8px",fontSize:"1.5em"}}></i>}
+                    {props.sorts?.find(x => x.value == "name")?.isDescending && <i className="bi-sort-down gridContainer-head-item-icon"></i>
+                        || <i className="bi-sort-up gridContainer-head-item-icon"></i>}
                 </ToggleButton>
                 <ToggleButton className="gridContainer-head-buylist-item" type="checkbox" value={"WHY"}
                               checked={props.sorts?.find(x => x.value == "inSpajz")?.isActive}
                               onClick={(e) => props.updateSort("inSpajz")}>
                     Je ve Špajzu?
-                    {props.sorts?.find(x => x.value == "inSpajz")?.isDescending && <i className="bi-sort-down" style={{WebkitTextStrokeWidth: "0.8px",fontSize:"1.5em"}}></i>
-                        || <i className="bi-sort-up" style={{WebkitTextStrokeWidth: "0.8px",fontSize:"1.5em"}}></i>}
+                    {props.sorts?.find(x => x.value == "inSpajz")?.isDescending && <i className="bi-sort-down gridContainer-head-item-icon"></i>
+                        || <i className="bi-sort-up gridContainer-head-item-icon"></i>}
                 </ToggleButton>
             </div>
         </Container>

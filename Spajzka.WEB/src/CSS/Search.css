@@ -1,3 +1,4 @@
+only
 .searchbar {
     width: 100%;
     padding: 0%;
@@ -29,7 +30,6 @@
 }
 
 .gridContainer-item-spajz {
-    display: grid;
     width: 100%;
     grid-template-columns: 35% 15% 25% 25%;
     padding-left: 1em;
@@ -66,31 +66,6 @@
     contain: content;
 }
 
-.gridContainer-head-buylist {
-    display: grid;
-    width: 100%;
-    grid-template-columns: 50% 50%;
-    padding: 10px;
-    align-items: center;
-    padding-right: 0;
-    padding-left: 0;
-    justify-content: space-evenly;
-    align-content: center;
-    display: flex;
-}
-
-.gridContainer-head-buylist-item {
-    font-weight: bold;
-    width: 180px;
-    height: 50px;
-    justify-content: center;
-    align-items: center;
-    display: flex;
-    justify-content: space-evenly;
-    background: rgba(0, 0, 0, 0.1);
-    border: none;
-    color: black;
-}
 
 .gridContainer-head-buylist-item:hover {
     background: rgba(0, 0, 0, 0.2) !important;
@@ -141,6 +116,12 @@
     color: rgba(0, 0, 0, 0.5) !important;
 }
 
+.gridContainer-head-item-icon {
+    -webkit-text-stroke-width: 0.8px;
+    font-size: 1.5em;
+    
+}
+
 .cross {
     height: 2px;
     background-color: rgba(0, 0, 0, 0.5);
@@ -149,8 +130,56 @@
     position: fixed;
 }
 
-@media only screen and (max-width: 480px) {
-    .searchbar-input {
-        padding: 5%;
+@media only screen and (min-width: 767px) {
+
+    .gridContainer-head-buylist {
+        width: 100%;
+        padding: 10px;
+        align-items: center;
+        padding-right: 0;
+        padding-left: 0;
+        justify-content: space-evenly;
+        align-content: center;
+        display: flex;
+    }
+
+    .gridContainer-head-buylist-item {
+        font-weight: bold;
+        width: 180px;
+        height: 50px;
+        align-items: center;
+        display: flex;
+        justify-content: space-evenly;
+        background: rgba(0, 0, 0, 0.1);
+        border: none;
+        color: black;
+        padding: 5px;
+    }
+}
+
+@media only screen and (max-width: 767px) {
+
+    .gridContainer-head-buylist {
+        width: 100%;
+        padding: 10px;
+        align-items: center;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .gridContainer-head-buylist-item {
+        flex-direction: row;
+        font-weight: bold;
+        width: 80%;
+        height: 40px;
+        align-items: center;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        background: rgba(0, 0, 0, 0.1);
+        border: none;
+        color: black;
+        padding: 10px;
     }
 }

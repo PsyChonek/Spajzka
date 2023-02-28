@@ -14,6 +14,8 @@ const ItemRow_Buylist = (props: { item: Item, updateCallback: any }) => {
     }
 
     const HoldItem = () => {
+        console.log("Hold");
+        
         UpdateItem(!props.item.isOnBuylist);
         isHoolding = true;
 
