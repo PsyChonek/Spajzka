@@ -51,6 +51,9 @@ only
     justify-content: space-evenly;
     contain: content;
     align-items: center;
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
 }
 
 .gridContainer-head-spajz {
@@ -64,6 +67,9 @@ only
     font-weight: bold;
     justify-content: space-evenly;
     contain: content;
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
 }
 
 
@@ -119,7 +125,7 @@ only
 .gridContainer-head-item-icon {
     -webkit-text-stroke-width: 0.8px;
     font-size: 1.5em;
-    
+
 }
 
 .cross {
@@ -130,56 +136,43 @@ only
     position: fixed;
 }
 
-@media only screen and (min-width: 767px) {
-
-    .gridContainer-head-buylist {
-        width: 100%;
-        padding: 10px;
-        align-items: center;
-        padding-right: 0;
-        padding-left: 0;
-        justify-content: space-evenly;
-        align-content: center;
-        display: flex;
-    }
-
-    .gridContainer-head-buylist-item {
-        font-weight: bold;
-        width: 180px;
-        height: 50px;
-        align-items: center;
-        display: flex;
-        justify-content: space-evenly;
-        background: rgba(0, 0, 0, 0.1);
-        border: none;
-        color: black;
-        padding: 5px;
-    }
+.gridContainer-head-buylist {
+    width: 100%;
+    padding: 10px;
+    align-items: center;
+    padding-right: 0;
+    padding-left: 0;
+    justify-content: space-evenly;
+    align-content: center;
+    display: flex;
+    grid-template-columns: 95% 5%;
 }
 
-@media only screen and (max-width: 767px) {
-
-    .gridContainer-head-buylist {
-        width: 100%;
-        padding: 10px;
-        align-items: center;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    .gridContainer-head-buylist-item {
-        flex-direction: row;
-        font-weight: bold;
-        width: 80%;
-        height: 40px;
-        align-items: center;
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        background: rgba(0, 0, 0, 0.1);
-        border: none;
-        color: black;
-        padding: 10px;
-    }
+.gridContainer-head-buylist-item {
+    font-weight: bold;
+    width: 180px;
+    height: 60px;
+    align-items: center;
+    display: grid;
+    background: rgba(0, 0, 0, 0.1);
+    border: none;
+    color: black;
+    padding: 5px;
+    margin: 7px;
+    text-align: center;
+    grid-template-columns: 80% 20%;
 }
+
+.dropdown-toggle {
+    font-weight: bold !important;
+    width: 180px !important;
+    height: 50px !important;
+    align-items: center !important;
+    display: flex !important;
+    justify-content: space-evenly;
+    background: rgba(0, 0, 0, 0.1) !important;
+    border: none !important;
+    color: black !important;
+    padding: 5px !important;
+}
+    
