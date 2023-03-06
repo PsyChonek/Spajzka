@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {Button, ButtonGroup, Container, DropdownButton, ToggleButton} from "react-bootstrap";
 import {SortOptionsItem} from "../SortOptions";
+import ItemSeparator from "../ItemSeparator";
 
 function ItemHead_Buylist(props: { sorts: SortOptionsItem[], updateSort: any }) {
 
@@ -30,6 +31,11 @@ function ItemHead_Buylist(props: { sorts: SortOptionsItem[], updateSort: any }) 
                             || <i className="bi-sort-up gridContainer-head-item-icon"></i>}
                     </ToggleButton>
                 </DropdownButton>
+            </div>
+            <ItemSeparator/>
+            <div className="gridContainer-head-spajz" style={{gridTemplateColumns: "50% 50%"}}>
+                <div>Název</div>
+                <div>Ve Špajzu</div>
             </div>
         </Container>
     );

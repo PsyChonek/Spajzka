@@ -6,27 +6,36 @@ import ItemDetail from "../ItemDetail";
 
 const ItemRow_Spajz = (props: { item: Item, updateCallback: any }) => {
     const [popUpState, setPopUpState] = useState(PopUpWindowState.Hidden);
-    const [itemBuyAmount, setItemBuyAmount] = useState(props.item.amount || 0);
 
-    useEffect(() => {
-        props.item.amount = itemBuyAmount;
+    const UpdateItem = (isOnBuylist: boolean) => {
+        props.item.isOnBuylist = isOnBuylist;
         SaveItem(props.item);
-    }, [itemBuyAmount]);
+        props.updateCallback();
+    }
+
+    const AddItem = (count: number) => {
+        props.item.amount = Math.max((props.item.amount + count), 0);
+        SaveItem(props.item);
+        props.updateCallback();
+    }
+
 
     useEffect(() => {
         props.updateCallback();
     }, [popUpState]);
 
     return (
-        <div>
+        <>
             <div className="gridContainer-item-spajz">
                 <div><b>{props.item.name.toLowerCase().charAt(0).toUpperCase() + props.item.name.slice(1).toLowerCase()}</b></div>
-                <div>{props.item.price}</div>
+                <div>W.I.P.</div>
+                {/*<Button variant="primary" onClick={() => setPopUpState(PopUpWindowState.WaitingOK)}>{props.item.price}</Button>*/}
+
                 <Button variant="primary" onClick={() => setPopUpState(PopUpWindowState.WaitingOK)}>Detail</Button>
                 <div className="amountButtonsContainer">
-                    <Button className="amountButton" variant="danger" onClick={() => setItemBuyAmount(Math.max((itemBuyAmount - 1), 0))}>-</Button>
-                    <b className="amountCount">{itemBuyAmount}</b>
-                    <Button className="amountButton" variant="success" onClick={() => setItemBuyAmount(Math.max((itemBuyAmount + 1), 0))}>+</Button>
+                    <Button className="amountButton" variant="danger" onClick={() => AddItem(-1)}>-</Button>
+                    <b className="amountCount">{props.item.amount}</b>
+                    <Button className="amountButton" variant="success" onClick={() => AddItem(1)}>+</Button>
                 </div>
             </div>
 
@@ -39,8 +48,7 @@ const ItemRow_Spajz = (props: { item: Item, updateCallback: any }) => {
                 }
                 buttonText={"Jasně"}
             />
-
-        </div>
+        </>
     );
 }
 

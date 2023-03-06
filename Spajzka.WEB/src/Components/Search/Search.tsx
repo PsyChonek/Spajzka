@@ -12,7 +12,6 @@ import ItemRow_Spajz from "./Spajz/ItemRow_Spajz";
 import ItemRow_Buylist from "./Buylist/ItemRow_Buylist";
 import ItemHead_Spajz from "./Spajz/ItemHead_Spajz";
 import ItemHead_Buylist from "./Buylist/ItemHead_Buylist";
-import {ALL} from "dns";
 import {SortOptionsItem} from "./SortOptions";
 
 export enum SearchStyle {
@@ -25,7 +24,7 @@ const Search = (props: { type: SearchStyle }) => {
     const [results, setResults] = useState<Item[]>([]);
     const [query, setQuery] = useState<string>('');
     const [sorts, setSorts] = useState<SortOptionsItem[]>([new SortOptionsItem("name", true), new SortOptionsItem("inSpajz"),
-        new SortOptionsItem("isOnBuylist")]);
+        new SortOptionsItem("isOnBuylist"), new SortOptionsItem("price")]);
 
     // On page load, set all data
     useEffect(() => {
@@ -118,7 +117,16 @@ const Search = (props: { type: SearchStyle }) => {
                 }
             });
         }
-        
+
+        if (sorts.find(x => x.value == "price")?.isActive) {
+            results.sort((a, b) => {
+                if (sorts.find(x => x.value == "price")?.isDescending) {
+                    return a.price - b.price;
+                } else {
+                    return b.price - a.price;
+                }
+            })
+        }
         setResults(results)
     }
 
@@ -127,18 +135,19 @@ const Search = (props: { type: SearchStyle }) => {
             case SearchStyle.Spajz:
                 return (<ItemRow_Spajz item={result} updateCallback={updateAllData}/>);
             case SearchStyle.Buylist:
-                return (<ItemRow_Buylist item={result} updateCallback={updateAllData}></ItemRow_Buylist>);
+                return (<ItemRow_Buylist item={result} updateCallback={updateAllData}/>);
         }
     }
 
     const headType = () => {
         switch (props.type) {
             case SearchStyle.Spajz:
-                return (<ItemHead_Spajz/>);
+                return (<ItemHead_Spajz sorts={sorts} updateSort={updateSort}/>);
             case SearchStyle.Buylist:
                 return (<ItemHead_Buylist sorts={sorts} updateSort={updateSort}/>);
         }
     }
+
     const renderedResults = results.map((result, i) => {
         return [
             itemType(result),
@@ -150,7 +159,7 @@ const Search = (props: { type: SearchStyle }) => {
             <Bar onSearchSubmit={onSearchSubmit}/>
             <Container className="searchContainer">
                 {renderedResults.length > 0 && headType()}
-                <ItemSeparator/>
+                {renderedResults.length != 0 && <ItemSeparator/>}
                 {renderedResults}
                 {renderedResults.length === 0 && <Add type={props.type} callbackUpdate={updateAllData} query={query}/>}
                 {renderedResults.length >= 15 && <Navigation/>}
