@@ -13,6 +13,7 @@ import ItemRow_Buylist from "./Buylist/ItemRow_Buylist";
 import ItemHead_Spajz from "./Spajz/ItemHead_Spajz";
 import ItemHead_Buylist from "./Buylist/ItemHead_Buylist";
 import {SortOptionsItem} from "./SortOptions";
+import {Spinner} from "react-bootstrap";
 
 export enum SearchStyle {
     Spajz = 0,
@@ -20,6 +21,7 @@ export enum SearchStyle {
 }
 
 const Search = (props: { type: SearchStyle }) => {
+    const [isFetching, setIsFetching] = useState<boolean>(true);
     const [allData, setAllData] = useState<Item[]>([]);
     const [results, setResults] = useState<Item[]>([]);
     const [query, setQuery] = useState<string>('');
@@ -39,6 +41,7 @@ const Search = (props: { type: SearchStyle }) => {
     // Query updated
     useEffect(() => {
         updateResults();
+        if (isFetching) return;
     }, [query])
 
     // Sort updated
@@ -53,14 +56,13 @@ const Search = (props: { type: SearchStyle }) => {
             SortOption.isActive = true;
             SortOption.isDescending = !SortOption.isDescending;
         }
-
         updateResults();
     }
 
     // Result updated
-    // useEffect(() => {   
-    //     console.log("Results updated");
-    // }, [results])
+    useEffect(() => {   
+        setIsFetching(false);
+    }, [results])
 
     const onSearchSubmit = (term: string) => {
         setQuery(term);
@@ -73,6 +75,7 @@ const Search = (props: { type: SearchStyle }) => {
     }
 
     const updateResults = () => {
+        
         var queryLower = query.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
         let results = new Array<Item>();
 
@@ -127,6 +130,7 @@ const Search = (props: { type: SearchStyle }) => {
                 }
             })
         }
+        
         setResults(results)
     }
 
@@ -156,15 +160,18 @@ const Search = (props: { type: SearchStyle }) => {
 
     return (
         <Container>
-            <Bar onSearchSubmit={onSearchSubmit}/>
-            <Container className="searchContainer">
-                {renderedResults.length > 0 && headType()}
-                {renderedResults.length != 0 && <ItemSeparator/>}
-                {renderedResults}
-                {renderedResults.length === 0 && <Add type={props.type} callbackUpdate={updateAllData} query={query}/>}
-                {renderedResults.length >= 15 && <Navigation/>}
-            </Container>
+            {isFetching && <Spinner animation="border" variant="primary"/> || <><Bar onSearchSubmit={onSearchSubmit}/>
+                <Container className="searchContainer">
+                    {renderedResults.length > 0 && headType()}
+                    {renderedResults.length != 0 && <ItemSeparator/>}
+                    {renderedResults}
+                    {renderedResults.length === 0 && <Add type={props.type} callbackUpdate={updateAllData} query={query}/>}
+                    {renderedResults.length >= 15 && <Navigation/>}
+                </Container></>}
+            
         </Container>
-    );
+
+    )
+        ;
 }
 export default Search;
