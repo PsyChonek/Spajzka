@@ -4,31 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="592ce3cc-f370-41a5-9351-ba53d0dfa15e" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/Spajzka.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/runConfigurations/API_START.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Spajzka.API/.env" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Spajzka.API/Schema/item.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Spajzka.API/models/model.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Spajzka.API/routes/routes.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Spajzka.WEB/src/Schema/Items.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Spajzka.API/appconfig.env" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Spajzka.API/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/Spajzka.API/index.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Spajzka.API/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/Spajzka.API/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Spajzka.API/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/Spajzka.API/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Spajzka.WEB/.run/Spajzka.WEB START.run.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Spajzka.WEB/.run/WEB START.run.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Spajzka.WEB/src/API/Items.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Spajzka.WEB/src/Components/Search/Add.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Spajzka.WEB/src/Components/Search/Add.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Spajzka.WEB/src/Components/Search/Buylist/ItemRow_Buylist.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Spajzka.WEB/src/Components/Search/Buylist/ItemRow_Buylist.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Spajzka.WEB/src/Components/Search/ItemDetail.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Spajzka.WEB/src/Components/Search/ItemDetail.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Spajzka.WEB/src/Components/Search/Search.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Spajzka.WEB/src/Components/Search/Search.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Spajzka.WEB/src/Components/Search/Spajz/ItemRow_Spajz.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Spajzka.WEB/src/Components/Search/Spajz/ItemRow_Spajz.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Spajzka.WEB/src/Other/indexDB.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Spajzka.WEB/src/Other/indexDB.ts" afterDir="false" />
-    </list>
+    <list default="true" id="592ce3cc-f370-41a5-9351-ba53d0dfa15e" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -92,8 +68,16 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1678716070144</updated>
-      <workItem from="1678716070146" duration="1578000" />
+      <workItem from="1678716070146" duration="1633000" />
     </task>
+    <task id="LOCAL-00001" summary="API">
+      <created>1678717712534</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1678717712534</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -109,5 +93,9 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="API" />
+    <option name="LAST_COMMIT_MESSAGE" value="API" />
   </component>
 </project>
