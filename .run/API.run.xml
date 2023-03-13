@@ -1,12 +1,12 @@
-<component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="WEB START" type="js.build_tools.npm">
-    <package-json value="$PROJECT_DIR$/Spajzka.WEB/package.json" />
+﻿<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="API" type="js.build_tools.npm">
+    <package-json value="$PROJECT_DIR$/Spajzka.API/package.json" />
     <command value="start" />
     <node-interpreter value="project" />
     <envs />
     <method v="2">
       <option name="NpmBeforeRunTask" enabled="true">
-        <package-json value="$PROJECT_DIR$/Spajzka.WEB/package.json" />
+        <package-json value="$PROJECT_DIR$/Spajzka.API/package.json" />
         <command value="install" />
         <node-interpreter value="project" />
         <envs />
