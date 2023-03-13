@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {Button, Container} from "react-bootstrap";
 import PopUpWindow, {PopUpWindowState} from "../PopUpWindow";
 import Input from "../Input";
-import {Item, SaveItem} from "../../API/Items";
+import {Item, SaveItem} from "../../Schema/Items";
 import {SearchStyle} from "./Search";
 import AddButton_Spajz from "./Spajz/AddButton_Spajz";
 import AddButton_Buylist from "./Buylist/AddButton_Buylist";

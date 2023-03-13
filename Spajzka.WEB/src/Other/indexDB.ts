@@ -1,4 +1,4 @@
-import {Item} from "../API/Items"
+import {Item} from "../Schema/Items"
 import {openDB} from "idb";
 
 export function importAll(dname: string, dversion: number, sname: string, arr: Array<Item>) {

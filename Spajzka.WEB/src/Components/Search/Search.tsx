@@ -5,7 +5,7 @@ import Container from 'react-bootstrap/Container';
 import ItemSeparator from "./ItemSeparator";
 import Bar from "./Bar";
 import Navigation from "./Navigation";
-import {GetItems, Item} from "../../API/Items";
+import {GetItems, Item} from "../../Schema/Items";
 import {scryRenderedComponentsWithType} from "react-dom/test-utils";
 import Add from "./Add";
 import ItemRow_Spajz from "./Spajz/ItemRow_Spajz";

@@ -1,5 +1,5 @@
-﻿<component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Spajzka.WEB START" type="js.build_tools.npm">
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="WEB START" type="js.build_tools.npm">
     <package-json value="$PROJECT_DIR$/Spajzka.WEB/package.json" />
     <command value="start" />
     <node-interpreter value="project" />

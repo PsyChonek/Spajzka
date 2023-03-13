@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {Button, Container, Form} from "react-bootstrap";
-import {Item, SaveItem} from "../../../API/Items";
+import {Item, SaveItem} from "../../../Schema/Items";
 
 var isHoolding: boolean = false;
 var timer: any;

@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {Button, Container} from "react-bootstrap";
-import {Item, SaveItem} from "../../../API/Items";
+import {Item, SaveItem} from "../../../Schema/Items";
 import PopUpWindow, {PopUpWindowState} from "../../PopUpWindow";
 import ItemDetail from "../ItemDetail";
 

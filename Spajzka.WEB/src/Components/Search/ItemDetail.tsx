@@ -2,7 +2,7 @@
 import PopUpWindow, {PopUpWindowState} from "../PopUpWindow";
 import Input from "../Input";
 import {Button, Container} from "react-bootstrap";
-import {DeleteItem, Item} from "../../API/Items";
+import {DeleteItem, Item} from "../../Schema/Items";
 import notificator from "../../Other/notificator";
 
 const ItemDetail = (props: { item: Item, popUpState: any }) => {

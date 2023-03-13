@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="592ce3cc-f370-41a5-9351-ba53d0dfa15e" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/Spajzka.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/runConfigurations/API_START.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Spajzka.API/.env" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Spajzka.API/Schema/item.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Spajzka.API/models/model.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Spajzka.API/routes/routes.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Spajzka.WEB/src/Schema/Items.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Spajzka.API/appconfig.env" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Spajzka.API/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/Spajzka.API/index.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Spajzka.API/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/Spajzka.API/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Spajzka.API/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/Spajzka.API/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Spajzka.WEB/.run/Spajzka.WEB START.run.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Spajzka.WEB/.run/WEB START.run.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Spajzka.WEB/src/API/Items.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Spajzka.WEB/src/Components/Search/Add.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Spajzka.WEB/src/Components/Search/Add.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Spajzka.WEB/src/Components/Search/Buylist/ItemRow_Buylist.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Spajzka.WEB/src/Components/Search/Buylist/ItemRow_Buylist.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Spajzka.WEB/src/Components/Search/ItemDetail.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Spajzka.WEB/src/Components/Search/ItemDetail.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Spajzka.WEB/src/Components/Search/Search.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Spajzka.WEB/src/Components/Search/Search.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Spajzka.WEB/src/Components/Search/Spajz/ItemRow_Spajz.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Spajzka.WEB/src/Components/Search/Spajz/ItemRow_Spajz.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Spajzka.WEB/src/Other/indexDB.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Spajzka.WEB/src/Other/indexDB.ts" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ChangesViewManager">
+    <option name="groupingKeys">
+      <option value="directory" />
+    </option>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="TypeScript File" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectId" id="2MxjKdgBfulbOF2bfGymXOczGfL" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "last_opened_file_path": "C:/repos/Spajzka",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "preferences.editor",
+    "ts.external.directory.path": "C:\\repos\\Spajzka\\Spajzka.WEB\\node_modules\\typescript\\lib",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RunManager" selected="npm.API START">
+    <list>
+      <item itemvalue="npm.WEB START" />
+      <item itemvalue="npm.API START" />
+    </list>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="592ce3cc-f370-41a5-9351-ba53d0dfa15e" name="Changes" comment="" />
+      <created>1678716070144</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1678716070144</updated>
+      <workItem from="1678716070146" duration="1578000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>
