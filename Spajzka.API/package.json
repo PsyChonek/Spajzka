@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "nodemon --esm index.ts"
+    "start": "nodemon --esm src/index.ts"
   },
   "dependencies": {
     "@fastify/swagger": "^8.3.1",

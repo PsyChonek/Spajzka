@@ -1,3 +1,15 @@
 ﻿{
-    "ext": "js, css, ts"
+    "files": {
+        "include": [
+            "src/*"
+        ],
+        "exclude": [
+            "node_modules",
+            "dist",
+            "coverage",
+            "src/**/*.spec.ts",
+            "src/**/*.test.ts",
+            "src/**/*.d.ts"
+        ]
+    }
 }

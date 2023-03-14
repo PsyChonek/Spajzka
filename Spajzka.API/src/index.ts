@@ -3,9 +3,6 @@ import fastifySwagger from '@fastify/swagger'
 import fastifySwaggerUi from "@fastify/swagger-ui";
 import {Server, IncomingMessage, ServerResponse} from 'http'
 import * as dotenv from 'dotenv'
-import fileDirName from './tools/meta.js';
-
-const {__dirname, __filename} = fileDirName(import.meta);
 
 dotenv.config()
 
@@ -17,13 +14,12 @@ export class Item {
 }
 
 const config = {
-    path: __filename,
-    tsconfig: __dirname + '/tsconfig.json'
+    path: 'src/index.ts',
+    tsconfig: './tsconfig.json'
 }
 
 const schemaGenerator = createGenerator(config);
 const schema = schemaGenerator.createSchema('Item');
-
 const fastify: FastifyInstance = Fastify({})
 
 fastify.register(fastifySwagger, {
@@ -38,34 +34,18 @@ fastify.register(fastifySwagger, {
 })
 
 fastify.register(fastifySwaggerUi, {
-    routePrefix: '/documentation',
-    uiConfig: {
-        docExpansion: 'full',
-        deepLinking: false
-    },
-    uiHooks: {
-        onRequest: function (request, reply, next) {
-            next()
-        },
-        preHandler: function (request, reply, next) {
-            next()
-        }
-    },
-    staticCSP: true,
-    transformStaticCSP: (header) => header,
-    transformSpecification: (swaggerObject, request, reply) => {
-        return swaggerObject
-    },
-    transformSpecificationClone: true
+    routePrefix: '/docs'
 })
 
 const itemSchema = schema.definitions![Item.name] as any
 
-fastify.post('/test', {
+fastify.get('/item', {
     schema: {
-        body: itemSchema,
         response: {
-            200: itemSchema
+            200: {
+                type: 'array',
+                items: itemSchema
+            }
         }
     }
 }, async (request, reply) => {
@@ -86,6 +66,4 @@ const start = async () => {
 
 start()
 
-
 console.log(`Server is running on port ${Number.parseInt(process.env.PORT ?? '3000')}`);
-
