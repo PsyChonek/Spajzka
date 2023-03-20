@@ -1,17 +1,13 @@
-﻿import Fastify, {FastifyInstance, RouteShorthandOptions} from 'fastify'
+﻿import Fastify, { FastifyInstance, RouteShorthandOptions } from 'fastify';
 import fastifySwagger from '@fastify/swagger'
 import fastifySwaggerUi from "@fastify/swagger-ui";
-import {Server, IncomingMessage, ServerResponse} from 'http'
-import * as dotenv from 'dotenv'
+import { Server, IncomingMessage, ServerResponse } from 'http';
+import { createGenerator } from "ts-json-schema-generator";
+import * as dotenv from 'dotenv';
+import { Item } from './item.js';
 
+const fastify: FastifyInstance = Fastify({})
 dotenv.config()
-
-import {createGenerator} from "ts-json-schema-generator";
-
-export class Item {
-    id: number = 0;
-    name: string = '';
-}
 
 const config = {
     path: 'src/index.ts',
@@ -20,17 +16,18 @@ const config = {
 
 const schemaGenerator = createGenerator(config);
 const schema = schemaGenerator.createSchema('Item');
-const fastify: FastifyInstance = Fastify({})
+
 
 fastify.register(fastifySwagger, {
     swagger:
-        {
-            info: {
-                title: 'Spajzka API',
-                description: 'Spajzka API',
-                version: '0.1.0'
-            },
+    {
+        info: {
+            title: 'Spajzka API',
+            description: 'Spajzka API',
+            version: '0.1.0'
         }
+
+    }
 })
 
 fastify.register(fastifySwaggerUi, {
@@ -39,24 +36,34 @@ fastify.register(fastifySwaggerUi, {
 
 const itemSchema = schema.definitions![Item.name] as any
 
-fastify.get('/item', {
+fastify.get('/item/:id', {
     schema: {
-        response: {
-            200: {
-                type: 'array',
-                items: itemSchema
+        params: {
+            type: 'object',
+            properties: {
+                id: { type: 'number' }
             }
+        },
+        response: {
+            200: { type: 'object', properties: itemSchema.properties }
         }
     }
-}, async (request, reply) => {
+}, async (request: any, reply: any) => {
+    return { id: 1, name: 'test' }
 })
+
 
 const start = async () => {
     try {
-        await fastify.listen({port: Number.parseInt(process.env.PORT ?? '3000')})
+
+        await fastify.listen({
+            port: Number.parseInt(process.env.PORT ?? '3000')
+        })
 
         const address = fastify.server.address()
         const port = typeof address === 'string' ? address : address?.port
+
+        fastify
 
     } catch (err) {
         fastify.log.error(err)
@@ -66,4 +73,4 @@ const start = async () => {
 
 start()
 
-console.log(`Server is running on port ${Number.parseInt(process.env.PORT ?? '3000')}`);
+console.log(`Swagger is running on port http://localhost:${Number.parseInt(process.env.PORT ?? '3000')}/docs`);
