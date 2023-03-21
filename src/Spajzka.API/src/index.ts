@@ -3,13 +3,15 @@ import fastify, { FastifyListenOptions } from "fastify"
 import { fastifySwagger } from '@fastify/swagger';
 import { fastifySwaggerUi } from '@fastify/swagger-ui';
 import { createGenerator } from "ts-json-schema-generator";
-// import { registerRoutes } from './routes.js';
+import { registerRoutes } from './routes.js';
 
 dotenv.config()
 const server = fastify()
 
+import * as path from 'path'
+
 const config = {
-    path: 'src/models/*.ts',
+    path: './Spajzka.CORE/src/models/item.ts',
     tsconfig: './tsconfig.json',
     type: "*",
 }
@@ -41,7 +43,7 @@ server.register(fastifySwaggerUi, {
     routePrefix: '/docs'
 })
 
-// registerRoutes(server, schema);
+registerRoutes(server, schema);
 
 await server.ready()
 server.swagger()

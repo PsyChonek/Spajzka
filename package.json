@@ -1,10 +1,10 @@
 {
   "type": "module",
-  "name": "spajzka.api",
+  "name": "spajzka",
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "nodemon --esm src/index.ts"
+    "start": "nodemon --esm src/Spajzka.API/src/index.ts"
   },
   "dependencies": {
     "@fastify/swagger": "^8.3.1",

@@ -1,6 +1,6 @@
 import fastify from "fastify";
  
-import { Item } from "@core/models/item.js";
+import { Item } from "../../Spajzka.CORE/src/models/item.js";
 
 export const registerRoutes = (server: any, schema: any) => {
     server.get('/item', {

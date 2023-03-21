@@ -1,8 +1,7 @@
 ﻿{
     "files": {
         "include": [
-            "src/*",
-            "../Spajzka.CORE/*"
+        
         ],
         "exclude": [
             "node_modules",
@@ -12,6 +11,5 @@
             "src/**/*.test.ts",
             "src/**/*.d.ts"
         ]
-    },
-    "delay": "5"
+    }
 }
