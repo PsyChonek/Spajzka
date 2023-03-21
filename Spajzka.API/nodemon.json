@@ -1,7 +1,8 @@
 ﻿{
     "files": {
         "include": [
-            "src/*"
+            "src/*",
+            "../Spajzka.CORE/*"
         ],
         "exclude": [
             "node_modules",

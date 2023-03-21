@@ -1,4 +1,5 @@
 import fastify from "fastify";
+ 
 import { Item } from "./models/item.js";
 
 export const registerRoutes = (server: any, schema: any) => {

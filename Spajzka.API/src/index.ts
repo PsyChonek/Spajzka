@@ -3,7 +3,6 @@ import fastify, { FastifyListenOptions } from "fastify"
 import { fastifySwagger } from '@fastify/swagger';
 import { fastifySwaggerUi } from '@fastify/swagger-ui';
 import { createGenerator } from "ts-json-schema-generator";
-import { Item } from "./models/item.js";
 import { registerRoutes } from './routes.js';
 
 dotenv.config()
