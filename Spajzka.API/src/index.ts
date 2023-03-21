@@ -3,7 +3,7 @@ import fastify, { FastifyListenOptions } from "fastify"
 import { fastifySwagger } from '@fastify/swagger';
 import { fastifySwaggerUi } from '@fastify/swagger-ui';
 import { createGenerator } from "ts-json-schema-generator";
-import { registerRoutes } from './routes.js';
+// import { registerRoutes } from './routes.js';
 
 dotenv.config()
 const server = fastify()
@@ -41,7 +41,7 @@ server.register(fastifySwaggerUi, {
     routePrefix: '/docs'
 })
 
-registerRoutes(server, schema);
+// registerRoutes(server, schema);
 
 await server.ready()
 server.swagger()
@@ -53,4 +53,4 @@ const fastifyOptions: FastifyListenOptions = {
 
 await server.listen(fastifyOptions)
 
-console.log(`Server listening on ${fastifyOptions.host}:${fastifyOptions.port}`)
+console.log(`Server listening on https://${fastifyOptions.host}:${fastifyOptions.port}`)
