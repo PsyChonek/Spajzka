@@ -2,12 +2,18 @@
   "name": "shared",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "./src/index.tsx",
+  "types": "./src/index.tsx",
   "private": true,
   "scripts": {
-    "build": "tsc --build"
+    "lint": "eslint \"**/*.ts*\""
   },
-  "dependencies": {
-
+  "devDependencies": {
+    "@types/react": "^18.0.22",
+    "eslint": "^7.32.0",
+    "eslint-config-custom": "*",
+    "react": "^18.2.0",
+    "tsconfig": "*",
+    "typescript": "^4.5.2"
   }
 }
