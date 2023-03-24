@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+        "baseUrl": ".",
+        "noEmit": true,
+        "paths": {
+            
+        }
+    },
+    "files": [],
+    "references": [
+        {
+            "path": "./apps/api"
+        },
+        {
+            "path": "./apps/shared"
+        }
+    ]
+}

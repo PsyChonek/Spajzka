@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "outDir": "../dist/Spajzka.API",
+    "outDir": "./build",
     "target": "ESNext",
     "lib": [
       "esnext"
@@ -16,6 +16,7 @@
     "resolveJsonModule": true,
     "jsx": "preserve",
     "composite": true,
+    "rootDir": "./src",
     "paths": {
       "@core/*": [
         "../Spajzka.CORE/src/*"
