@@ -31,7 +31,8 @@
   },
   "scripts": {
     "start": "craco start",
-    "build": "craco build"
+    "build": "craco build",
+    "cibuild": "craco build && CI=false"
   },
   "browserslist": {
     "production": [
