@@ -1,7 +1,7 @@
 on: 
   push:
     paths:
-      - 'apps/web/**'
+      - '*'
     branches:
       - master
 name: 🚀 Deploy website on push
