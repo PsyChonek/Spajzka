@@ -1,17 +1,20 @@
-﻿import * as dotenv from 'dotenv';
-import fastify, { FastifyListenOptions } from "fastify"
+﻿import fastify, { FastifyListenOptions } from "fastify"
 import { fastifySwagger } from '@fastify/swagger';
 import { fastifySwaggerUi } from '@fastify/swagger-ui';
 import { createGenerator } from "ts-json-schema-generator";
 import { registerRoutes } from './routes';
 import * as path from 'path'
+import * as dotenv from 'dotenv'
 
 var start = async function () {
+
     dotenv.config()
     const server = fastify()
 
+    console.log()
+
     const config = {
-        path: './Spajzka.CORE/src/models/item.ts',
+        path:'../../node_modules/shared/src/models/*',
         tsconfig: './tsconfig.json',
         type: "*",
     }
@@ -55,7 +58,7 @@ var start = async function () {
 
     await server.listen(fastifyOptions)
 
-    console.log(`Server listening on http://${fastifyOptions.host}:${fastifyOptions.port}`)
+    console.log(`Server listening on http://${fastifyOptions.host}:${fastifyOptions.port}/docs`)
 }
 
 start()

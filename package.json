@@ -1,10 +1,11 @@
 {
-  "name": "Špajzka",
+  "name": "spajzka",
   "version": "0.0.0",
   "private": true,
   "workspaces": [
     "apps/*",
-    "packages/*"
+    "packages/*",
+    "packages/shared/*"
   ],
   "scripts": {
     "build": "turbo run build",

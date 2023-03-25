@@ -1,9 +1,9 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-import React, {useEffect} from 'react';
+import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
-import {BrowserRouter, Link, Navigate, Route, Routes} from 'react-router-dom';
-import {Container, Nav, Navbar} from 'react-bootstrap';
+import { BrowserRouter, Link, Navigate, Route, Routes } from 'react-router-dom';
+import { Container, Nav, Navbar } from 'react-bootstrap';
 import * as serviceWorkerRegistration from './Other/serviceWorkerRegistration';
 import reportWebVitals from "./Other/reportWebVitals";
 import Search from "./Components/Search/Search";
@@ -15,10 +15,9 @@ const root = ReactDOM.createRoot(
     document.getElementById('root') as HTMLElement
 );
 
-
 root.render(
     <BrowserRouter>
-        <Navigation/>
+        <Navigation />
     </BrowserRouter>
 );
 
