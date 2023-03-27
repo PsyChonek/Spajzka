@@ -2,11 +2,11 @@
   "name": "api",
   "version": "1.0.0",
   "description": "",
-  "main": "index.ts",
   "private": true,
   "scripts": {
     "dev": "npx ts-node-dev --respawn --transpile-only --debug ./src/index.ts",
-    "build": "npx tsc --build tsconfig.json"
+    "build": "npx tsc --build tsconfig.json",
+    "start": "node ./index.js"
   },
   "dependencies": {
     "@fastify/swagger": "^8.3.1",
@@ -19,6 +19,7 @@
   "devDependencies": {
     "ts-node-dev": "^2.0.0",
     "eslint-config-custom": "*",
-    "tsconfig": "*"
+    "tsconfig": "*",
+    "@craco/craco": "^7.1.0"
   }
 }
