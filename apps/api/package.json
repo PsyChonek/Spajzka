@@ -4,7 +4,7 @@
   "description": "",
   "private": true,
   "scripts": {
-    "dev": "npx ts-node-dev --respawn --transpile-only --debug ./src/index.ts",
+    "dev": "start http://localhost:3001/docs & npx ts-node-dev --respawn --transpile-only --debug ./src/index.ts",
     "build": "npx tsc --build tsconfig.json",
     "start": "node ./index.js"
   },
@@ -17,9 +17,6 @@
     "shared": "*"
   },
   "devDependencies": {
-    "ts-node-dev": "^2.0.0",
-    "eslint-config-custom": "*",
-    "tsconfig": "*",
-    "@craco/craco": "^7.1.0"
+
   }
 }

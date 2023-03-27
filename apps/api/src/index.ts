@@ -14,7 +14,7 @@ var start = async function () {
     console.log()
 
     const config = {
-        path:'../../node_modules/shared/src/models/*',
+        path: require.resolve('shared').substring(0, require.resolve('shared').lastIndexOf('\\')) + '\\models\\*',
         tsconfig: './tsconfig.json',
         type: "*",
     }

@@ -1,5 +1,3 @@
-import fastify from "fastify";
-
 import { Item } from "shared";
 
 export const registerRoutes = (server: any, schema: any) => {
