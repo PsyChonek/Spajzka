@@ -6,9 +6,6 @@ import { BrowserRouter, Link, Navigate, Route, Routes } from 'react-router-dom';
 import { Container, Nav, Navbar } from 'react-bootstrap';
 import * as serviceWorkerRegistration from './Other/serviceWorkerRegistration';
 import reportWebVitals from "./Other/reportWebVitals";
-import Search from "./Components/Search/Search";
-import Spajz from "./Views/Spajz";
-import Buylist from "./Views/Buylist";
 import Navigation from "./Views/Navigation";
 
 const root = ReactDOM.createRoot(

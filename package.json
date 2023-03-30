@@ -13,13 +13,14 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },
   "devDependencies": {
+    "@craco/craco": "^7.1.0",
     "eslint-config-custom": "*",
     "prettier": "latest",
-    "tsup": "^6.7.0",
-    "turbo": "latest",
-    "@craco/craco": "^7.1.0",
+    "semantic-release": "^21.0.0",
     "ts-node-dev": "^2.0.0",
-    "tsconfig": "*"
+    "tsconfig": "*",
+    "tsup": "^6.7.0",
+    "turbo": "^1.8.8"
   },
   "engines": {
     "node": ">=14.0.0"

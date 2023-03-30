@@ -1,9 +1,13 @@
 module.exports = {
-    webpack: {
-      configure: {
-        experiments: {
-          topLevelAwait: true,
-        },
+  devServer:
+    {
+      port: 'auto'
+    },
+  webpack: {
+    configure: {
+      experiments: {
+        topLevelAwait: true,
       },
     },
-  };
+  },
+};

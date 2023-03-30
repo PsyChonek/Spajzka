@@ -1,4 +1,4 @@
-import { Item } from "shared";
+import { Item } from "@psychonek/shared";
 
 export const registerRoutes = (server: any, schema: any) => {
     server.get('/item', {
