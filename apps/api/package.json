@@ -5,8 +5,9 @@
   "private": true,
   "scripts": {
     "dev": "start http://localhost:3010/docs & npx ts-node-dev --respawn --transpile-only --debug ./src/index.ts",
-    "build": "npx tsc --build tsconfig.json",
-    "start": "node ./index.js"
+    "build": "npx tsc --build tsconfig.json && npm run copy",
+    "start": "node ./build/index.js",
+    "copy": "copy ./package.json ./build/package.json"
   },
   "dependencies": {
     "@fastify/swagger": "^8.3.1",
