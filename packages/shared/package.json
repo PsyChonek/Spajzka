@@ -4,13 +4,15 @@
     "type": "git",
     "url": "git+https://github.com/PsyChonek/Spajzka"
   },
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "",
   "main": "./build/index.js",
   "private": false,
   "scripts": {
     "build": "tsup src/index.ts --format cjs --dts",
-    "dev": "tsup src/index.ts --watch --format cjs --dts"
+    "dev": "tsup src/index.ts --watch --format cjs --dts",
+    "publish": "npm run build && npm run copy && npm publish ./build",
+    "copy": "copy .\\package.json .\\build\\"
   },
   "devDependencies": {
     "tsconfig": "*"
