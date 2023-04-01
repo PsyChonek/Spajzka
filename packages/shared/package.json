@@ -4,20 +4,23 @@
     "type": "git",
     "url": "git+https://github.com/PsyChonek/Spajzka"
   },
-  "version": "1.0.3",
+  "version": "1.0.21",
   "description": "",
   "main": "./build/index.js",
   "private": false,
   "scripts": {
-    "build": "tsup src/index.ts --format cjs --dts",
-    "dev": "tsup src/index.ts --watch --format cjs --dts",
-    "publish": "npm run build && npm run copy && npm publish ./build",
-    "copy": "copy .\\package.json .\\build\\"
+    "build": "npx tsc --build tsconfig.json",
+    "dev": "npx ts-node-dev --respawn --transpile-only --debug ./src/index.ts",
+    "publishPackage": "npm run build && npm publish"
   },
   "devDependencies": {
     "tsconfig": "*"
   },
   "publishConfig": {
-    "registry":"https://npm.pkg.github.com/"
-}
+    "registry": "https://npm.pkg.github.com/"
+  },
+  "files": [
+    "build",
+    "src"
+  ]
 }

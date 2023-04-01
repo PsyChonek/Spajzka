@@ -1,25 +1,15 @@
 ﻿import fastify, { FastifyListenOptions } from "fastify"
 import { fastifySwagger } from '@fastify/swagger';
 import { fastifySwaggerUi } from '@fastify/swagger-ui';
-import { createGenerator } from "ts-json-schema-generator";
 import { registerRoutes } from './routes';
 import * as path from 'path'
 import * as dotenv from 'dotenv'
 
-var start = async function () {
+import { schema } from '@psychonek/shared';
 
+var start = async function () {
     dotenv.config()
     const server = fastify()
-
-    console.log()
-
-    const config = {
-        path: require.resolve('shared').substring(0, require.resolve('shared').lastIndexOf('\\')) + '\\models\\*',
-        tsconfig: './tsconfig.json',
-        type: "*",
-    }
-
-    const schema = createGenerator(config).createSchema(config.type);
 
     await server.register(fastifySwagger, {
         swagger: {
@@ -52,7 +42,7 @@ var start = async function () {
     server.swagger()
 
     const fastifyOptions: FastifyListenOptions = {
-        host: "localhost",
+        host: "127.0.0.1",
         port: Number.parseInt(process.env.PORT ?? "3000")
     }
 

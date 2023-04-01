@@ -1,12 +1,11 @@
 import * as DB from "../Other/indexDB";
-import { ObjectId } from "bson";
 
 export interface ItemsObject {
     Items: Array<Item>
 }
 
 export class Item {
-    public id: string = new ObjectId().toString();
+    public id: string = 'new ObjectId().toString();'
     public name: string = '';
     public price: number = 0;
     public description: string = '';
