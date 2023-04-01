@@ -1,8 +1,8 @@
 import { createGenerator } from "ts-json-schema-generator";
-import fs from "fs";
+import * as fs from "fs";
 
-const modelPath = 'src\\models\\**.*.ts';
-const output_path = "build\\schema.json";
+const modelPath = 'src\\models\\*.ts';
+const output_path = "src\\schema.json";
 
 const config = {
     path: modelPath,
