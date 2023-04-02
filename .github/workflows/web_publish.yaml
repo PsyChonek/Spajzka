@@ -29,6 +29,7 @@ jobs:
 
       - name: 🔨 Build Project
         run: |
+          cd ./apps/web
           working-directory: ./apps/web
           CI=false npm run build
       - name: 📂 Sync files

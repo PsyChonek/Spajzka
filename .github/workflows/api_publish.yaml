@@ -29,7 +29,7 @@ jobs:
 
       - name: 🔨 Build Project
         run: |
-          working-directory: ./apps/api
+          cd ./apps/api
           CI=false npm run build
       - name: 📂 Sync files
         uses: SamKirkland/FTP-Deploy-Action@4.3.2
