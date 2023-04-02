@@ -24,5 +24,4 @@ jobs:
 
       - name: 🔨 Build Project && Publish
         run: |
-          npm install
           CI=false npm run publish
