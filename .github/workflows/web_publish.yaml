@@ -1,7 +1,7 @@
-on: 
+on:
   push:
     paths:
-      - 'apps/web/**'
+      - "apps/web/**"
     branches:
       - master
 name: 🚀 Deploy website on push
@@ -19,11 +19,12 @@ jobs:
       - name: Use Node.js 18
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
-          cache: 'npm'
+          node-version: "18"
+          cache: "npm"
 
-      - name: 'Install dependencies'
+      - name: "Install dependencies"
         run: |
+          npm update @psychonek/shared
           npm install
 
       - name: 🔨 Build Project
