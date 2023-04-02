@@ -22,8 +22,14 @@ jobs:
           node-version: '18'
           cache: 'npm'
 
+      - name: 'Install dependencies'
+        run: |
+          npm update @psychonek/shared
+          npm install
+
       - name: 🔨 Build Project
         run: |
+          working-directory: ./apps/api
           CI=false npm run build
       - name: 📂 Sync files
         uses: SamKirkland/FTP-Deploy-Action@4.3.2

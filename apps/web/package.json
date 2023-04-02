@@ -1,6 +1,6 @@
 {
   "name": "web",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "dependencies": {
     "@types/node": "^18.15.11",
@@ -29,7 +29,7 @@
   },
   "scripts": {
     "dev": "craco start",
-    "build": "npm update @psychonek/shared && npm install && craco build"
+    "build": "craco build"
   },
   "browserslist": {
     "production": [
