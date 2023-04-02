@@ -29,7 +29,7 @@
   },
   "scripts": {
     "dev": "craco start",
-    "build": "craco build"
+    "build": "npm update @psychonek/shared && craco build"
   },
   "browserslist": {
     "production": [
