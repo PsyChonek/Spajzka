@@ -1,3 +1,4 @@
+// @ts-ignore
 import { Item } from "@psychonek/shared";
 
 export const registerRoutes = (server: any, schema: any) => {

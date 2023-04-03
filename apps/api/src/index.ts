@@ -4,7 +4,7 @@ import { fastifySwaggerUi } from '@fastify/swagger-ui';
 import { registerRoutes } from './routes';
 import * as path from 'path'
 import * as dotenv from 'dotenv'
-
+// @ts-ignore
 import { schema } from '@psychonek/shared';
 
 var start = async function () {
