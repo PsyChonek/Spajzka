@@ -26,7 +26,6 @@ jobs:
         run: |
           npm update @psychonek/shared
           npm install
-          npm install @psychonek/shared
 
       - name: 🔨 Build Project
         run: |

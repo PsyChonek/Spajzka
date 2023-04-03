@@ -24,9 +24,6 @@
     "strict": true,
     "outDir": "./build",
     "resolveJsonModule": true,
-    "paths": {
-      "@psychonek/shared": ["node_modules/@psychonek/shared"]
-    },
     "baseUrl": "."
   },
   "exclude": [
