@@ -4,12 +4,21 @@ import { fastifySwaggerUi } from '@fastify/swagger-ui';
 import { registerRoutes } from './routes';
 import * as path from 'path'
 import * as dotenv from 'dotenv'
-// @ts-ignore
-import { schema } from '@psychonek/shared';
+import { createGenerator } from "ts-json-schema-generator";
 
 var start = async function () {
     dotenv.config()
     const server = fastify()
+
+    const modelPath = 'src\\models\\*.ts';
+
+    const config = {
+        path: modelPath,
+        tsconfig: './tsconfig.json',
+        type: "*"
+    }
+
+    const schema = createGenerator(config).createSchema(config.type);
 
     await server.register(fastifySwagger, {
         swagger: {
@@ -32,18 +41,15 @@ var start = async function () {
         }
     })
 
-    
-
-
     server.register(fastifySwaggerUi, {
         routePrefix: '/docs'
     })
 
     registerRoutes(server, schema);
-    
+
     await server.ready()
     server.swagger()
-    
+
     const json = server.swagger({ yaml: true })
     console.log(json)
     require('fs').writeFileSync('./swagger.yml', json)
