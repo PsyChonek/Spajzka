@@ -7,7 +7,7 @@ const output_path = "src\\schema.json";
 const config = {
     path: modelPath,
     tsconfig: './tsconfig.json',
-    type: "*",
+    type: "*"
 }
 
 const schema = createGenerator(config).createSchema(config.type);

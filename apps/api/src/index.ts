@@ -32,14 +32,22 @@ var start = async function () {
         }
     })
 
+    
+
+
     server.register(fastifySwaggerUi, {
         routePrefix: '/docs'
     })
 
     registerRoutes(server, schema);
-
+    
     await server.ready()
     server.swagger()
+    
+    const json = server.swagger({ yaml: true })
+    console.log(json)
+    require('fs').writeFileSync('./swagger.yml', json)
+
 
     const fastifyOptions: FastifyListenOptions = {
         host: "127.0.0.1",

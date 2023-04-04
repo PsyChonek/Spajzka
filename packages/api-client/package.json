@@ -1,0 +1,18 @@
+{
+  "name": "@psychonek/api-client",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PsyChonek/Spajzka"
+  },
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "generateClient": "npm update @psychonek/shared --include=dev && node ts-api-client.mjs"
+  },
+  "devDependencies": {
+    "openapi-typescript-codegen": "^0.23.0",
+    "@psychonek/shared": "^1.0.22"
+  }
+}
