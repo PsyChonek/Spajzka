@@ -1,5 +1,4 @@
-// @ts-ignore
-import { Item } from "@psychonek/shared";
+import { Item } from './models/item'
 
 export const registerRoutes = (server: any, schema: any) => {
     server.get('/item', {

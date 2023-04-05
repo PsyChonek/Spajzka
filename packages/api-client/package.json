@@ -4,15 +4,12 @@
     "type": "git",
     "url": "git+https://github.com/PsyChonek/Spajzka"
   },
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "",
-  "main": "index.js",
+  "main": "build/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "generateClient": "npm update @psychonek/shared --include=dev && node ts-api-client.mjs"
-  },
-  "devDependencies": {
-    "openapi-typescript-codegen": "^0.23.0",
-    "@psychonek/shared": "^1.0.22"
+    "generateClient": "npx swagger-typescript-api -p .\\swagger.yml -o ./src -n myApi.ts --modular",
+    "build": "npm run generateClient && npx tsc --build tsconfig.json",
+    "publishPackage": "npm run build && npm publish --access public"
   }
 }

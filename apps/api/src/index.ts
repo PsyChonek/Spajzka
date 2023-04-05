@@ -27,7 +27,7 @@ var start = async function () {
                 description: 'Spajzka API documentation',
                 version: '0.1.0'
             },
-            host: 'localhost',
+            host: '127.0.0.1:3010',
             schemes: ['http'],
             consumes: ['application/json'],
             produces: ['application/json'],
@@ -57,7 +57,7 @@ var start = async function () {
 
     const fastifyOptions: FastifyListenOptions = {
         host: "127.0.0.1",
-        port: Number.parseInt(process.env.PORT ?? "3000")
+        port: 3010
     }
 
     await server.listen(fastifyOptions)
