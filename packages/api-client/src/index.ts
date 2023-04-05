@@ -9,58 +9,105 @@
  * ---------------------------------------------------------------
  */
 
-export var ContentType;
-(function (ContentType) {
-  ContentType["Json"] = "application/json";
-  ContentType["FormData"] = "multipart/form-data";
-  ContentType["UrlEncoded"] = "application/x-www-form-urlencoded";
-  ContentType["Text"] = "text/plain";
-})(ContentType || (ContentType = {}));
-export class HttpClient {
-  baseUrl = "http://127.0.0.1:3010";
-  securityData = null;
-  securityWorker;
-  abortControllers = new Map();
-  customFetch = (...fetchParams) => fetch(...fetchParams);
-  baseApiParams = {
+export type QueryParamsType = Record<string | number, any>;
+export type ResponseFormat = keyof Omit<Body, "body" | "bodyUsed">;
+
+export interface FullRequestParams extends Omit<RequestInit, "body"> {
+  /** set parameter to `true` for call `securityWorker` for this request */
+  secure?: boolean;
+  /** request path */
+  path: string;
+  /** content type of request body */
+  type?: ContentType;
+  /** query params */
+  query?: QueryParamsType;
+  /** format of response (i.e. response.json() -> format: "json") */
+  format?: ResponseFormat;
+  /** request body */
+  body?: unknown;
+  /** base url */
+  baseUrl?: string;
+  /** request cancellation token */
+  cancelToken?: CancelToken;
+}
+
+export type RequestParams = Omit<FullRequestParams, "body" | "method" | "query" | "path">;
+
+export interface ApiConfig<SecurityDataType = unknown> {
+  baseUrl?: string;
+  baseApiParams?: Omit<RequestParams, "baseUrl" | "cancelToken" | "signal">;
+  securityWorker?: (securityData: SecurityDataType | null) => Promise<RequestParams | void> | RequestParams | void;
+  customFetch?: typeof fetch;
+}
+
+export interface HttpResponse<D extends unknown, E extends unknown = unknown> extends Response {
+  data: D;
+  error: E;
+}
+
+type CancelToken = Symbol | string | number;
+
+export enum ContentType {
+  Json = "application/json",
+  FormData = "multipart/form-data",
+  UrlEncoded = "application/x-www-form-urlencoded",
+  Text = "text/plain",
+}
+
+export class HttpClient<SecurityDataType = unknown> {
+  public baseUrl: string = "http://127.0.0.1:3010";
+  private securityData: SecurityDataType | null = null;
+  private securityWorker?: ApiConfig<SecurityDataType>["securityWorker"];
+  private abortControllers = new Map<CancelToken, AbortController>();
+  private customFetch = (...fetchParams: Parameters<typeof fetch>) => fetch(...fetchParams);
+
+  private baseApiParams: RequestParams = {
     credentials: "same-origin",
     headers: {},
     redirect: "follow",
     referrerPolicy: "no-referrer",
   };
-  constructor(apiConfig = {}) {
+
+  constructor(apiConfig: ApiConfig<SecurityDataType> = {}) {
     Object.assign(this, apiConfig);
   }
-  setSecurityData = (data) => {
+
+  public setSecurityData = (data: SecurityDataType | null) => {
     this.securityData = data;
   };
-  encodeQueryParam(key, value) {
+
+  protected encodeQueryParam(key: string, value: any) {
     const encodedKey = encodeURIComponent(key);
     return `${encodedKey}=${encodeURIComponent(typeof value === "number" ? value : `${value}`)}`;
   }
-  addQueryParam(query, key) {
+
+  protected addQueryParam(query: QueryParamsType, key: string) {
     return this.encodeQueryParam(key, query[key]);
   }
-  addArrayQueryParam(query, key) {
+
+  protected addArrayQueryParam(query: QueryParamsType, key: string) {
     const value = query[key];
-    return value.map((v) => this.encodeQueryParam(key, v)).join("&");
+    return value.map((v: any) => this.encodeQueryParam(key, v)).join("&");
   }
-  toQueryString(rawQuery) {
+
+  protected toQueryString(rawQuery?: QueryParamsType): string {
     const query = rawQuery || {};
     const keys = Object.keys(query).filter((key) => "undefined" !== typeof query[key]);
     return keys
       .map((key) => (Array.isArray(query[key]) ? this.addArrayQueryParam(query, key) : this.addQueryParam(query, key)))
       .join("&");
   }
-  addQueryParams(rawQuery) {
+
+  protected addQueryParams(rawQuery?: QueryParamsType): string {
     const queryString = this.toQueryString(rawQuery);
     return queryString ? `?${queryString}` : "";
   }
-  contentFormatters = {
-    [ContentType.Json]: (input) =>
+
+  private contentFormatters: Record<ContentType, (input: any) => any> = {
+    [ContentType.Json]: (input: any) =>
       input !== null && (typeof input === "object" || typeof input === "string") ? JSON.stringify(input) : input,
-    [ContentType.Text]: (input) => (input !== null && typeof input !== "string" ? JSON.stringify(input) : input),
-    [ContentType.FormData]: (input) =>
+    [ContentType.Text]: (input: any) => (input !== null && typeof input !== "string" ? JSON.stringify(input) : input),
+    [ContentType.FormData]: (input: any) =>
       Object.keys(input || {}).reduce((formData, key) => {
         const property = input[key];
         formData.append(
@@ -73,9 +120,10 @@ export class HttpClient {
         );
         return formData;
       }, new FormData()),
-    [ContentType.UrlEncoded]: (input) => this.toQueryString(input),
+    [ContentType.UrlEncoded]: (input: any) => this.toQueryString(input),
   };
-  mergeRequestParams(params1, params2) {
+
+  protected mergeRequestParams(params1: RequestParams, params2?: RequestParams): RequestParams {
     return {
       ...this.baseApiParams,
       ...params1,
@@ -87,7 +135,8 @@ export class HttpClient {
       },
     };
   }
-  createAbortSignal = (cancelToken) => {
+
+  protected createAbortSignal = (cancelToken: CancelToken): AbortSignal | undefined => {
     if (this.abortControllers.has(cancelToken)) {
       const abortController = this.abortControllers.get(cancelToken);
       if (abortController) {
@@ -95,18 +144,32 @@ export class HttpClient {
       }
       return void 0;
     }
+
     const abortController = new AbortController();
     this.abortControllers.set(cancelToken, abortController);
     return abortController.signal;
   };
-  abortRequest = (cancelToken) => {
+
+  public abortRequest = (cancelToken: CancelToken) => {
     const abortController = this.abortControllers.get(cancelToken);
+
     if (abortController) {
       abortController.abort();
       this.abortControllers.delete(cancelToken);
     }
   };
-  request = async ({ body, secure, path, type, query, format, baseUrl, cancelToken, ...params }) => {
+
+  public request = async <T = any, E = any>({
+    body,
+    secure,
+    path,
+    type,
+    query,
+    format,
+    baseUrl,
+    cancelToken,
+    ...params
+  }: FullRequestParams): Promise<HttpResponse<T, E>> => {
     const secureParams =
       ((typeof secure === "boolean" ? secure : this.baseApiParams.secure) &&
         this.securityWorker &&
@@ -116,6 +179,7 @@ export class HttpClient {
     const queryString = query && this.toQueryString(query);
     const payloadFormatter = this.contentFormatters[type || ContentType.Json];
     const responseFormat = format || requestParams.format;
+
     return this.customFetch(`${baseUrl || this.baseUrl || ""}${path}${queryString ? `?${queryString}` : ""}`, {
       ...requestParams,
       headers: {
@@ -125,9 +189,10 @@ export class HttpClient {
       signal: cancelToken ? this.createAbortSignal(cancelToken) : requestParams.signal,
       body: typeof body === "undefined" || body === null ? null : payloadFormatter(body),
     }).then(async (response) => {
-      const r = response;
-      r.data = null;
-      r.error = null;
+      const r = response as HttpResponse<T, E>;
+      r.data = null as unknown as T;
+      r.error = null as unknown as E;
+
       const data = !responseFormat
         ? r
         : await response[responseFormat]()
@@ -143,11 +208,51 @@ export class HttpClient {
               r.error = e;
               return r;
             });
+
       if (cancelToken) {
         this.abortControllers.delete(cancelToken);
       }
+
       if (!response.ok) throw data;
       return data;
     });
+  };
+}
+
+/**
+ * @title Spajzka API
+ * @version 0.1.0
+ * @baseUrl http://127.0.0.1:3010
+ *
+ * Spajzka API documentation
+ */
+export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
+  item = {
+    /**
+     * @description Get item
+     *
+     * @tags item
+     * @name ItemList
+     * @summary Get item
+     * @request GET:/item
+     */
+    itemList: (params: RequestParams = {}) =>
+      this.request<
+        {
+          item?: {
+            id: number;
+            name: string;
+            price: number;
+            quantity: number;
+            description: string;
+          };
+        },
+        any
+      >({
+        path: `/item`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
   };
 }

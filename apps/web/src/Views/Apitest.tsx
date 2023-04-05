@@ -1,22 +1,23 @@
 import '../CSS/Global.css'
 import React from "react";
 import { Button, Container } from "react-bootstrap";
-import {Item} from "@psychonek/api-client"
+import {Api} from "@psychonek/api-client"
 
 function Apitest() {
 
-    //Call api get items
     const getItems = async () => {
-        const client = new Item();
-        // client.itemList().then((response) => {
-        //     console.log(response);
-        // });
+        const api = new Api();
+
+        const items = await api.item.itemList().then((response) => {
+            return response.data;
+        });
+        console.log(items);
     }
 
     return (
         <Container className="content">
             <p className="text-center">API test</p>
-            <Button variant="primary" onClick={() => {getItems()}}>Primary</Button>
+            <Button variant="primary" onClick={() => {getItems()}}>Get Items</Button>
         </Container>
     );
 }

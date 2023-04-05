@@ -15,8 +15,7 @@
       "persistent": true
     },
     "publishPackage":{
-      "dependsOn": ["^publishPackage"],
-      "outputs": ["build/**"]
+      "dependsOn": ["^publishPackage"]
     }
   }
 }

@@ -21,14 +21,10 @@ jobs:
         with:
           node-version: "18"
           cache: "npm"
-
-      - name: "Install dependencies"
-        run: |
-          npm install
-
+          
       - name: NPM Install
         run: |
-          cd ./package/shared
+          cd ./package/api-client
           npm install
 
       - name: 🔨 Build Project && Publish
