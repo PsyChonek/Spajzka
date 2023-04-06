@@ -1,0 +1,57 @@
+{
+  "swagger": {
+    "info": {
+      "title": "Spajzka API",
+      "description": "Spajzka API documentation",
+      "version": "0.1.0"
+    },
+    "host": "127.0.0.1:3010",
+    "schemes": [
+      "http"
+    ],
+    "consumes": [
+      "application/json"
+    ],
+    "produces": [
+      "application/json"
+    ],
+    "securityDefinitions": {
+      "apiKey": {
+        "type": "apiKey",
+        "name": "apiKey",
+        "in": "header"
+      }
+    },
+    "definitions": {
+      "Item": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "price",
+          "quantity",
+          "description"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "mode": "dynamic"
+}

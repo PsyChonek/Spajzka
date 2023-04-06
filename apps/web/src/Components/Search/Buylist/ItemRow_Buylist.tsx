@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {Button, Container, Form} from "react-bootstrap";
-import {Item, SaveItem} from "../../../Schema/Items";
+import {Item} from "../../../Other/apiService";
 
 var isHoolding: boolean = false;
 var timer: any;
@@ -9,7 +9,7 @@ const ItemRow_Buylist = (props: { item: Item, updateCallback: any }) => {
 
     const UpdateItem = (isOnBuylist: boolean) => {
         props.item.isOnBuylist = isOnBuylist;
-        SaveItem(props.item);
+        // SaveItem(props.item);
         props.updateCallback();
     }
 
@@ -22,7 +22,7 @@ const ItemRow_Buylist = (props: { item: Item, updateCallback: any }) => {
         timer = window.setTimeout(() => {
             if (isHoolding) {
                 props.item.amount = 0;
-                SaveItem(props.item);
+                // SaveItem(props.item);
                 props.updateCallback();
             }
         }, 1000);

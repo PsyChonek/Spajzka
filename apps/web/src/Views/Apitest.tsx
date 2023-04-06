@@ -1,17 +1,18 @@
 import '../CSS/Global.css'
 import React from "react";
 import { Button, Container } from "react-bootstrap";
-import {Api} from "@psychonek/api-client"
+import { ItemService } from '../Other/itemService';
+
+import { Item } from '../Api/Item';
 
 function Apitest() {
 
     const getItems = async () => {
-        const api = new Api();
+        const api = new Item();
 
-        const items = await api.item.itemList().then((response) => {
-            return response.data;
+       api.itemList().then((response) => {
+            console.log(response);
         });
-        console.log(items);
     }
 
     return (

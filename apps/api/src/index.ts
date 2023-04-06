@@ -15,12 +15,15 @@ var start = async function () {
     const config = {
         path: modelPath,
         tsconfig: './tsconfig.json',
-        type: "*"
+        type: "*",
+        expose: "export",
+        schemaId: "auto",
     }
 
+    // @ts-ignore
     const schema = createGenerator(config).createSchema(config.type);
-
-    await server.register(fastifySwagger, {
+    
+    const wholeSchema = {
         swagger: {
             info: {
                 title: 'Spajzka API',
@@ -37,23 +40,27 @@ var start = async function () {
                     name: 'apiKey',
                     in: 'header'
                 }
-            }
+            },
+            definitions: schema.definitions
         }
-    })
+    }
+    
+    // @ts-ignore
+    await server.register(fastifySwagger, wholeSchema)
 
     server.register(fastifySwaggerUi, {
         routePrefix: '/docs'
     })
 
-    registerRoutes(server, schema);
 
+    registerRoutes(server,wholeSchema);
+    
+    // Save the schema to a file
+    const fs = require('fs');
+    fs.writeFileSync(path.join(__dirname, 'schema.json'), JSON.stringify(wholeSchema, null, 2));
+    
     await server.ready()
     server.swagger()
-
-    const json = server.swagger({ yaml: true })
-    console.log(json)
-    require('fs').writeFileSync('./swagger.yml', json)
-
 
     const fastifyOptions: FastifyListenOptions = {
         host: "127.0.0.1",

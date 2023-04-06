@@ -1,7 +1,6 @@
-import {Item} from "../Schema/Items"
 import {openDB} from "idb";
 
-export function importAll(dname: string, dversion: number, sname: string, arr: Array<Item>) {
+export function importAll(dname: string, dversion: number, sname: string, arr: Array<any>) {
     for (let i = 0; i < arr.length; i++) {
         saveItem(dname, dversion, sname, arr[i]);
     }
@@ -18,7 +17,7 @@ const dbPromise = (dname: string, dversion: number, sname:string) => {
     });
 }
 
-export async function saveItem(dname: string, dversion: number, sname: string, item: Item) {
+export async function saveItem(dname: string, dversion: number, sname: string, item: any) {
     return (await dbPromise(dname,dversion,sname)).put(sname, item);
 }
 
@@ -26,12 +25,12 @@ export async function getItem(dname: string, dversion: number, sname: string, ke
     return (await dbPromise(dname,dversion,sname)).get(sname, key);
 }
 
-export function getAll(dname: string, dversion: number, sname: string): Promise<Item[]> {
+export function getAll(dname: string, dversion: number, sname: string): Promise<any[]> {
     return (dbPromise(dname,dversion,sname)).then(db => {
         return db.getAll(sname);
     });
 }
 
-export async function deleteItem(dname: string, dversion: number, sname: string, item: Item) {
+export async function deleteItem(dname: string, dversion: number, sname: string, item: any) {
     return (await dbPromise(dname,dversion,sname)).delete(sname, item.id);
 }

@@ -1,21 +1,26 @@
 import React, {useEffect, useState} from "react";
 import {Button, Container} from "react-bootstrap";
-import {Item, SaveItem} from "../../../Schema/Items";
 import PopUpWindow, {PopUpWindowState} from "../../PopUpWindow";
 import ItemDetail from "../ItemDetail";
+import {Item} from "../../../Api/Item";
+import {ItemListData} from "../../../Api/data-contracts";
 
-const ItemRow_Spajz = (props: { item: Item, updateCallback: any }) => {
+const ItemRow_Spajz = (props: { item: ItemListData, updateCallback: any }) => {
     const [popUpState, setPopUpState] = useState(PopUpWindowState.Hidden);
 
     const UpdateItem = (isOnBuylist: boolean) => {
         props.item.isOnBuylist = isOnBuylist;
-        SaveItem(props.item);
+        // SaveItem(props.item);
         props.updateCallback();
+
+        props.item.amount = 0;
+
+        props.item.item.description = "W.I.P.";
     }
 
     const AddItem = (count: number) => {
         props.item.amount = Math.max((props.item.amount + count), 0);
-        SaveItem(props.item);
+        // SaveItem(props.item);
         props.updateCallback();
     }
 
