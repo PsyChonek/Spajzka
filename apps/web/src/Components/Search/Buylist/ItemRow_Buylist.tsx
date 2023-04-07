@@ -22,7 +22,7 @@ const ItemRow_Buylist = (props: { item: ItemModel, updateCallback: any }) => {
         timer = window.setTimeout(() => {
             if (isHoolding) {
                 props.item.amount = 0;
-                // SaveItem(props.item);
+                // SaveItem(props.item); //TODO: SaveItem
                 props.updateCallback();
             }
         }, 1000);

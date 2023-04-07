@@ -69,9 +69,9 @@ const Search = (props: { type: SearchStyle }) => {
     }
 
     const updateAllData = () => {
-        // GetItems().then((items: ItemModel[]) => {
-        //     setAllData(items);
-        // })
+        GetItems().then((items: ItemModel[]) => {
+            setAllData(items);
+        })
     }
 
     const updateResults = () => {

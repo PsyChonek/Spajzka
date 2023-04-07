@@ -41,7 +41,11 @@ export const registerRoutes = (server: any) => {
             }
         },
         handler: (req: any, reply: any) => {
-            const items: Item[] = [{ id: 1, name: 'test', price: 1, isOnBuylist: true, amount: 1 }, { id: 2, name: 'test2', price: 2, isOnBuylist: false, amount: 2 }]
+            const items: Item[] = [
+                { id: 1, name: 'test', price: 1, isOnBuylist: true, amount: 1 },
+                { id: 2, name: 'test2', price: 2, isOnBuylist: false, amount: 2 },
+                { id: 3, name: 'test3', price: 3, isOnBuylist: true, amount: 3 }
+            ]
 
             reply.send(items)
         }

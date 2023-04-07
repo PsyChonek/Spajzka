@@ -1,5 +1,6 @@
 {
   "$id": "Item",
+  "type": "object",
   "properties": {
     "id": {
       "type": "number"

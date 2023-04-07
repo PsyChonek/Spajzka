@@ -20,21 +20,21 @@ var start = async function () {
         path: modelPath,
         tsconfig: './tsconfig.json',
         type: "*",
-        expose: "all",
-        schemaId: "Item",
     }
 
     // @ts-ignore
     const schema = createGenerator(config).createSchema(config.type);
 
-    // const fs = require('fs');
-    // fs.writeFileSync(path.join(__dirname, 'schema.json'), JSON.stringify(schema, null, 2));
-
+    
+    
     const fs = require('fs');
+    fs.writeFileSync(path.join(__dirname, 'schemaOLD.json'), JSON.stringify(schema.definitions, null, 2));
+    
     const schemaFromFile = JSON.parse(fs.readFileSync(path.join(__dirname, 'schema.json'), 'utf8'));
-
+    
     server.addSchema(schemaFromFile)
-
+    
+    // @ts-ignore
     await server.register(fastifySwagger, {
         swagger: {
             info: {
@@ -43,7 +43,7 @@ var start = async function () {
                 version: '0.1.0'
             },
             host: '127.0.0.1:3010',
-            schemes: ['http'],
+            schemes: ['http', 'https'],
             consumes: ['application/json'],
             produces: ['application/json'],
             securityDefinitions: {
@@ -52,6 +52,11 @@ var start = async function () {
                     name: 'apiKey',
                     in: 'header'
                 }
+            }
+        },
+        refResolver: {
+            buildLocalReference(json, baseUri, fragment, i) {
+                return `${json.$id}Model` || `my-fragment-${i}`
             }
         }
     }
