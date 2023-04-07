@@ -1,9 +1,15 @@
-import { Item } from '../Api/Item';
+import { Item } from '../Api/data-contracts';
 
-Item.length;
+export async function SaveItem(item: Item) {
+}
 
-export class ItemService {
+export async function RemoveItem(item: Item) {
+}
 
-    
+export async function GetItem(id: number) {
+}
 
+
+export async function GetItems(): Promise<Item[]> {
+    return [];
 }

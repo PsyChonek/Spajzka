@@ -3,11 +3,9 @@
   "version": "1.0.10",
   "description": "",
   "private": true,
-  "lib": [
-    
-  ],
+  "lib": [],
   "scripts": {
-    "dev": "start http://localhost:3010/docs & npx ts-node-dev --respawn --transpile-only --debug ./src/index.ts",
+    "dev": "start http://localhost:3010/docs && npx ts-node-dev ./src/index.ts",
     "build": "npx tsc --build tsconfig.json",
     "start": "node ./build/index.js"
   },
@@ -17,5 +15,8 @@
     "dotenv": "^16.0.3",
     "fastify": "^4.15.0",
     "ts-json-schema-generator": "^1.2.0"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.1"
   }
 }

@@ -1,6 +1,9 @@
 import { Item } from './models/item'
 
 export const registerRoutes = (server: any, schema: any) => {
+
+    console.log()
+
     server.route({
         method: 'GET',
         url: '/item/:id',
@@ -15,9 +18,8 @@ export const registerRoutes = (server: any, schema: any) => {
                 }
             },
             response: {
-                200: {
-                    schema.swagger.definitions!["Item"] as JSON
-                }
+                200: schema.Item
+                
             }
         },
         handler: (req: any, reply: any) => {

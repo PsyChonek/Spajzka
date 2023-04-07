@@ -16,13 +16,12 @@ var start = async function () {
         path: modelPath,
         tsconfig: './tsconfig.json',
         type: "*",
-        expose: "export",
-        schemaId: "auto",
+        expose: "all"
     }
 
     // @ts-ignore
     const schema = createGenerator(config).createSchema(config.type);
-    
+
     const wholeSchema = {
         swagger: {
             info: {
@@ -44,7 +43,7 @@ var start = async function () {
             definitions: schema.definitions
         }
     }
-    
+
     // @ts-ignore
     await server.register(fastifySwagger, wholeSchema)
 
@@ -52,9 +51,8 @@ var start = async function () {
         routePrefix: '/docs'
     })
 
+    registerRoutes(server,wholeSchema.swagger.definitions);
 
-    registerRoutes(server,wholeSchema);
-    
     // Save the schema to a file
     const fs = require('fs');
     fs.writeFileSync(path.join(__dirname, 'schema.json'), JSON.stringify(wholeSchema, null, 2));

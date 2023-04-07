@@ -35,19 +35,19 @@
           "price": {
             "type": "number"
           },
-          "quantity": {
-            "type": "number"
+          "isOnBuylist": {
+            "type": "boolean"
           },
-          "description": {
-            "type": "string"
+          "amount": {
+            "type": "number"
           }
         },
         "required": [
           "id",
           "name",
           "price",
-          "quantity",
-          "description"
+          "isOnBuylist",
+          "amount"
         ],
         "additionalProperties": false
       }

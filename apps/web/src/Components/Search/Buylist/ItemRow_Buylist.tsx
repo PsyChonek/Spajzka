@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {Button, Container, Form} from "react-bootstrap";
-import {Item} from "../../../Other/apiService";
+import {Item} from "../../../Api/data-contracts";
 
 var isHoolding: boolean = false;
 var timer: any;

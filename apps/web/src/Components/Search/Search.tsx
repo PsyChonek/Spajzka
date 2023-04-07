@@ -5,8 +5,6 @@ import Container from 'react-bootstrap/Container';
 import ItemSeparator from "./ItemSeparator";
 import Bar from "./Bar";
 import Navigation from "./Navigation";
-import {GetItems, Item} from "../../Schema/Items";
-import {scryRenderedComponentsWithType} from "react-dom/test-utils";
 import Add from "./Add";
 import ItemRow_Spajz from "./Spajz/ItemRow_Spajz";
 import ItemRow_Buylist from "./Buylist/ItemRow_Buylist";
@@ -14,6 +12,8 @@ import ItemHead_Spajz from "./Spajz/ItemHead_Spajz";
 import ItemHead_Buylist from "./Buylist/ItemHead_Buylist";
 import {SortOptionsItem} from "./SortOptions";
 import {Spinner} from "react-bootstrap";
+import {Item} from "../../Api/data-contracts";
+import {GetItems} from "../../Other/itemService";
 
 export enum SearchStyle {
     Spajz = 0,

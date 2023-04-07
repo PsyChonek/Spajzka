@@ -2,12 +2,12 @@ import React, {useEffect, useState} from 'react';
 import {Button, Container} from "react-bootstrap";
 import PopUpWindow, {PopUpWindowState} from "../PopUpWindow";
 import Input from "../Input";
-import {Item, SaveItem} from "../../Schema/Items";
+import {Item} from "../../Api/data-contracts";
 import {SearchStyle} from "./Search";
 import AddButton_Spajz from "./Spajz/AddButton_Spajz";
 import AddButton_Buylist from "./Buylist/AddButton_Buylist";
-import Notificator from "../../Other/notificator";
 import notificator from "../../Other/notificator";
+import {SaveItem} from "../../Other/itemService";
 
 
 function Add(props: { type: SearchStyle, callbackUpdate: any, query: string }) {
@@ -22,13 +22,13 @@ function Add(props: { type: SearchStyle, callbackUpdate: any, query: string }) {
     }, [popUpState]);
 
     const SaveNewItem = (isOnBuylist: boolean = false) => {
-        let newItem = new Item()
+        let newItem = {} as Item;
         newItem.name = value == "" ? props.query : value;
         newItem.isOnBuylist = isOnBuylist;
         SaveItem(newItem);
         props.callbackUpdate();
 
-        notificator.notify(`Položka ${newItem.name} byla přidána do spážky.`)
+        notificator.notify(`Položka ${newItem.name} byla přidána do špajzky.`)
     }
 
     const Type = () => {
