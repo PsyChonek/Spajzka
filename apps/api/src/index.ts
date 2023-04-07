@@ -1,6 +1,7 @@
 ﻿import fastify, { FastifyListenOptions } from "fastify"
 import { fastifySwagger } from '@fastify/swagger';
 import { fastifySwaggerUi } from '@fastify/swagger-ui';
+import { fastifyCors } from "@fastify/cors"
 import { registerRoutes } from './routes';
 import * as path from 'path'
 import * as dotenv from 'dotenv'
@@ -22,19 +23,15 @@ var start = async function () {
         type: "*",
     }
 
-    // @ts-ignore
     const schema = createGenerator(config).createSchema(config.type);
 
-    
-    
     const fs = require('fs');
     fs.writeFileSync(path.join(__dirname, 'schemaOLD.json'), JSON.stringify(schema.definitions, null, 2));
-    
+
     const schemaFromFile = JSON.parse(fs.readFileSync(path.join(__dirname, 'schema.json'), 'utf8'));
-    
+
     server.addSchema(schemaFromFile)
-    
-    // @ts-ignore
+
     await server.register(fastifySwagger, {
         swagger: {
             info: {
@@ -62,6 +59,14 @@ var start = async function () {
     }
     )
 
+    server.register(fastifyCors, {
+        origin: 'http://localhost:3000',
+        methods: ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS'],
+        allowedHeaders: ['Access-Control-Allow-Origin', 'Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'Access-Control-Request-Method', 'Access-Control-Request-Headers'],
+        preflightContinue: false,
+        optionsSuccessStatus: 204
+    })
+
     server.register(fastifySwaggerUi, {
         routePrefix: '/docs'
     })
@@ -72,8 +77,8 @@ var start = async function () {
     server.swagger()
 
     const fastifyOptions: FastifyListenOptions = {
-        host: "127.0.0.1",
-        port: 3010
+        host: "localhost",
+        port: 3010,
     }
 
     await server.listen(fastifyOptions)

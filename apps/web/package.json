@@ -35,7 +35,7 @@
   "scripts": {
     "dev": "craco start",
     "build": "craco build",
-    "generateClient": "npx swagger-typescript-api -p http://127.0.0.1:3010/docs/json -o ./src/Api --modular --extract-request-params --extract-request-body"
+    "generateClient": "npx swagger-typescript-api -p http://localhost:3010/docs/json -o ./src/Api --modular"
   },
   "browserslist": {
     "production": [
