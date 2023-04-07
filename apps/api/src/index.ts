@@ -3,7 +3,6 @@ import { fastifySwagger } from '@fastify/swagger';
 import { fastifySwaggerUi } from '@fastify/swagger-ui';
 import { fastifyCors } from "@fastify/cors"
 import { registerRoutes } from './routes';
-import * as path from 'path'
 import * as dotenv from 'dotenv'
 import { createGenerator } from "ts-json-schema-generator";
 
@@ -25,12 +24,10 @@ var start = async function () {
 
     const schema = createGenerator(config).createSchema(config.type);
 
-    const fs = require('fs');
-    fs.writeFileSync(path.join(__dirname, 'schemaOLD.json'), JSON.stringify(schema.definitions, null, 2));
-
-    const schemaFromFile = JSON.parse(fs.readFileSync(path.join(__dirname, 'schema.json'), 'utf8'));
-
-    server.addSchema(schemaFromFile)
+    for (const key in schema.definitions) {
+        const newSchema = Object.assign({}, schema.definitions[key] ,{$id: key})
+        server.addSchema(newSchema)
+    }
 
     await server.register(fastifySwagger, {
         swagger: {
@@ -53,7 +50,7 @@ var start = async function () {
         },
         refResolver: {
             buildLocalReference(json, baseUri, fragment, i) {
-                return `${json.$id}Model` || `my-fragment-${i}`
+                return `${json.$id}Model`
             }
         }
     }
