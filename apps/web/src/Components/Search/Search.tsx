@@ -5,8 +5,6 @@ import Container from 'react-bootstrap/Container';
 import ItemSeparator from "./ItemSeparator";
 import Bar from "./Bar";
 import Navigation from "./Navigation";
-import {GetItems, Item} from "../../Schema/Items";
-import {scryRenderedComponentsWithType} from "react-dom/test-utils";
 import Add from "./Add";
 import ItemRow_Spajz from "./Spajz/ItemRow_Spajz";
 import ItemRow_Buylist from "./Buylist/ItemRow_Buylist";
@@ -14,6 +12,8 @@ import ItemHead_Spajz from "./Spajz/ItemHead_Spajz";
 import ItemHead_Buylist from "./Buylist/ItemHead_Buylist";
 import {SortOptionsItem} from "./SortOptions";
 import {Spinner} from "react-bootstrap";
+import {ItemModel} from "../../Api/data-contracts";
+import {GetItems} from "../../Other/itemService";
 
 export enum SearchStyle {
     Spajz = 0,
@@ -22,8 +22,8 @@ export enum SearchStyle {
 
 const Search = (props: { type: SearchStyle }) => {
     const [isFetching, setIsFetching] = useState<boolean>(true);
-    const [allData, setAllData] = useState<Item[]>([]);
-    const [results, setResults] = useState<Item[]>([]);
+    const [allData, setAllData] = useState<ItemModel[]>([]);
+    const [results, setResults] = useState<ItemModel[]>([]);
     const [query, setQuery] = useState<string>('');
     const [sorts, setSorts] = useState<SortOptionsItem[]>([new SortOptionsItem("name", true), new SortOptionsItem("inSpajz"),
         new SortOptionsItem("isOnBuylist"), new SortOptionsItem("price")]);
@@ -69,7 +69,7 @@ const Search = (props: { type: SearchStyle }) => {
     }
 
     const updateAllData = () => {
-        GetItems().then((items: Item[]) => {
+        GetItems().then((items: ItemModel[]) => {
             setAllData(items);
         })
     }
@@ -77,7 +77,7 @@ const Search = (props: { type: SearchStyle }) => {
     const updateResults = () => {
         
         var queryLower = query.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-        let results = new Array<Item>();
+        let results = new Array<ItemModel>();
 
         setResults(results)
 
@@ -134,7 +134,7 @@ const Search = (props: { type: SearchStyle }) => {
         setResults(results)
     }
 
-    const itemType = (result: Item) => {
+    const itemType = (result: ItemModel) => {
         switch (props.type) {
             case SearchStyle.Spajz:
                 return (<ItemRow_Spajz item={result} updateCallback={updateAllData}/>);

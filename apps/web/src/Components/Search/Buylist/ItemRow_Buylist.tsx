@@ -1,15 +1,15 @@
 import React, {useEffect, useState} from "react";
 import {Button, Container, Form} from "react-bootstrap";
-import {Item, SaveItem} from "../../../Schema/Items";
+import {ItemModel} from "../../../Api/data-contracts";
 
 var isHoolding: boolean = false;
 var timer: any;
 
-const ItemRow_Buylist = (props: { item: Item, updateCallback: any }) => {
+const ItemRow_Buylist = (props: { item: ItemModel, updateCallback: any }) => {
 
     const UpdateItem = (isOnBuylist: boolean) => {
         props.item.isOnBuylist = isOnBuylist;
-        SaveItem(props.item);
+        // SaveItem(props.item);
         props.updateCallback();
     }
 
@@ -22,7 +22,7 @@ const ItemRow_Buylist = (props: { item: Item, updateCallback: any }) => {
         timer = window.setTimeout(() => {
             if (isHoolding) {
                 props.item.amount = 0;
-                SaveItem(props.item);
+                // SaveItem(props.item); //TODO: SaveItem
                 props.updateCallback();
             }
         }, 1000);
