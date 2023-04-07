@@ -3,33 +3,9 @@ import { Item } from './models/item'
 export const registerRoutes = (server: any) => {
     server.route({
         method: 'GET',
-        url: '/item/:id',
-        schema: {
-            description: 'Get item by id',
-            tags: ['item'],
-            summary: 'Get item by id',
-            params: {
-                type: 'object',
-                properties: {
-                    id: { type: 'number' }
-                }
-            },
-            response: {
-                200: {
-                    $ref: 'Item'
-                }
-            }
-        },
-        handler: (req: any, reply: any) => {
-            reply.send()
-        }
-    })
-
-    server.route({
-        method: 'GET',
         url: '/item',
         schema: {
-            tags: ['item'],
+            tags: ['Item'],
             summary: 'Get items',
             response: {
                 200: {
@@ -48,6 +24,34 @@ export const registerRoutes = (server: any) => {
             ]
 
             reply.send(items)
+        }
+    })
+
+    server.route({
+        method: 'GET',
+        url: '/user/:id',
+        schema: {
+            tags: ['User'],
+            summary: 'Get user by id',
+            params: {
+                type: 'object',
+                properties: {
+                    id: { type: 'number' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'User'
+                }
+            }
+        },
+        handler: (req: any, reply: any) => {
+            const user = {
+                id: 1,
+                name: 'test'
+            }
+
+            reply.send(user)
         }
     })
 }

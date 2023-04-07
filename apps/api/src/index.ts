@@ -36,7 +36,7 @@ var start = async function () {
                 description: 'Spajzka API documentation',
                 version: '0.1.0'
             },
-            host: '127.0.0.1:3010',
+            host: 'localhost:3010',
             schemes: ['http', 'https'],
             consumes: ['application/json'],
             produces: ['application/json'],

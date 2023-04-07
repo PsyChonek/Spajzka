@@ -14,8 +14,8 @@
       "cache": false,
       "persistent": true
     },
-    "publishPackage":{
-      "dependsOn": ["^publishPackage"]
+    "generateClient":{
+      
     }
   }
 }

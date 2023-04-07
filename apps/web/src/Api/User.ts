@@ -9,21 +9,21 @@
  * ---------------------------------------------------------------
  */
 
-import { ItemModel } from "./data-contracts";
+import { UserModel } from "./data-contracts";
 import { HttpClient, RequestParams } from "./http-client";
 
-export class Item<SecurityDataType = unknown> extends HttpClient<SecurityDataType> {
+export class User<SecurityDataType = unknown> extends HttpClient<SecurityDataType> {
   /**
    * No description
    *
-   * @tags Item
-   * @name ItemList
-   * @summary Get items
-   * @request GET:/item
+   * @tags User
+   * @name UserDetail
+   * @summary Get user by id
+   * @request GET:/user/{id}
    */
-  itemList = (params: RequestParams = {}) =>
-    this.request<ItemModel[], any>({
-      path: `/item`,
+  userDetail = (id: number, params: RequestParams = {}) =>
+    this.request<UserModel, any>({
+      path: `/user/${id}`,
       method: "GET",
       format: "json",
       ...params,

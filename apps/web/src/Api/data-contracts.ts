@@ -16,3 +16,8 @@ export interface ItemModel {
   isOnBuylist: boolean;
   amount: number;
 }
+
+export interface UserModel {
+  id: number;
+  name: string;
+}

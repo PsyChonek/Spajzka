@@ -4,7 +4,8 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    "*/src/*"
+    "*/src/*",
+    "*/src/models/*"
   ],
   "$schema": "https://json.schemastore.org/tsconfig",
   "display": "Default",
