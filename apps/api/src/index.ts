@@ -21,6 +21,11 @@ var start = async function () {
         tsconfig: './tsconfig.json',
         type: "*",
     }
+    
+    const fastifyOptions: FastifyListenOptions = {
+        host: process.env.HOST || 'localhost',
+        port: Number.parseInt(process.env.PORT || '3010'),
+    }
 
     const schema = createGenerator(config).createSchema(config.type);
 
@@ -36,7 +41,7 @@ var start = async function () {
                 description: 'Spajzka API documentation',
                 version: '0.1.0'
             },
-            host: 'localhost:3010',
+            host: `${fastifyOptions.host}:${fastifyOptions.port}`,
             schemes: ['http', 'https'],
             consumes: ['application/json'],
             produces: ['application/json'],
@@ -57,7 +62,7 @@ var start = async function () {
     )
 
     server.register(fastifyCors, {
-        origin: 'http://localhost:3000',
+        origin: `http://${fastifyOptions.host}:${fastifyOptions.port}`,
         methods: ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS'],
         allowedHeaders: ['Access-Control-Allow-Origin', 'Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'Access-Control-Request-Method', 'Access-Control-Request-Headers'],
         preflightContinue: false,
@@ -73,10 +78,6 @@ var start = async function () {
     await server.ready()
     server.swagger()
 
-    const fastifyOptions: FastifyListenOptions = {
-        host: "localhost",
-        port: 3010,
-    }
 
     await server.listen(fastifyOptions)
 
