@@ -7,6 +7,10 @@ import * as dotenv from 'dotenv'
 import { createGenerator } from "ts-json-schema-generator";
 
 var start = async function () {
+
+    console.log()
+    console.log('Starting server...')
+
     dotenv.config()
     const server = fastify()
 

@@ -21,6 +21,21 @@ export class Item<SecurityDataType = unknown> extends HttpClient<SecurityDataTyp
    * @request GET:/item/{id}
    */
   itemDetail = (id: number, params: RequestParams = {}) =>
+    this.request<object, any>({
+      path: `/item/${id}`,
+      method: "GET",
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Get items
+   *
+   * @tags item
+   * @name ItemList
+   * @summary Get items
+   * @request GET:/item
+   */
+  itemList = (params: RequestParams = {}) =>
     this.request<
       {
         id: number;
@@ -28,10 +43,10 @@ export class Item<SecurityDataType = unknown> extends HttpClient<SecurityDataTyp
         price: number;
         isOnBuylist: boolean;
         amount: number;
-      },
+      }[],
       any
     >({
-      path: `/item/${id}`,
+      path: `/item`,
       method: "GET",
       format: "json",
       ...params,
