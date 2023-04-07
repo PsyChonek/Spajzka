@@ -1,6 +1,6 @@
 import { Item } from './models/item'
 
-export const registerRoutes = (server: any, schema: any) => {
+export const registerRoutes = (server: any) => {
     server.route({
         method: 'GET',
         url: '/item/:id',
@@ -16,8 +16,7 @@ export const registerRoutes = (server: any, schema: any) => {
             },
             response: {
                 200: {
-                    type: 'object',
-                    item: schema.Item
+                    $ref: 'Item'
                 }
             }
         },
@@ -30,18 +29,19 @@ export const registerRoutes = (server: any, schema: any) => {
         method: 'GET',
         url: '/item',
         schema: {
-            description: 'Get items',
             tags: ['item'],
             summary: 'Get items',
             response: {
                 200: {
                     type: 'array',
-                    items: schema.Item
+                    items: {
+                        $ref: 'Item'
+                    }
                 }
             }
         },
         handler: (req: any, reply: any) => {
-            const items: Item[] = [ { id: 1, name: 'test', price: 1, isOnBuylist: true, amount: 1 }, { id: 2, name: 'test2', price: 2, isOnBuylist: false, amount: 2 }]
+            const items: Item[] = [{ id: 1, name: 'test', price: 1, isOnBuylist: true, amount: 1 }, { id: 2, name: 'test2', price: 2, isOnBuylist: false, amount: 2 }]
 
             reply.send(items)
         }

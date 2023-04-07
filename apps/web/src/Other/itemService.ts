@@ -1,18 +1,18 @@
-import { Item } from '../Api/data-contracts';
+import { ItemModel } from '../Api/data-contracts';
 import { Item as ItemApi } from '../Api/Item';
 
 const itemApi = new ItemApi();
 
-export async function SaveItem(item: Item) {
+export async function SaveItem(item: ItemModel) {
 }
 
-export async function RemoveItem(item: Item) {
+export async function RemoveItem(item: ItemModel) {
 }
 
 export async function GetItem(id: number) {
 }
 
 export const GetItems = async () => {
-    const i = await itemApi.itemList()
-    return i.data
+    const items = await itemApi.itemList();
+    return items.data;
 }

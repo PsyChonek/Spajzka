@@ -9,6 +9,7 @@
  * ---------------------------------------------------------------
  */
 
+import { ItemModel } from "./data-contracts";
 import { HttpClient, RequestParams } from "./http-client";
 
 export class Item<SecurityDataType = unknown> extends HttpClient<SecurityDataType> {
@@ -21,14 +22,14 @@ export class Item<SecurityDataType = unknown> extends HttpClient<SecurityDataTyp
    * @request GET:/item/{id}
    */
   itemDetail = (id: number, params: RequestParams = {}) =>
-    this.request<object, any>({
+    this.request<ItemModel, any>({
       path: `/item/${id}`,
       method: "GET",
       format: "json",
       ...params,
     });
   /**
-   * @description Get items
+   * No description
    *
    * @tags item
    * @name ItemList
@@ -36,16 +37,7 @@ export class Item<SecurityDataType = unknown> extends HttpClient<SecurityDataTyp
    * @request GET:/item
    */
   itemList = (params: RequestParams = {}) =>
-    this.request<
-      {
-        id: number;
-        name: string;
-        price: number;
-        isOnBuylist: boolean;
-        amount: number;
-      }[],
-      any
-    >({
+    this.request<ItemModel[], any>({
       path: `/item`,
       method: "GET",
       format: "json",

@@ -3,10 +3,10 @@ import PopUpWindow, {PopUpWindowState} from "../PopUpWindow";
 import Input from "../Input";
 import {Button, Container} from "react-bootstrap";
 import notificator from "../../Other/notificator";
-import {Item} from "../../Api/data-contracts";
+import {ItemModel} from "../../Api/data-contracts";
 import {RemoveItem} from "../../Other/itemService";
 
-const ItemDetail = (props: { item: Item, popUpState: any }) => {
+const ItemDetail = (props: { item: ItemModel, popUpState: any }) => {
     return (
         <Container>
             <Button variant="danger" onClick={() => {

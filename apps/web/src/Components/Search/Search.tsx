@@ -12,7 +12,7 @@ import ItemHead_Spajz from "./Spajz/ItemHead_Spajz";
 import ItemHead_Buylist from "./Buylist/ItemHead_Buylist";
 import {SortOptionsItem} from "./SortOptions";
 import {Spinner} from "react-bootstrap";
-import {Item} from "../../Api/data-contracts";
+import {ItemModel} from "../../Api/data-contracts";
 import {GetItems} from "../../Other/itemService";
 
 export enum SearchStyle {
@@ -22,8 +22,8 @@ export enum SearchStyle {
 
 const Search = (props: { type: SearchStyle }) => {
     const [isFetching, setIsFetching] = useState<boolean>(true);
-    const [allData, setAllData] = useState<Item[]>([]);
-    const [results, setResults] = useState<Item[]>([]);
+    const [allData, setAllData] = useState<ItemModel[]>([]);
+    const [results, setResults] = useState<ItemModel[]>([]);
     const [query, setQuery] = useState<string>('');
     const [sorts, setSorts] = useState<SortOptionsItem[]>([new SortOptionsItem("name", true), new SortOptionsItem("inSpajz"),
         new SortOptionsItem("isOnBuylist"), new SortOptionsItem("price")]);
@@ -69,15 +69,15 @@ const Search = (props: { type: SearchStyle }) => {
     }
 
     const updateAllData = () => {
-        GetItems().then((items: Item[]) => {
-            setAllData(items);
-        })
+        // GetItems().then((items: ItemModel[]) => {
+        //     setAllData(items);
+        // })
     }
 
     const updateResults = () => {
         
         var queryLower = query.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-        let results = new Array<Item>();
+        let results = new Array<ItemModel>();
 
         setResults(results)
 
@@ -134,7 +134,7 @@ const Search = (props: { type: SearchStyle }) => {
         setResults(results)
     }
 
-    const itemType = (result: Item) => {
+    const itemType = (result: ItemModel) => {
         switch (props.type) {
             case SearchStyle.Spajz:
                 return (<ItemRow_Spajz item={result} updateCallback={updateAllData}/>);

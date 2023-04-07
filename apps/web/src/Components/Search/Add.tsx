@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {Button, Container} from "react-bootstrap";
 import PopUpWindow, {PopUpWindowState} from "../PopUpWindow";
 import Input from "../Input";
-import {Item} from "../../Api/data-contracts";
+import {ItemModel} from "../../Api/data-contracts";
 import {SearchStyle} from "./Search";
 import AddButton_Spajz from "./Spajz/AddButton_Spajz";
 import AddButton_Buylist from "./Buylist/AddButton_Buylist";
@@ -22,7 +22,7 @@ function Add(props: { type: SearchStyle, callbackUpdate: any, query: string }) {
     }, [popUpState]);
 
     const SaveNewItem = (isOnBuylist: boolean = false) => {
-        let newItem = {} as Item;
+        let newItem = {} as ItemModel;
         newItem.name = value == "" ? props.query : value;
         newItem.isOnBuylist = isOnBuylist;
         SaveItem(newItem);

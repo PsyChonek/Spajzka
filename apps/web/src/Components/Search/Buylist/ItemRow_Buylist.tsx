@@ -1,11 +1,11 @@
 import React, {useEffect, useState} from "react";
 import {Button, Container, Form} from "react-bootstrap";
-import {Item} from "../../../Api/data-contracts";
+import {ItemModel} from "../../../Api/data-contracts";
 
 var isHoolding: boolean = false;
 var timer: any;
 
-const ItemRow_Buylist = (props: { item: Item, updateCallback: any }) => {
+const ItemRow_Buylist = (props: { item: ItemModel, updateCallback: any }) => {
 
     const UpdateItem = (isOnBuylist: boolean) => {
         props.item.isOnBuylist = isOnBuylist;
