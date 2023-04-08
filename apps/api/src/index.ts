@@ -51,7 +51,7 @@ var start = async function () {
                 version: '0.1.0'
             },
             host: swaggerHost,
-            schemes: ['https'],
+            schemes: ['http','https'],
             consumes: ['application/json'],
             produces: ['application/json'],
             securityDefinitions: {

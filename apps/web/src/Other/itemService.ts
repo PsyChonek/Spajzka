@@ -1,11 +1,9 @@
-import { ItemModel } from '../Api/data-contracts';
-import { Item as ItemApi } from '../Api/Item';
+import { ItemModel, Api } from '../Api';
 
-const itemApi = new ItemApi();
-itemApi.baseUrl = process.env.REACT_APP_SpajzkaAPI || 'localhost:3010';
 
-export async function SaveItem(item: ItemModel) {
-}
+const client = new Api({
+    baseUrl: process.env.REACT_APP_SpajzkaAPI,
+})
 
 export async function RemoveItem(item: ItemModel) {
 }
@@ -13,7 +11,12 @@ export async function RemoveItem(item: ItemModel) {
 export async function GetItem(id: number) {
 }
 
-export const GetItems = async () => {
-    const items = await itemApi.itemList();
+export const GetUserItems = async (id: string) => {
+    const items = await client.user.itemsDetail(id);
     return items.data;
+}
+
+export const SaveUserItem = async (idUser: string, item: ItemModel) => {
+    const id = await client.user.itemCreate(idUser, item);
+    return id.data;
 }

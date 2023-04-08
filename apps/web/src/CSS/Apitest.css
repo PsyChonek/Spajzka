@@ -1,0 +1,10 @@
+.apitest-row {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    align-content: center;
+    margin: 0 0 10px 0;
+    gap: 10px;
+}

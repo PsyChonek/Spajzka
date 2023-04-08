@@ -9,6 +9,19 @@
  * ---------------------------------------------------------------
  */
 
+export interface ItemModel {
+  id: number;
+  name: string;
+  price: number;
+  isOnBuylist: boolean;
+  amount: number;
+}
+
+export interface UserModel {
+  id: number;
+  name: string;
+}
+
 export type QueryParamsType = Record<string | number, any>;
 export type ResponseFormat = keyof Omit<Body, "body" | "bodyUsed">;
 
@@ -55,7 +68,7 @@ export enum ContentType {
 }
 
 export class HttpClient<SecurityDataType = unknown> {
-  public baseUrl: string = "http://localhost:3010";
+  public baseUrl: string = "http://127.0.0.1:3010";
   private securityData: SecurityDataType | null = null;
   private securityWorker?: ApiConfig<SecurityDataType>["securityWorker"];
   private abortControllers = new Map<CancelToken, AbortController>();
@@ -216,5 +229,50 @@ export class HttpClient<SecurityDataType = unknown> {
       if (!response.ok) throw data;
       return data;
     });
+  };
+}
+
+/**
+ * @title Spajzka API
+ * @version 0.1.0
+ * @baseUrl http://127.0.0.1:3010
+ *
+ * Spajzka API documentation
+ */
+export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
+  user = {
+    /**
+     * No description
+     *
+     * @tags User
+     * @name ItemsDetail
+     * @summary Get user items by user id
+     * @request GET:/user/{id}/items
+     */
+    itemsDetail: (id: string, params: RequestParams = {}) =>
+      this.request<ItemModel[], any>({
+        path: `/user/${id}/items`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags User
+     * @name ItemCreate
+     * @summary Store item to database
+     * @request POST:/user/{id}/item
+     */
+    itemCreate: (id: string, body: ItemModel, params: RequestParams = {}) =>
+      this.request<number, any>({
+        path: `/user/${id}/item`,
+        method: "POST",
+        body: body,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
   };
 }

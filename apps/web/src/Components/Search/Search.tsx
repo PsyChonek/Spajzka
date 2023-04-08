@@ -12,8 +12,8 @@ import ItemHead_Spajz from "./Spajz/ItemHead_Spajz";
 import ItemHead_Buylist from "./Buylist/ItemHead_Buylist";
 import {SortOptionsItem} from "./SortOptions";
 import {Spinner} from "react-bootstrap";
-import {ItemModel} from "../../Api/data-contracts";
-import {GetItems} from "../../Other/itemService";
+import {ItemModel} from "../../Api";
+import {GetUserItems} from "../../Other/itemService";
 
 export enum SearchStyle {
     Spajz = 0,
@@ -68,14 +68,14 @@ const Search = (props: { type: SearchStyle }) => {
         setQuery(term);
     }
 
+    //TODO: Add user ID
     const updateAllData = () => {
-        GetItems().then((items: ItemModel[]) => {
+        GetUserItems('').then((items: ItemModel[]) => {
             setAllData(items);
         })
     }
 
     const updateResults = () => {
-        
         var queryLower = query.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
         let results = new Array<ItemModel>();
 
@@ -88,7 +88,9 @@ const Search = (props: { type: SearchStyle }) => {
                 }
             }
         } else {
-            results = [...allData];
+            if (allData !=null && allData.length > 0) {
+                results = [...allData];
+            }
         }
 
         if (sorts.find(x => x.value == "inSpajz")?.isActive) {
