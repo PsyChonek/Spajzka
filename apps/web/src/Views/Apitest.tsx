@@ -4,20 +4,33 @@ import React from "react";
 import { Button, Container } from "react-bootstrap";
 import {GetUserItems, SaveUserItem } from '../Other/itemService';
 import { ItemModel } from '../Api';
+import { useCookies } from 'react-cookie';
+
+// STORE TO COOKIE
 
 function Apitest() {
 
     const [items, setItems] = React.useState<ItemModel[]>([]);
     const [query, setQuery] = React.useState<string>('');
     const [saveResult, setSaveResult] = React.useState<number>(-1);
+    const [cookies, setCookie] = useCookies(['userID']);
 
     return (
         <Container className="content">
             <h1 className="text-center">API test</h1>
+
+            <h2 className="text-center">Cookies</h2>
+            <h3 className="text-center">User ID: {cookies.userID}</h3>
+
+            <br/><br/>
+            <h2 className="text-center">API</h2>
+
             <h3 className="text-center">Get User Items</h3>
             <Container className="apitest-row">
                 <input className='apitest-input' type='text' placeholder='User ID' onChange={e => setQuery(e.target.value)} value={query} ></input>
                 <Button variant="primary" onClick={() => {
+                    setCookie('userID', query, { path: '/' });
+
                     GetUserItems().then((result) => {
                         setItems(result);
                     });
