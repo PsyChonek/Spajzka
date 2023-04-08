@@ -5,6 +5,10 @@ on:
     branches:
       - master
 name: 🚀 Deploy api on push
+
+env:
+  REACT_APP_SpajzkaAPI: "https://api.vazacdaniel.com"
+
 jobs:
   web-deploy:
     name: 🎉 Deploy

@@ -11,6 +11,6 @@ PassengerStartupFile build/index.js
 # DO NOT REMOVE OR MODIFY. CLOUDLINUX ENV VARS CONFIGURATION END
 
 # Redirect to docs
-RewriteEngine On
-RewriteCond %{REQUEST_URI} !^/docs
-RewriteRule ^(.*)$ /docs/$1 [R=301,L]
+# RewriteEngine On
+# RewriteCond %{REQUEST_URI} !^/docs
+# RewriteRule ^(.*)$ /docs/$1 [R=301,L]

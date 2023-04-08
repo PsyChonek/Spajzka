@@ -62,11 +62,7 @@ var start = async function () {
     )
 
     server.register(fastifyCors, {
-        origin: `http://localhost:3000`,
-        methods: ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS'],
-        allowedHeaders: ['Access-Control-Allow-Origin', 'Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'Access-Control-Request-Method', 'Access-Control-Request-Headers'],
-        preflightContinue: false,
-        optionsSuccessStatus: 204
+        origin: false
     })
 
     server.register(fastifySwaggerUi, {
