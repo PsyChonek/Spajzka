@@ -41,7 +41,7 @@ var start = async function () {
                 description: 'Spajzka API documentation',
                 version: '0.1.0'
             },
-            host: `${fastifyOptions.host}:${fastifyOptions.port}`,
+            host: `${fastifyOptions.host}`,
             schemes: ['http', 'https'],
             consumes: ['application/json'],
             produces: ['application/json'],
