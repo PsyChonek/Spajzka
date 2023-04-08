@@ -70,7 +70,7 @@ const Search = (props: { type: SearchStyle }) => {
 
     //TODO: Add user ID
     const updateAllData = () => {
-        GetUserItems('').then((items: ItemModel[]) => {
+        GetUserItems().then((items: ItemModel[]) => {
             setAllData(items);
         })
     }

@@ -24,7 +24,7 @@ function Add(props: { type: SearchStyle, callbackUpdate: any, query: string }) {
         let newItem = {} as ItemModel;
         newItem.name = value == "" ? props.query : value;
         newItem.isOnBuylist = isOnBuylist;
-        SaveUserItem('1',newItem); // TODO - Add user id
+        SaveUserItem(newItem); // TODO - Add user id
         props.callbackUpdate();
 
         notificator.notify(`Položka ${newItem.name} byla přidána do špajzky.`)

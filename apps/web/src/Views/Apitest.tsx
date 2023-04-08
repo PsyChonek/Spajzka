@@ -18,7 +18,7 @@ function Apitest() {
             <Container className="apitest-row">
                 <input className='apitest-input' type='text' placeholder='User ID' onChange={e => setQuery(e.target.value)} value={query} ></input>
                 <Button variant="primary" onClick={() => {
-                    GetUserItems(query).then((result) => {
+                    GetUserItems().then((result) => {
                         setItems(result);
                     });
                 }}>Get Items</Button>
@@ -42,7 +42,7 @@ function Apitest() {
                         isOnBuylist: false,
                         amount: 0,
                     }
-                    SaveUserItem('1',item).then((result) => {
+                    SaveUserItem(item).then((result) => {
                         setSaveResult(result);
                     });
 
