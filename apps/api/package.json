@@ -5,7 +5,7 @@
   "private": true,
   "lib": [],
   "scripts": {
-    "dev": "start http://localhost:3010/docs && npx ts-node-dev --respawn --transpile-only --exit-child --watch src src/index.ts",
+    "dev": "start http://localhost:3010/docs && npx ts-node-dev --respawn --transpile-only --exit-child --watch . src/index.ts",
     "build": "npx tsc --build tsconfig.json",
     "start": "node ./build/index.js"
   },
