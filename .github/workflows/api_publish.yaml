@@ -38,3 +38,4 @@ jobs:
           server-dir: sub/api.vazacdaniel.com/
           username: github@vazacdaniel.com
           password: ${{ secrets.FTP_GITHUB_PASS }}
+          exclude: "[.env,src]"

@@ -34,6 +34,17 @@ var start = async function () {
         server.addSchema(newSchema)
     }
 
+
+    var swaggerHost: string;
+
+    if (process.env.NODE_ENV === 'development') {
+        swaggerHost = `${fastifyOptions.host}:${fastifyOptions.port}`
+    }
+    else {
+        swaggerHost = `${fastifyOptions.host}`
+    }
+
+
     await server.register(fastifySwagger, {
         swagger: {
             info: {
@@ -41,7 +52,7 @@ var start = async function () {
                 description: 'Spajzka API documentation',
                 version: '0.1.0'
             },
-            host: `${fastifyOptions.host}`,
+            host: swaggerHost,
             schemes: ['http', 'https'],
             consumes: ['application/json'],
             produces: ['application/json'],
@@ -61,8 +72,10 @@ var start = async function () {
     }
     )
 
+    // Register CORS 
+    // TODO: Investigate how to set up CORS properly
     server.register(fastifyCors, {
-        origin: false
+        origin: true,
     })
 
     server.register(fastifySwaggerUi, {
