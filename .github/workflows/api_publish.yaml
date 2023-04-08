@@ -31,7 +31,7 @@ jobs:
           cd ./apps/api
           CI=false npm run build
       - name: 📂 Sync files
-        uses: SamKirkland/FTP-Deploy-Action@4.3.4
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
           server: vazacdaniel.com
           local-dir: apps/api/
