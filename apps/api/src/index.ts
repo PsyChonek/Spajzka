@@ -7,13 +7,11 @@ import * as dotenv from 'dotenv'
 import { createGenerator } from "ts-json-schema-generator";
 
 var start = async function () {
-
     console.log()
     console.log('Starting server...')
 
     dotenv.config()
     const server = fastify()
-
     const modelPath = 'src\\models\\*.ts';
 
     const config = {
@@ -34,16 +32,13 @@ var start = async function () {
         server.addSchema(newSchema)
     }
 
-
     var swaggerHost: string;
-
     if (process.env.NODE_ENV === 'development') {
         swaggerHost = `${fastifyOptions.host}:${fastifyOptions.port}`
     }
     else {
         swaggerHost = `${fastifyOptions.host}`
     }
-
 
     await server.register(fastifySwagger, {
         swagger: {
