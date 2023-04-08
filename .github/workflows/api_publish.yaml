@@ -31,11 +31,13 @@ jobs:
           cd ./apps/api
           CI=false npm run build
       - name: 📂 Sync files
-        uses: SamKirkland/FTP-Deploy-Action@4.3.2
+        uses: SamKirkland/FTP-Deploy-Action@4.3.4
         with:
           server: vazacdaniel.com
           local-dir: apps/api/
           server-dir: sub/api.vazacdaniel.com/
           username: github@vazacdaniel.com
           password: ${{ secrets.FTP_GITHUB_PASS }}
-          exclude: "[.env,src]"
+          exclude: |
+            **/node_modules/**
+            .env
