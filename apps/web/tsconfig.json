@@ -3,10 +3,13 @@
   "include": [
     "next-env.d.ts",
     "**/*.ts",
-    "**/*.tsx"
+    "**/*.tsx",
+    "*/src/*",
+    ".env"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "build",
   ],
   "compilerOptions": {
     "allowSyntheticDefaultImports": true

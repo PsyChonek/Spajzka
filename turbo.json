@@ -5,7 +5,7 @@
     "build": {
       "dependsOn": ["^build"],
       "outputs": ["build/**"],
-      "env": ["NODE_ENV", "PUBLIC_URL", "CI=false"]
+      "env": ["NODE_ENV", "PUBLIC_URL", "CI=false", "REACT_APP_SpajzkaAPI"]
     },
     "lint": {
       "outputs": []

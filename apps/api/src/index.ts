@@ -23,7 +23,7 @@ var start = async function () {
     }
     
     const fastifyOptions: FastifyListenOptions = {
-        host: process.env.HOST || 'localhost',
+        host: process.env.HOST || 'api.vazacdaniel.com',
         port: Number.parseInt(process.env.PORT || '3010'),
     }
 
@@ -62,7 +62,7 @@ var start = async function () {
     )
 
     server.register(fastifyCors, {
-        origin: `http://${fastifyOptions.host}:${fastifyOptions.port}`,
+        origin: `http://localhost:3000`,
         methods: ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS'],
         allowedHeaders: ['Access-Control-Allow-Origin', 'Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'Access-Control-Request-Method', 'Access-Control-Request-Headers'],
         preflightContinue: false,
