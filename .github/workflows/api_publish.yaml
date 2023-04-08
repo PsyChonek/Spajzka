@@ -40,4 +40,4 @@ jobs:
           password: ${{ secrets.FTP_GITHUB_PASS }}
           exclude: |
             **/node_modules/**
-            .env
+            .env.development

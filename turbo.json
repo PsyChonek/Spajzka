@@ -5,14 +5,15 @@
     "build": {
       "dependsOn": ["^build"],
       "outputs": ["build/**"],
-      "env": ["NODE_ENV", "PUBLIC_URL", "CI=false", "REACT_APP_SpajzkaAPI"]
+      "env": ["NODE_ENV", "PUBLIC_URL", "CI", "REACT_APP_SpajzkaAPI"]
     },
     "lint": {
       "outputs": []
     },
     "dev": {
       "cache": false,
-      "persistent": true
+      "persistent": true,
+      "env": ["NODE_ENV", "PUBLIC_URL", "CI", "REACT_APP_SpajzkaAPI"]
     },
     "generateClient":{
       

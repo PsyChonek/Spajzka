@@ -8,9 +8,12 @@ import { createGenerator } from "ts-json-schema-generator";
 
 var start = async function () {
     console.log()
-    console.log('Starting server...')
+    
+    console.log('Loading environment variables...')
+    console.log(`NODE_ENV: ${process.env.NODE_ENV}`)
+    dotenv.config({ path: `.env.${process.env.NODE_ENV}` })
 
-    dotenv.config()
+    console.log('Starting server...')
     const server = fastify()
     const modelPath = 'src\\models\\*.ts';
 
@@ -21,8 +24,8 @@ var start = async function () {
     }
     
     const fastifyOptions: FastifyListenOptions = {
-        host: process.env.HOST || 'api.vazacdaniel.com',
-        port: Number.parseInt(process.env.PORT || '3010'),
+        host: process.env.HOST || '',
+        port: Number.parseInt(process.env.PORT || ''),
     }
 
     const schema = createGenerator(config).createSchema(config.type);
@@ -32,11 +35,11 @@ var start = async function () {
         server.addSchema(newSchema)
     }
 
-    var swaggerHost: string;
+    var swaggerHost: string = '';
     if (process.env.NODE_ENV === 'development') {
         swaggerHost = `${fastifyOptions.host}:${fastifyOptions.port}`
     }
-    else {
+    else if (process.env.NODE_ENV === 'production'){
         swaggerHost = `${fastifyOptions.host}`
     }
 
@@ -85,7 +88,8 @@ var start = async function () {
 
     await server.listen(fastifyOptions)
 
-    console.log(`Server listening on http://${fastifyOptions.host}:${fastifyOptions.port}/docs`)
+    console.log(`Server listening on http://${swaggerHost}/docs`)
+    console.log()
 }
 
 start()
