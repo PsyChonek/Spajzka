@@ -10,7 +10,7 @@
  */
 
 export interface ItemModel {
-  id: number;
+  id: any;
   name: string;
   price: number;
   isOnBuylist: boolean;
@@ -18,7 +18,7 @@ export interface ItemModel {
 }
 
 export interface UserModel {
-  id: number;
+  _id: string;
   name: string;
 }
 
@@ -247,11 +247,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @tags User
      * @name ItemsDetail
      * @summary Get user items by user id
-     * @request GET:/user/{id}/items
+     * @request GET:/user/{userId}/items
      */
-    itemsDetail: (id: string, params: RequestParams = {}) =>
+    itemsDetail: (userId: string, params: RequestParams = {}) =>
       this.request<ItemModel[], any>({
-        path: `/user/${id}/items`,
+        path: `/user/${userId}/items`,
         method: "GET",
         format: "json",
         ...params,
@@ -263,11 +263,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @tags User
      * @name ItemCreate
      * @summary Store item to database
-     * @request POST:/user/{id}/item
+     * @request POST:/user/{userId}/item
      */
-    itemCreate: (id: string, body: ItemModel, params: RequestParams = {}) =>
+    itemCreate: (userId: string, body: ItemModel, params: RequestParams = {}) =>
       this.request<number, any>({
-        path: `/user/${id}/item`,
+        path: `/user/${userId}/item`,
         method: "POST",
         body: body,
         type: ContentType.Json,

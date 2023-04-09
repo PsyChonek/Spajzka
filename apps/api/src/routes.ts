@@ -1,7 +1,11 @@
+import { ObjectId } from 'mongodb'
+import { DatabaseService } from './databaseService'
 import { Item } from './models/item'
+import { ItemCollection } from './collections/itemCollection'
+import { UserCollection } from './collections/userCollection'
 
 export const registerRoutes = (server: any) => {
-    
+
     // Get items
     // server.route({
     //     method: 'GET',
@@ -61,14 +65,14 @@ export const registerRoutes = (server: any) => {
     // Get user items by user id
     server.route({
         method: 'GET',
-        url: '/user/:id/items',
+        url: '/user/:key/items',
         schema: {
             tags: ['User'],
             summary: 'Get user items by user id',
             params: {
                 type: 'object',
                 properties: {
-                    id: { type: 'string' }
+                    key: { type: 'string' }
                 }
             },
             response: {
@@ -80,38 +84,83 @@ export const registerRoutes = (server: any) => {
                 }
             }
         },
-        handler: (req: any, reply: any) => {
-            const items: Item[] = [
-                { id: 1, name: 'test user:' + req.params.id, price: 1, isOnBuylist: true, amount: 1 },
-                { id: 2, name: 'test2user:' + req.params.id, price: 2, isOnBuylist: false, amount: 2 },
-                { id: 3, name: 'test3user:' + req.params.id, price: 3, isOnBuylist: true, amount: 3 }
-            ]
+        handler: async (req: any, reply: any) => {
+            console.log('Get user items by user id', req.params.key);
 
-            reply.send(items)
+
+            const userId = await DatabaseService.instance.getUserObjectId(req.params.key)
+            if (userId == null) {
+                console.log("User not found: " + userId + " (" + req.params.key + ")");
+                reply.send(500);
+                return;
+            }
+
+            DatabaseService.instance.client.db(process.env.DATABASE).collection('items').find({userId:userId}).toArray().then((items) => {
+
+                console.log('Items', items);
+
+                reply.send(items)
+            }).catch((err) => {
+                console.log('Error getting items', err);
+                reply.send(500);
+            });
+
         }
     })
 
     // Store item to database, response with item id
     server.route({
         method: 'POST',
-        url: '/user/:id/item',
+        url: '/user/:key/item',
         schema: {
             tags: ['User'],
             summary: 'Store item to database',
+            params: {
+                type: 'object',
+                properties: {
+                    key: { type: 'string' }
+                }
+            },
             body: {
                 $ref: 'Item'
             },
             response: {
                 200: {
-                    type: 'number',
-                    description: 'Item id',
+                    type: 'string'
                 }
             }
         },
-        handler: (req: any, reply: any) => {
-            const item: Item = req.body
-            reply.send(item.id)
+        handler: async (req: any, reply: any) => {
+            const item: ItemCollection = req.body
+
+            const userId = await DatabaseService.instance.getUserObjectId(req.params.key)
+            if (userId) {
+                item.userId = userId
+            }
+            else {
+                const newUser: UserCollection = {
+                    _id: undefined,
+                    key: req.params.key,
+                    name: req.params.key
+                }
+
+                console.log('Inserting user', newUser);
+
+                DatabaseService.instance.client.db(process.env.DATABASE).collection('users').insertOne(newUser).then((result) => {
+                    item.userId = result.insertedId
+                }).catch((err) => {
+                    console.log('Error inserting user', err)
+                    reply.send(500)
+                })
+            }
+
+            DatabaseService.instance.client.db(process.env.DATABASE).collection('items').insertOne(item).then((result) => {
+                reply.send(result.insertedId)
+            }).catch((err) => {
+                console.log('Error inserting item', err)
+                reply.send(500)
+            })
         }
     })
-                       
+
 }

@@ -21,6 +21,7 @@ var start = async function () {
         path: modelPath,
         tsconfig: './tsconfig.json',
         type: "*",
+        jsDoc: 'extended',
     }
     
     const fastifyOptions: FastifyListenOptions = {
@@ -28,6 +29,7 @@ var start = async function () {
         port: Number.parseInt(process.env.PORT || ''),
     }
 
+    //@ts-ignore
     const schema = createGenerator(config).createSchema(config.type);
 
     for (const key in schema.definitions) {
@@ -89,7 +91,6 @@ var start = async function () {
     await server.listen(fastifyOptions)
 
     console.log(`Server listening on http://${swaggerHost}/docs`)
-    console.log()
 }
 
 start()

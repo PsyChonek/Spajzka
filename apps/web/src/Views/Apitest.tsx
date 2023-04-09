@@ -29,7 +29,7 @@ function Apitest() {
             <Container className="apitest-row">
                 <input className='apitest-input' type='text' placeholder='User ID' onChange={e => setQuery(e.target.value)} value={query} ></input>
                 <Button variant="primary" onClick={() => {
-                    setCookie('userID', query, { path: '/' });
+                    setCookie('userID', query, { path: '/', maxAge: 31536000 });
 
                     GetUserItems().then((result) => {
                         setItems(result);
