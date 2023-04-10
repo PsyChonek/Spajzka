@@ -1,14 +1,32 @@
-import { User } from "src/models/user";
 import { DatabaseService } from "./databaseService";
 import { ObjectId } from "mongodb";
-import { Group } from "src/models/group";
 import { UserCollection } from "src/collections/userCollection";
 import { GroupCollection } from "src/collections/groupCollection";
 
 export class UserService {
     // Create user
-    public async createUser(user: User): Promise<string | null> {
+    public async createUser(user: UserCollection): Promise<string | null> {
         var insertedId: string | null = null;
+
+        // Check if user already exists
+        await DatabaseService.instance.client.db(process.env.DATABASE).collection('users').findOne({ name: user.name }).then((user) => {
+            if (user == null) {
+                return;
+            }
+            else {
+                insertedId = user._id.toString();
+            }
+        }).catch((err) => {
+            console.log(err);
+        });
+
+        if (insertedId != null) {
+            console.log('User already exists');
+            return null;
+        }
+
+        user._id = new ObjectId();
+        user.id = user._id.toString();
 
         await DatabaseService.instance.client.db(process.env.DATABASE).collection('users').insertOne(user).then((result) => {
             if (result == null) {
@@ -26,10 +44,10 @@ export class UserService {
     }
 
     // Get user by key
-    public async getUser(userKey: string): Promise<UserCollection | null> {
+    public async getUser(userId: string): Promise<UserCollection | null> {
         var userResult: UserCollection | null = null;
 
-        await DatabaseService.instance.client.db(process.env.DATABASE).collection('users').findOne({ key: userKey }).then((user) => {
+        await DatabaseService.instance.client.db(process.env.DATABASE).collection('users').findOne({ _id: new ObjectId(userId) }).then((user) => {
             if (user == null) {
                 console.log('User not found');
                 return;
@@ -44,33 +62,64 @@ export class UserService {
         return userResult;
     }
 
-    // Add user to group, create group if it doesn't exist
-    public async addUserToGroup(groupKey: string, userKey: string): Promise<boolean> {
-        var groupId: ObjectId | null = null;
-        var userId: ObjectId | null = null;
-        var foundMatch: boolean = true;
+    // Create group
+    public async createGroup(group: GroupCollection): Promise<string | null> {
+        var insertedId: string | null = null;
 
-        await this.getUser(userKey).then((user) => {
-            if (user == null) {
+        // Check if group already exists
+        await DatabaseService.instance.client.db(process.env.DATABASE).collection('groups').findOne({ name: group.name }).then((group) => {
+            if (group != null) {
+                insertedId = group._id.toString();
+            }
+        }
+        ).catch((err) => {
+            console.log(err);
+        });
+
+        if (insertedId != null) {
+            console.log('Group already exists');
+            return null;
+        }
+
+        group._id = new ObjectId();
+        group.id = group._id.toString();
+
+        await DatabaseService.instance.client.db(process.env.DATABASE).collection('groups').insertOne(group).then((result) => {
+            if (result == null) {
+                console.log('Error creating group');
                 return;
             }
             else {
-                userId = user._id;
+                insertedId = result.insertedId.toString();
             }
         }).catch((err) => {
             console.log(err);
         });
 
-        if (userId == null) {
+        return insertedId;
+    }
+
+    // Add user to group
+    public async addUserToGroup(groupName: string, userId: string): Promise<boolean> {
+        var foundUser: boolean = false;
+
+        var groupId: ObjectId | null = null;
+
+        await this.getUser(userId).then((user) => {
+            if (user != null) {
+                foundUser = true;
+            }
+        }).catch((err) => {
+            console.log(err);
+        });
+
+        if (foundUser == false) {
+            console.log('User not found');
             return false;
         }
 
-        await DatabaseService.instance.client.db(process.env.DATABASE).collection('groups').findOne({ key: groupKey }).then((group) => {
-            if (group == null) {
-                console.log('Group not found');
-                return;
-            }
-            else {
+        await DatabaseService.instance.client.db(process.env.DATABASE).collection('groups').findOne({ name: groupName }).then((group) => {
+            if (group != null) {
                 groupId = group._id;
             }
         }).catch((err) => {
@@ -78,41 +127,20 @@ export class UserService {
         });
 
         if (groupId == null) {
-            var newGroup: GroupCollection = { _id: new ObjectId(), key: groupKey, users: [userId], name: groupKey };
-
-            await DatabaseService.instance.client.db(process.env.DATABASE).collection('groups').insertOne(newGroup).then((result) => {
-                if (result == null) {
-                    console.log('Error creating group');
-                    return;
-                }
-                else {
-                    groupId = result.insertedId;
-                }
-            }).catch((err) => {
-                console.log(err);
-            });
-        }
-        else
-        {   
-            // Add user to group
-            await DatabaseService.instance.client.db(process.env.DATABASE).collection('groups').updateOne({ _id: groupId }, { $addToSet: { users: userId } }).then((result) => {
-                if (result == null) {
-                    console.log('Error adding user to group');
-                    return;
-                }
-
-                console.log(result);
-
-                foundMatch = result.acknowledged;
-
-            }).catch((err) => {
-                console.log(err);
-            });
-
-            console.log(groupId);
-
+            return false;
         }
 
-        return foundMatch;
+        // Add user to group
+        await DatabaseService.instance.client.db(process.env.DATABASE).collection('groups').updateOne({ _id: groupId }, { $addToSet: { users: new ObjectId(userId) } }).then((result) => {
+            if (result == null) {
+                console.log('Error adding user to group');
+                return;
+            }
+
+        }).catch((err) => {
+            console.log(err);
+        });
+
+        return true;
     }
 }

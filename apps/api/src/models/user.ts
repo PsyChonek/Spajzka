@@ -1,5 +1,5 @@
 export interface User {
-    key: string | undefined;
+    id: string | undefined | null;
     name: string;
     group: string | undefined | null;
 }

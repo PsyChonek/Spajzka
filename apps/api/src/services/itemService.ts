@@ -1,41 +1,35 @@
-import { Group } from "src/models/group";
 import { Item } from "src/models/item";
 import { DatabaseService } from "./databaseService";
 import { ObjectId } from "mongodb";
 import { ItemCollection } from "src/collections/itemCollection";
+import { UserService } from "./userService";
 
 export class ItemService {
 
     // Get items from database, by user key and user group
-    public async getItems(key: string): Promise<Item[]> {
+    public async getItems(userId: string): Promise<Item[] | null> {
         var itemsResult: Item[] = [];
-        var userId: ObjectId | null = null;
         var groupId: ObjectId | null = null;
 
-        await DatabaseService.instance.client.db(process.env.DATABASE).collection('users').findOne({ key: key }).then((user) => {
-            if (user == null) {
-                console.log('User not found');
-                return;
-            }
-            else {
-                userId = user._id;
+        var userFound: boolean = false;
+
+        // Check if user exists
+        await DatabaseService.instance.client.db(process.env.DATABASE).collection('users').findOne({ _id: new ObjectId(userId) }).then((user) => {
+            if (user != null) {
+                userFound = true;
             }
         }).catch((err) => {
             console.log(err);
         });
 
-        if (userId == null) {
+        if (userFound == null) {
             console.log('User not found');
-            return [];
+            return null;
         }
 
         // Find group containing user
-        await DatabaseService.instance.client.db(process.env.DATABASE).collection('groups').findOne({ users: userId }).then((group) => {
-            if (group == null) {
-                console.log('Group not found');
-                return;
-            }
-            else {
+        await DatabaseService.instance.client.db(process.env.DATABASE).collection('groups').findOne({ users: new ObjectId(userId) }).then((group) => {
+            if (group != null) {
                 groupId = group._id;
             }
         }).catch((err) => {
@@ -44,13 +38,12 @@ export class ItemService {
 
         if (groupId == null) {
             console.log('Group not found');
-            return [];
+            return null;
         }
 
         await DatabaseService.instance.client.db(process.env.DATABASE).collection('items').find({ groupId: groupId }).toArray().then((items) => {
             if (items == null) {
                 console.log('Items not found');
-                return;
             }
             else {
                 itemsResult = <ItemCollection[]>items;
@@ -60,35 +53,32 @@ export class ItemService {
             console.log(err);
         }
         );
-        
+
         return itemsResult;
     }
 
     // Store item to database, response with item id
-    public async storeItem(userKey: string, item: ItemCollection): Promise<string | null> {
+    public async storeItem(userId: string, item: ItemCollection): Promise<string | null> {
         var insertedId: string | null = null;
-        var userId: ObjectId | null = null;
+        var userFound: boolean = false;
 
-        await DatabaseService.instance.client.db(process.env.DATABASE).collection('users').findOne({ key: userKey }).then((user) => {
-            if (user == null) {
-                console.log('User not found');
-                item.groupId = null;
-            }
-            else {
-                userId = user._id;
+        // Check if user exists
+        await DatabaseService.instance.client.db(process.env.DATABASE).collection('users').findOne({ _id: new ObjectId(userId) }).then((user) => {
+            if (user != null) {
+                userFound = true;
             }
         }).catch((err) => {
             console.log(err);
         });
 
-        if (userId == null) {
+        if (userFound == false) {
+            console.log('User not found');
             return null;
         }
 
         // Find group containing user
-        await DatabaseService.instance.client.db(process.env.DATABASE).collection('groups').findOne({ users: userId }).then((group) => {
+        await DatabaseService.instance.client.db(process.env.DATABASE).collection('groups').findOne({ users: new ObjectId(userId) }).then((group) => {
             if (group == null) {
-                console.log('Group not found');
                 item.groupId = null;
             }
             else {
@@ -98,8 +88,16 @@ export class ItemService {
             console.log(err);
         });
 
+        if (item.groupId == null) {
+            console.log('Group not found');
+            return null;
+        }
+
         var itemToInsert: ItemCollection = item;
         itemToInsert.groupId = item.groupId;
+        itemToInsert.userId = new ObjectId(userId);
+        itemToInsert._id = new ObjectId();
+        itemToInsert.id = itemToInsert._id.toString();
 
         await DatabaseService.instance.client.db(process.env.DATABASE).collection('items').insertOne(itemToInsert).then((result) => {
             if (result == null) {
@@ -113,5 +111,33 @@ export class ItemService {
         });
 
         return insertedId;
+    }
+
+    // Delete item from database
+    public async deleteItem(userId: string, itemId: string): Promise<boolean> {
+        var isDeleted: boolean = false;
+
+
+        var userService = new UserService();
+
+        // Check if user exists
+        if (await userService.getUser(userId) == null) {
+            console.log('User not found');
+            return false;
+        }
+
+        await DatabaseService.instance.client.db(process.env.DATABASE).collection('items').deleteOne({ _id: new ObjectId(itemId) }).then((result) => {
+            if (result == null) {
+                console.log('Item not deleted');
+            }
+            else {
+                isDeleted = true;
+            }
+        }).catch((err) => {
+            console.log(err);
+        }
+        );
+        return isDeleted;
+
     }
 }
