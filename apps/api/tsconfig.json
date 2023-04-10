@@ -26,7 +26,8 @@
     "strict": true,
     "outDir": "./build",
     "resolveJsonModule": true,
-    "baseUrl": "."
+    "baseUrl": ".",
+    "target": "ES6"
   },
   "exclude": [
     "node_modules",
