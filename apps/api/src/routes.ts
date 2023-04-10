@@ -207,14 +207,14 @@ export const registerRoutes = (server: any) => {
     // Update item
     server.route({
         method: 'PUT',
-        url: '/user/:userId/item/:itemId',
+        url: '/user/:userId/item',
         schema: {
             tags: ['User'],
             summary: 'Update item',
             params: {
                 type: 'object',
                 properties: {
-                    itemId: { type: 'string' }
+                    userId: { type: 'string' }
                 }
             },
             body: {
@@ -229,7 +229,7 @@ export const registerRoutes = (server: any) => {
         handler: async (req: any, reply: any) => {
             var itemsService = new ItemService();
 
-            var result: boolean = await itemsService.updateItem(req.params.userId, req.params.itemId, req.body);
+            var result: boolean = await itemsService.updateItem(req.params.userId, req.body);
 
             if (result == false) {
                 reply.code(500).send();

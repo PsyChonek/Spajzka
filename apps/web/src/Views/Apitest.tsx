@@ -2,7 +2,7 @@ import '../CSS/Global.css'
 import '../CSS/Apitest.css'
 import React from "react";
 import { Button, Container } from "react-bootstrap";
-import {GetUserItems, SaveUserItem } from '../Other/itemService';
+import { GetUserItems, SaveUserItem } from '../Other/itemService';
 import { ItemModel } from '../Api';
 import { useCookies } from 'react-cookie';
 
@@ -22,21 +22,33 @@ function Apitest() {
             <h2 className="text-center">Cookies</h2>
             <h3 className="text-center">User ID: {cookies.userID}</h3>
 
-            <br/><br/>
+            <br /><br />
             <h2 className="text-center">API</h2>
 
-            <h3 className="text-center">Get User Items</h3>
             <Container className="apitest-row">
-                <input className='apitest-input' type='text' placeholder='User ID' onChange={e => setQuery(e.target.value)} value={query} ></input>
-                <Button variant="primary" onClick={() => {
-                    setCookie('userID', query, { path: '/', maxAge: 31536000 });
+                <Container className="apitest-column">
+                    <h3 className="text-center">Create Account</h3>
+                </Container>
 
-                    GetUserItems().then((result) => {
-                        setItems(result);
-                    });
-                }}>Get Items</Button>
+                <Container className="apitest-column">
+                    <h3 className="text-center">Get Items</h3>
+                    <Button variant="primary" onClick={() => {
+                        GetUserItems().then((result) => {
+                            setItems(result);
+                        });
+                    }}>Get Items</Button>
+                </Container>
             </Container>
 
+
+            <input className='apitest-input' type='text' placeholder='User ID' onChange={e => setQuery(e.target.value)} value={query} ></input>
+            <Button variant="primary" onClick={() => {
+                setCookie('userID', query, { path: '/', maxAge: 31536000 });
+
+                GetUserItems().then((result) => {
+                    setItems(result);
+                });
+            }}>Create Account</Button>
             {
                 items != null && items.length > 0 ? items.map((item: ItemModel) => {
                     return (
