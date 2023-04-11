@@ -88,7 +88,7 @@ export const registerRoutes = (server: any) => {
                 required: ['userId'],
                 properties: {
                     userId: { type: 'string' },
-                    groupName: { type: 'string'}
+                    groupName: { type: 'string' }
                 }
             },
             response: {

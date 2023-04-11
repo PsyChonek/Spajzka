@@ -9,8 +9,13 @@
  * ---------------------------------------------------------------
  */
 
+export interface GroupModel {
+  id?: string | null;
+  name: string;
+}
+
 export interface ItemModel {
-  id: any;
+  id?: null | string;
   name: string;
   price: number;
   isOnBuylist: boolean;
@@ -18,8 +23,9 @@ export interface ItemModel {
 }
 
 export interface UserModel {
-  _id: string;
+  id?: string | null;
   name: string;
+  group?: string | null;
 }
 
 export type QueryParamsType = Record<string | number, any>;
@@ -266,8 +272,93 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request POST:/user/{userId}/item
      */
     itemCreate: (userId: string, body: ItemModel, params: RequestParams = {}) =>
-      this.request<number, any>({
+      this.request<string, any>({
         path: `/user/${userId}/item`,
+        method: "POST",
+        body: body,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags User
+     * @name ItemUpdate
+     * @summary Update item
+     * @request PUT:/user/{userId}/item
+     */
+    itemUpdate: (userId: string, body: ItemModel, params: RequestParams = {}) =>
+      this.request<string, any>({
+        path: `/user/${userId}/item`,
+        method: "PUT",
+        body: body,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags User
+     * @name GroupCreate
+     * @summary Add user to group
+     * @request POST:/user/{userId}/group/{groupName}
+     */
+    groupCreate: (userId: string, groupName: string, params: RequestParams = {}) =>
+      this.request<string, any>({
+        path: `/user/${userId}/group/${groupName}`,
+        method: "POST",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags User
+     * @name UserCreate
+     * @summary Create user
+     * @request POST:/user
+     */
+    userCreate: (body: UserModel, params: RequestParams = {}) =>
+      this.request<string, any>({
+        path: `/user`,
+        method: "POST",
+        body: body,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags User
+     * @name ItemDelete
+     * @summary Remove item from database
+     * @request DELETE:/user/{userId}/item/{itemId}
+     */
+    itemDelete: (itemId: string, userId: string, params: RequestParams = {}) =>
+      this.request<string, any>({
+        path: `/user/${userId}/item/${itemId}`,
+        method: "DELETE",
+        format: "json",
+        ...params,
+      }),
+  };
+  group = {
+    /**
+     * No description
+     *
+     * @tags Group
+     * @name GroupCreate
+     * @summary Create group
+     * @request POST:/group
+     */
+    groupCreate: (body: GroupModel, params: RequestParams = {}) =>
+      this.request<string, any>({
+        path: `/group`,
         method: "POST",
         body: body,
         type: ContentType.Json,
