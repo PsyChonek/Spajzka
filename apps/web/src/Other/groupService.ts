@@ -8,11 +8,14 @@ const client = new Api({
 
 const cookies = new Cookies;
 
-// Create user
-export const CreateUser = async (user: UserModel) => {
+// Create group
+export const CreateGroup = async (group: GroupModel) => {
     try
     {
-        const result = await client.user.userCreate(user);
+        const result = await client.group.groupCreate(group);
+
+        await client.user.groupCreate(cookies.get('userID'), group.name);
+
         return result;
     }
     catch (e)
@@ -20,10 +23,4 @@ export const CreateUser = async (user: UserModel) => {
         console.log(e);
         return null;
     }
-}
-
-// Add group
-export const AddGroup = async (groupName: string) => {
-    const id = await client.user.groupCreate(cookies.get('userID'), groupName);
-    return id.data;
 }

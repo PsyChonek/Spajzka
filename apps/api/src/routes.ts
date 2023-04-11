@@ -123,7 +123,10 @@ export const registerRoutes = (server: any) => {
             },
             response: {
                 200: {
-                    type: 'string'
+                    type: 'object',
+                    properties: {
+                        id: { type: 'string' }
+                    }
                 }
             }
         },
@@ -132,12 +135,14 @@ export const registerRoutes = (server: any) => {
 
             var result: string | null = await userService.createUser(req.body);
 
-            if (result == null) {
-                reply.code(500).send();
-                return;
+            const response = {
+                id: result
             }
 
-            reply.send(result);
+            if (result == null)
+                reply.code(500).send();
+            else
+                reply.send(response);
         }
     })
 
@@ -186,7 +191,10 @@ export const registerRoutes = (server: any) => {
             },
             response: {
                 200: {
-                    type: 'string'
+                    type: 'object',
+                    properties: {
+                        id: { type: 'string' }
+                    }
                 }
             }
         },
@@ -195,12 +203,14 @@ export const registerRoutes = (server: any) => {
 
             var result: string | null = await userService.createGroup(req.body);
 
-            if (result == null) {
-                reply.code(500).send();
-                return;
+            const response = {
+                id: result
             }
 
-            reply.send(result);
+            if (result == null)
+                reply.code(500).send();
+            else
+                reply.send(response);
         }
     })
 

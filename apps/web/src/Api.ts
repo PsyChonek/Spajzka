@@ -322,7 +322,12 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request POST:/user
      */
     userCreate: (body: UserModel, params: RequestParams = {}) =>
-      this.request<string, any>({
+      this.request<
+        {
+          id?: string;
+        },
+        any
+      >({
         path: `/user`,
         method: "POST",
         body: body,
@@ -357,7 +362,12 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request POST:/group
      */
     groupCreate: (body: GroupModel, params: RequestParams = {}) =>
-      this.request<string, any>({
+      this.request<
+        {
+          id?: string;
+        },
+        any
+      >({
         path: `/group`,
         method: "POST",
         body: body,

@@ -3,10 +3,11 @@ import '../CSS/Apitest.css'
 import React from "react";
 import { Button, Container } from "react-bootstrap";
 import { GetUserItems, SaveUserItem } from '../Other/itemService';
-import { ItemModel } from '../Api';
+import { GroupModel, ItemModel } from '../Api';
 import { UserModel } from '../Api';
 import { useCookies } from 'react-cookie';
 import { CreateUser } from '../Other/userService';
+import { CreateGroup } from '../Other/groupService';
 
 // STORE TO COOKIE
 
@@ -15,7 +16,7 @@ function Apitest() {
     const [user, setUser] = React.useState('');
     const [group, setGroup] = React.useState('');
 
-    // const [cookies, setCookie] = useCookies(['userID', 'userName']);
+    const [cookies, setCookie] = useCookies(['userID', 'userName', 'groupID', 'groupName']);
     // setCookie('userID', query, { path: '/', maxAge: 31536000 });
 
     return (
@@ -23,8 +24,10 @@ function Apitest() {
             <h1 className="text-center">API test</h1>
 
             <h2 className="text-center">Cookies</h2>
-            {/* <h3 className="text-center">User ID: {cookies.userID}</h3> */}
-            {/* <h3 className="text-center">User ID: {cookies.userName}</h3> */}
+            <h3 className="text-center">User ID: {cookies.userID}</h3>
+            <h3 className="text-center">User Name: {cookies.userName}</h3>
+            <h3 className="text-center">Group ID: {cookies.groupID}</h3>
+            <h3 className="text-center">Group Name: {cookies.groupName}</h3>
 
             <br /><br />
 
@@ -34,15 +37,17 @@ function Apitest() {
                 <Container className="apitest-column">
                     <input className='apitest-input' type='text' placeholder='User name' onChange={e => setUser(e.target.value)} value={user} ></input>
                     <Button variant="primary" onClick={() => {
+
                         // Create account
                         const newUser: UserModel = {
                             name: user
                         }
 
                         var result = CreateUser(newUser);
-
-                        result.then((value) => {
-                            console.log(value)
+                        result.then((res) => {
+                            if (res == null) return;
+                            setCookie('userID', res.data.id, { path: '/', maxAge: 31536000 });
+                            setCookie('userName', user, { path: '/', maxAge: 31536000 });
                         });
 
                     }}>Create Account</Button>
@@ -51,7 +56,20 @@ function Apitest() {
                 <Container className="apitest-column">
                     <input className='apitest-input' type='text' placeholder='Group' onChange={e => setGroup(e.target.value)} value={group} ></input>
                     <Button variant="primary" onClick={() => {
-                        // Add group
+
+                        // Create group
+                        const newGroup: GroupModel = {
+                            name: group
+                        }
+
+                        var result = CreateGroup(newGroup);
+                        result.then((res) => {
+                            if (res == null) return;
+                            console.log(res);
+                            setCookie('groupID', res.data.id, { path: '/', maxAge: 31536000 });
+                            setCookie('groupName', group, { path: '/', maxAge: 31536000 });
+                        });
+
                     }}>Add group</Button>
                 </Container>
             </Container>
