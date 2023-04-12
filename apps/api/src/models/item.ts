@@ -1,7 +1,8 @@
 export interface Item {
-    id: number;
+    id: string | undefined | null;
     name: string;
     price: number;
     isOnBuylist: boolean;
     amount: number;
 }
+

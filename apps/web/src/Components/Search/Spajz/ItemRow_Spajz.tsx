@@ -3,20 +3,14 @@ import {Button, Container} from "react-bootstrap";
 import PopUpWindow, {PopUpWindowState} from "../../PopUpWindow";
 import ItemDetail from "../ItemDetail";
 import {ItemModel} from "../../../Api";
+import { UpdateUserItem } from "../../../Other/itemService";
 
 const ItemRow_Spajz = (props: { item: ItemModel, updateCallback: any }) => {
     const [popUpState, setPopUpState] = useState(PopUpWindowState.Hidden);
 
-    const UpdateItem = (isOnBuylist: boolean) => {
-        props.item.isOnBuylist = isOnBuylist;
-        // SaveItem(props.item);
-        props.updateCallback();
-
-    }
-
     const AddItem = (count: number) => {
         props.item.amount = Math.max((props.item.amount + count), 0);
-        // SaveItem(props.item);
+        UpdateUserItem(props.item);
         props.updateCallback();
     }
 
@@ -30,7 +24,6 @@ const ItemRow_Spajz = (props: { item: ItemModel, updateCallback: any }) => {
             <div className="gridContainer-item-spajz">
                 <div><b>{props.item.name.toLowerCase().charAt(0).toUpperCase() + props.item.name.slice(1).toLowerCase()}</b></div>
                 <div>W.I.P.</div>
-                {/*<Button variant="primary" onClick={() => setPopUpState(PopUpWindowState.WaitingOK)}>{props.item.price}</Button>*/}
 
                 <Button variant="primary" onClick={() => setPopUpState(PopUpWindowState.WaitingOK)}>Detail</Button>
                 <div className="amountButtonsContainer">
