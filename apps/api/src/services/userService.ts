@@ -100,7 +100,7 @@ export class UserService {
     }
 
     // Add user to group
-    public async addUserToGroup(groupName: string, userId: string): Promise<boolean> {
+    public async addUserToGroup(groupName: string, userId: string): Promise<string | null> {
         var foundUser: boolean = false;
 
         var groupId: ObjectId | null = null;
@@ -115,7 +115,7 @@ export class UserService {
 
         if (foundUser == false) {
             console.log('User not found');
-            return false;
+            return null;
         }
 
         await DatabaseService.instance.client.db(process.env.DATABASE).collection('groups').findOne({ name: groupName }).then((group) => {
@@ -127,7 +127,7 @@ export class UserService {
         });
 
         if (groupId == null) {
-            return false;
+            return null;
         }
 
         // Add user to group
@@ -141,6 +141,6 @@ export class UserService {
             console.log(err);
         });
 
-        return true;
+        return groupId;
     }
 }

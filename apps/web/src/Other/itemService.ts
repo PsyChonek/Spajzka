@@ -1,4 +1,4 @@
-import { ItemModel, Api } from '../Api';
+import { ItemModel, Api, RequestParams, ContentType } from '../Api';
 import { Cookies } from 'react-cookie';
 
 const client = new Api({
@@ -8,9 +8,18 @@ const client = new Api({
 const cookies = new Cookies;
 
 export async function RemoveItem(item: ItemModel) {
-}
+    try {
+        if (item.id == null) {
+            return null;
+        }
 
-export async function GetItem(id: number) {
+        const result = await client.user.itemDelete(item.id,cookies.get('userID'));
+        return result;
+    }
+    catch (e) {
+        console.log(e);
+        return null;
+    }
 }
 
 export const GetUserItems = async () => {
@@ -19,6 +28,39 @@ export const GetUserItems = async () => {
 }
 
 export const SaveUserItem = async (item: ItemModel) => {
-    const id = await client.user.itemCreate(cookies.get('userID'), item);
-    return id.data;
+    try {
+
+        const requestParams: RequestParams = {
+            type: ContentType.Json,
+        }
+
+        const result = await client.user.itemCreate(cookies.get('userID'), item, requestParams);
+
+        return result;
+    }
+    catch (e) {
+        console.log(e);
+        return null;
+    }
+}
+
+// Update item in database
+export const UpdateUserItem = async (item: ItemModel) => {
+    try {
+        if (item.id == null) {
+            return null;
+        }
+
+        const requestParams: RequestParams = {
+            type: ContentType.Json,
+        }
+
+        const result = await client.user.itemUpdate(cookies.get('userID'),  item, requestParams);
+
+        return result;
+    }
+    catch (e) {
+        console.log(e);
+        return null;
+    }
 }

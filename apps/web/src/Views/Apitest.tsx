@@ -2,12 +2,11 @@ import '../CSS/Global.css'
 import '../CSS/Apitest.css'
 import React from "react";
 import { Button, Container } from "react-bootstrap";
-import { GetUserItems, SaveUserItem } from '../Other/itemService';
 import { GroupModel, ItemModel } from '../Api';
 import { UserModel } from '../Api';
 import { useCookies } from 'react-cookie';
 import { CreateUser } from '../Other/userService';
-import { CreateGroup } from '../Other/groupService';
+import { AddUserToGroup, CreateGroup } from '../Other/groupService';
 
 // STORE TO COOKIE
 
@@ -43,6 +42,8 @@ function Apitest() {
                             name: user
                         }
 
+                        console.log(newUser);
+
                         var result = CreateUser(newUser);
                         result.then((res) => {
                             if (res == null) return;
@@ -70,12 +71,21 @@ function Apitest() {
                             setCookie('groupName', group, { path: '/', maxAge: 31536000 });
                         });
 
-                    }}>Add group</Button>
+                    }}>Create group</Button>
+                    <Button variant="primary" onClick={() => {
+
+                        // Add user to group
+                        var result = AddUserToGroup(group, cookies.userID);
+                        result.then((res) => {
+                            if (res == null) return;
+                            console.log(res);
+                            setCookie('groupID', res.data.id, { path: '/', maxAge: 31536000 });
+                            setCookie('groupName', group, { path: '/', maxAge: 31536000 });
+                        }
+                        );
+
+                    }}>Add to group</Button>
                 </Container>
-            </Container>
-
-            <Container className="apitest-row">
-
             </Container>
         </Container>
     );

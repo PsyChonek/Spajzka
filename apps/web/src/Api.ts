@@ -15,7 +15,7 @@ export interface GroupModel {
 }
 
 export interface ItemModel {
-  id?: null | string;
+  id?: string | null;
   name: string;
   price: number;
   isOnBuylist: boolean;
@@ -272,7 +272,12 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request POST:/user/{userId}/item
      */
     itemCreate: (userId: string, body: ItemModel, params: RequestParams = {}) =>
-      this.request<string, any>({
+      this.request<
+        {
+          id?: string;
+        },
+        any
+      >({
         path: `/user/${userId}/item`,
         method: "POST",
         body: body,
@@ -289,7 +294,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request PUT:/user/{userId}/item
      */
     itemUpdate: (userId: string, body: ItemModel, params: RequestParams = {}) =>
-      this.request<string, any>({
+      this.request<object, any>({
         path: `/user/${userId}/item`,
         method: "PUT",
         body: body,
@@ -306,7 +311,12 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request POST:/user/{userId}/group/{groupName}
      */
     groupCreate: (userId: string, groupName: string, params: RequestParams = {}) =>
-      this.request<string, any>({
+      this.request<
+        {
+          id?: string;
+        },
+        any
+      >({
         path: `/user/${userId}/group/${groupName}`,
         method: "POST",
         format: "json",
@@ -345,7 +355,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request DELETE:/user/{userId}/item/{itemId}
      */
     itemDelete: (itemId: string, userId: string, params: RequestParams = {}) =>
-      this.request<string, any>({
+      this.request<object, any>({
         path: `/user/${userId}/item/${itemId}`,
         method: "DELETE",
         format: "json",

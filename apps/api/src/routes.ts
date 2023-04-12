@@ -49,6 +49,7 @@ export const registerRoutes = (server: any) => {
             summary: 'Store item to database',
             params: {
                 type: 'object',
+                required: ['userId'],
                 properties: {
                     userId: { type: 'string' }
                 }
@@ -58,7 +59,10 @@ export const registerRoutes = (server: any) => {
             },
             response: {
                 200: {
-                    type: 'string'
+                    type: 'object',
+                    properties: {
+                        id: { type: 'string' }
+                    }
                 }
             }
         },
@@ -72,7 +76,11 @@ export const registerRoutes = (server: any) => {
                 return;
             }
 
-            reply.send(insertedId);
+            const response = {
+                id: insertedId
+            }
+
+            reply.send(response);
         }
     })
 
@@ -93,20 +101,27 @@ export const registerRoutes = (server: any) => {
             },
             response: {
                 200: {
-                    type: 'string'
+                    type: 'object',
+                    properties: {
+                        id: { type: 'string' }
+                    }
                 }
             }
         },
         handler: async (req: any, reply: any) => {
             var userService = new UserService();
 
-            var result: boolean = await userService.addUserToGroup(req.params.groupName, req.params.userId);
+            var result: string | null  = await userService.addUserToGroup(req.params.groupName, req.params.userId);
 
-            if (result == false) {
+            const response = {
+                id: result
+            }
+
+            if (result == null) {
                 reply.code(500).send();
             }
             else {
-                reply.send();
+                reply.send(response);
             }
         }
     })
@@ -161,7 +176,6 @@ export const registerRoutes = (server: any) => {
             },
             response: {
                 200: {
-                    type: 'string'
                 }
             }
         },
@@ -169,6 +183,10 @@ export const registerRoutes = (server: any) => {
             var itemsService = new ItemService();
 
             var result: boolean = await itemsService.deleteItem(req.params.userId, req.params.itemId);
+
+            const response = {
+                id: result
+            }
 
             if (result == false) {
                 reply.code(500).send();
@@ -232,7 +250,6 @@ export const registerRoutes = (server: any) => {
             },
             response: {
                 200: {
-                    type: 'string'
                 }
             }
         },

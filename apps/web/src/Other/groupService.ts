@@ -24,3 +24,17 @@ export const CreateGroup = async (group: GroupModel) => {
         return null;
     }
 }
+
+// Add user to group
+export const AddUserToGroup = async (groupName: string, userId: string) => {
+    try
+    {
+        const result = await client.user.groupCreate(userId, groupName);
+        return result;
+    }
+    catch (e)
+    {
+        console.log(e);
+        return null;
+    }
+}
