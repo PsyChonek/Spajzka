@@ -4,16 +4,16 @@ export class DatabaseService {
     private static _instance: DatabaseService;
     private _client: MongoClient;
 
-    private isConnected: boolean = false;
+    public isConnected: string = '';
 
     private constructor() {
         this._client = new MongoClient(process.env.CONNECTION_STRING || '');
         this._client.connect().then(() => {
             console.log('Connected to MongoDB');
-            this.isConnected = true;
+            this.isConnected = 'Connected to MongoDB';
         }).catch((err) => {
             console.log('Error connecting to MongoDB', err);
-            this.isConnected = false;
+            this.isConnected = 'Error connecting to MongoDB ' + err;
         }
         );
     }

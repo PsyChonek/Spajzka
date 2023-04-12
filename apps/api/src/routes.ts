@@ -1,4 +1,5 @@
 import { Item } from './models/item'
+import { DatabaseService } from './services/databaseService'
 import { ItemService } from './services/itemService'
 import { UserService } from './services/userService'
 
@@ -264,6 +265,30 @@ export const registerRoutes = (server: any) => {
             else {
                 reply.send();
             }
+        }
+    })
+
+    // Check if server can connect to database¨
+    server.route({
+        method: 'GET',
+        url: '/health',
+        schema: {
+            tags: ['Health'],
+            summary: 'Check if server can connect to database',
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        status: { type: 'string' }
+                    }
+                }
+            }
+        },
+        handler: async (req: any, reply: any) => {
+
+            var result = await DatabaseService.instance.isConnected;
+
+            reply.send(result);
         }
     })
 }
