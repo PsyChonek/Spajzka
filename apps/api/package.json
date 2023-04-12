@@ -5,8 +5,8 @@
   "private": true,
   "lib": [],
   "scripts": {
-    "dev": "start http://localhost:3010/docs && NODE_ENV=development npx ts-node-dev --respawn --transpile-only --exit-child --watch . src/index.ts",
-    "build": "NODE_ENV=production npx tsc --build tsconfig.json",
+    "dev": "start http://localhost:3010/docs && cross-env NODE_ENV=development npx ts-node-dev --respawn --transpile-only --exit-child --watch . src/index.ts",
+    "build": "cross-env NODE_ENV=production npx tsc --build tsconfig.json",
     "start": "node ./build/index.js"
   },
   "dependencies": {
@@ -20,8 +20,7 @@
     "ts-json-schema-generator": "^1.2.0"
   },
   "devDependencies": {
-    "@types/bluebird": "^3.5.38",
     "ts-node": "^10.9.1",
-    "win-node-env": "^0.6.1"
+    "cross-env": "^7.0.3"
   }
 }
