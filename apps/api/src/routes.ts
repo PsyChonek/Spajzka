@@ -112,7 +112,7 @@ export const registerRoutes = (server: any) => {
         handler: async (req: any, reply: any) => {
             var userService = new UserService();
 
-            var result: string | null  = await userService.addUserToGroup(req.params.groupName, req.params.userId);
+            var result: string | null = await userService.addUserToGroup(req.params.groupName, req.params.userId);
 
             const response = {
                 id: result
@@ -286,7 +286,36 @@ export const registerRoutes = (server: any) => {
         },
         handler: async (req: any, reply: any) => {
 
-            var result = await DatabaseService.instance.isConnected;
+            // var result = await DatabaseService.instance.isConnected;
+            var result = {
+                status: "OK"
+            }
+
+            const { MongoClient, ServerApiVersion } = require('mongodb');
+            const uri = "mongodb+srv://spajzkaadmin:spajzkaadmin01@spajzka.iqouwxl.mongodb.net/spajzka?retryWrites=true&w=majority";
+            const client = new MongoClient(uri, {
+                serverApi: {
+                    version: ServerApiVersion.v1,
+                    strict: true,
+                    deprecationErrors: true,
+                }
+            });
+
+            try {
+                // Connect the client to the server	(optional starting in v4.7) 
+                await client.connect();
+                // Send a ping to confirm a successful connection
+                await client.db("admin").command({ ping: 1 });
+                result.status = "Pinged your deployment. You successfully connected to MongoDB!";
+            }
+            catch (e) {
+                result.status = "Error connecting to MongoDB: " + e;
+            }
+            finally {
+                // Ensures that the client will close when you finish/error
+                await client.close();
+            }
+
 
             reply.send(result);
         }
