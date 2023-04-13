@@ -65,7 +65,7 @@ export const registerRoutes = (server: any) => {
         handler: async (req: any, reply: any) => {
             var userService = new UserService();
 
-            var user: User | null = await userService.getUser(req.params.userName);
+            var user: User | null = await userService.getUserByName(req.params.userName);
 
             if (user == null) {
                 reply.code(500).send();

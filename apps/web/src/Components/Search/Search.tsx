@@ -138,9 +138,9 @@ const Search = (props: { type: SearchStyle }) => {
     const itemType = (result: ItemModel) => {
         switch (props.type) {
             case SearchStyle.Spajz:
-                return (<ItemRow_Spajz item={result} updateCallback={updateAllData}/>);
+                return (<ItemRow_Spajz key={result.name} item={result} updateCallback={updateAllData}/>);
             case SearchStyle.Buylist:
-                return (<ItemRow_Buylist item={result} updateCallback={updateAllData}/>);
+                return (<ItemRow_Buylist key={result.name} item={result} updateCallback={updateAllData}/>);
         }
     }
 

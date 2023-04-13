@@ -45,10 +45,10 @@ export class UserService {
     }
 
     // Get user by key
-    public async getUser(userName: string): Promise<UserCollection | null> {
+    public async getUser(userId: string): Promise<UserCollection | null> {
         var userResult: UserCollection | null = null;
 
-        await DatabaseService.instance.client.db(process.env.DATABASE).collection('users').findOne({ name: userName }).then((user) => {
+        await DatabaseService.instance.client.db(process.env.DATABASE).collection('users').findOne({ _id: new ObjectId(userId) }).then((user) => {
             if (user == null) {
                 console.log('User not found');
                 return;
