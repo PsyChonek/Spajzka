@@ -9,7 +9,7 @@ const Navigation = () => {
 
     const [active, setActive] = React.useState("");
 
-    const validURLs = ["spajz", "buylist", "apitest"];
+    const validURLs = ["spajz", "buylist", "apitest", ""];
 
     useEffect(() => {
         var url: string = window.location.pathname.split("/")[1];
@@ -26,7 +26,7 @@ const Navigation = () => {
             <Navbar className="navbar" bg="dark" variant="dark">
                 <Container>
                     <Navbar.Brand onClick={() => setActive('spajz')} className={active === 'spajz' ? "navbar-link-active" : "navbar-link"} as={Link} to="/spajz">Špajzka</Navbar.Brand>
-                    <Nav defaultActiveKey="/spajz" className="me-auto">
+                    <Nav defaultActiveKey="/" className="me-auto">
                         <Nav.Link onClick={() => setActive('buylist')} className={active === 'buylist' ? "navbar-link-active" : "navbar-link"} as={Link} to="/buylist">Nákupní lístek</Nav.Link>
                         <Nav.Link onClick={() => setActive('apitest')} className={active === 'apitest' ? "navbar-link-active" : "navbar-link"} as={Link} to="/apitest">API</Nav.Link>
                     </Nav>
@@ -34,7 +34,7 @@ const Navigation = () => {
             </Navbar>
 
             <Routes>
-                <Route path="/" element={<Navigate to="/spajz"/>}/>
+                <Route path="/" element={<Spajz/>}/>
                 <Route path="/spajz" element={<Spajz/>}/>
                 <Route path="/buylist" element={<Buylist/>}/>
                 <Route path="/apitest" element={<Apitest/>}/>

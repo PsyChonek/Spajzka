@@ -286,13 +286,12 @@ export const registerRoutes = (server: any) => {
         },
         handler: async (req: any, reply: any) => {
 
-            // var result = await DatabaseService.instance.isConnected;
             var result = {
                 status: "OK"
             }
 
             const { MongoClient, ServerApiVersion } = require('mongodb');
-            const uri = "mongodb+srv://spajzkaadmin:spajzkaadmin01@spajzka.iqouwxl.mongodb.net/spajzka?retryWrites=true&w=majority";
+            const uri = process.env.CONNECTION_STRING;
             const client = new MongoClient(uri, {
                 serverApi: {
                     version: ServerApiVersion.v1,
