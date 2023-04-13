@@ -5,7 +5,7 @@ import { Button, Container } from "react-bootstrap";
 import { GroupModel, ItemModel } from '../Api';
 import { UserModel } from '../Api';
 import { useCookies } from 'react-cookie';
-import { CreateUser } from '../Other/userService';
+import { CreateUser, GetUser, GetUserGroups } from '../Other/userService';
 import { AddUserToGroup, CreateGroup } from '../Other/groupService';
 
 // STORE TO COOKIE
@@ -27,6 +27,9 @@ function Apitest() {
             <h3 className="text-center">User Name: {cookies.userName}</h3>
             <h3 className="text-center">Group ID: {cookies.groupID}</h3>
             <h3 className="text-center">Group Name: {cookies.groupName}</h3>
+
+            <br />
+            <h5 className="text-center" style={{color: "#ff5050"}}>It's advisable to avoid adding users to multiple groups whenever possible to ensure optimal group management. This practice can help to prevent potential issues and ensure a more efficient group workflow.</h5>
 
             <br /><br />
 
@@ -52,6 +55,27 @@ function Apitest() {
                         });
 
                     }}>Create Account</Button>
+
+                    <Button variant="primary" onClick={() => {
+
+                        // Get user
+                        var result = GetUser(user);
+
+                        result.then((res) => {
+                            if (res == null || res.data.id == null) return;
+                            setCookie('userID', res.data.id, { path: '/', maxAge: 31536000 });
+                            setCookie('userName', user, { path: '/', maxAge: 31536000 });
+
+                            var group = GetUserGroups(res.data.id);
+                            group.then((res) => {
+                                if (res == null || res.data[0].id == null) return;
+                                setCookie('groupID', res.data[0].id, { path: '/', maxAge: 31536000 });
+                                setCookie('groupName', res.data[0].name, { path: '/', maxAge: 31536000 });
+                            }
+                            );
+                        });
+
+                    }}>Get Account</Button>
                 </Container>
 
                 <Container className="apitest-column">

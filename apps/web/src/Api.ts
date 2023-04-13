@@ -267,6 +267,22 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags User
+     * @name UserDetail
+     * @summary Get user by user name
+     * @request GET:/user/{userName}
+     */
+    userDetail: (userName: string, params: RequestParams = {}) =>
+      this.request<UserModel, any>({
+        path: `/user/${userName}`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags User
      * @name ItemCreate
      * @summary Store item to database
      * @request POST:/user/{userId}/item
@@ -361,6 +377,28 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         format: "json",
         ...params,
       }),
+
+    /**
+     * No description
+     *
+     * @tags User
+     * @name GroupsDetail
+     * @summary Get user groups
+     * @request GET:/user/{userId}/groups
+     */
+    groupsDetail: (userId: string, params: RequestParams = {}) =>
+      this.request<
+        {
+          id?: string;
+          name?: string;
+        }[],
+        any
+      >({
+        path: `/user/${userId}/groups`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
   };
   group = {
     /**
@@ -382,6 +420,28 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: "POST",
         body: body,
         type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+  };
+  health = {
+    /**
+     * No description
+     *
+     * @tags Health
+     * @name HealthList
+     * @summary Check if server can connect to database
+     * @request GET:/health
+     */
+    healthList: (params: RequestParams = {}) =>
+      this.request<
+        {
+          status?: string;
+        },
+        any
+      >({
+        path: `/health`,
+        method: "GET",
         format: "json",
         ...params,
       }),

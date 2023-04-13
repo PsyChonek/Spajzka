@@ -1,4 +1,6 @@
+import { Group } from './models/group'
 import { Item } from './models/item'
+import { User } from './models/user'
 import { DatabaseService } from './services/databaseService'
 import { ItemService } from './services/itemService'
 import { UserService } from './services/userService'
@@ -38,6 +40,40 @@ export const registerRoutes = (server: any) => {
             }
 
             reply.send(items);
+        }
+    })
+
+    // Get user by user name
+    server.route({
+        method: 'GET',
+        url: '/user/:userName',
+        schema: {
+            tags: ['User'],
+            summary: 'Get user by user name',
+            params: {
+                type: 'object',
+                properties: {
+                    userName: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    $ref: 'User'
+                }
+            }
+        },
+        handler: async (req: any, reply: any) => {
+            var userService = new UserService();
+
+            var user: User | null = await userService.getUser(req.params.userName);
+
+            if (user == null) {
+                reply.code(500).send();
+                return;
+            }
+            else {
+                reply.send(user);
+            }
         }
     })
 
@@ -317,6 +353,47 @@ export const registerRoutes = (server: any) => {
 
 
             reply.send(result);
+        }
+    })
+
+    // Get user groups
+    server.route({
+        method: 'GET',
+        url: '/user/:userId/groups',
+        schema: {
+            tags: ['User'],
+            summary: 'Get user groups',
+            params: {
+                type: 'object',
+                properties: {
+                    userId: { type: 'string' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'array',
+                    items: {
+                        type: 'object',
+                        properties: {
+                            id: { type: 'string' },
+                            name: { type: 'string' }
+                        }
+                    }
+                }
+            }
+        },
+        handler: async (req: any, reply: any) => {
+            var userService = new UserService();
+
+            var result: Group[] | null = await userService.getUserGroups(req.params.userId);
+
+            if (result == null) {
+                reply.code(500).send();
+            }
+            else {
+                reply.send(result);
+            }
+
         }
     })
 }

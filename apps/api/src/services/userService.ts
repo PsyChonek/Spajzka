@@ -2,6 +2,7 @@ import { DatabaseService } from "./databaseService";
 import { ObjectId } from "mongodb";
 import { UserCollection } from "src/collections/userCollection";
 import { GroupCollection } from "src/collections/groupCollection";
+import { Group } from "src/models/group";
 
 export class UserService {
     // Create user
@@ -44,10 +45,29 @@ export class UserService {
     }
 
     // Get user by key
-    public async getUser(userId: string): Promise<UserCollection | null> {
+    public async getUser(userName: string): Promise<UserCollection | null> {
         var userResult: UserCollection | null = null;
 
-        await DatabaseService.instance.client.db(process.env.DATABASE).collection('users').findOne({ _id: new ObjectId(userId) }).then((user) => {
+        await DatabaseService.instance.client.db(process.env.DATABASE).collection('users').findOne({ name: userName }).then((user) => {
+            if (user == null) {
+                console.log('User not found');
+                return;
+            }
+            else {
+                userResult = <UserCollection>user;
+            }
+        }).catch((err) => {
+            console.log(err);
+        });
+
+        return userResult;
+    }
+
+    // Get user by name
+    public async getUserByName(userName: string): Promise<UserCollection | null> {
+        var userResult: UserCollection | null = null;
+
+        await DatabaseService.instance.client.db(process.env.DATABASE).collection('users').findOne({ name: userName }).then((user) => {
             if (user == null) {
                 console.log('User not found');
                 return;
@@ -134,7 +154,7 @@ export class UserService {
         await DatabaseService.instance.client.db(process.env.DATABASE).collection('groups').updateOne({ _id: groupId }, { $addToSet: { users: new ObjectId(userId) } }).then((result) => {
             if (result == null) {
                 console.log('Error adding user to group');
-                return;
+                return null;
             }
 
         }).catch((err) => {
@@ -142,5 +162,24 @@ export class UserService {
         });
 
         return groupId;
+    }
+
+    // Get groups by userID
+    public async getUserGroups(userId: string): Promise<Group[] | null> {
+        var groups: Group[] = [];
+
+        await DatabaseService.instance.client.db(process.env.DATABASE).collection('groups').find({ users: new ObjectId(userId) }).toArray().then((result) => {
+            if (result == null) {
+                console.log('Error getting groups');
+                return null;
+            }
+            else {
+                groups = <GroupCollection[]>result;
+            }
+        }).catch((err) => {
+            console.log(err);
+        });
+
+        return groups;
     }
 }

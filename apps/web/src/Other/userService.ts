@@ -22,8 +22,30 @@ export const CreateUser = async (user: UserModel) => {
     }
 }
 
-// Add group
-export const AddGroup = async (groupName: string) => {
-    const id = await client.user.groupCreate(cookies.get('userID'), groupName);
-    return id.data;
+// Get user
+export const GetUser = async (userId: string) => {
+    try
+    {
+        const result = await client.user.userDetail(userId);
+        return result;
+    }
+    catch (e)
+    {
+        console.log(e);
+        return null;
+    }
+}
+
+// Get user groups
+export const GetUserGroups = async (userId: string) => {
+    try
+    {
+        const result = await client.user.groupsDetail(userId);
+        return result;
+    }
+    catch (e)
+    {
+        console.log(e);
+        return null;
+    }
 }
