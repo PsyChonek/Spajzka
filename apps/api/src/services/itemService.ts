@@ -135,9 +135,38 @@ export class ItemService {
             }
         }).catch((err) => {
             console.log(err);
-        }
-        );
-        return isDeleted;
+        });
 
+        return isDeleted;
+    }
+
+    // Update item in database
+    public async updateItem(userId: string, item: ItemCollection): Promise<boolean> {
+        var isUpdated: boolean = false;
+        var userService = new UserService();
+
+        if(item.id == null) {
+            console.log('Item id not found');
+            return false;
+        }
+
+        // Check if user exists
+        if (await userService.getUser(userId) == null) {
+            console.log('User not found');
+            return false;
+        }
+
+        await DatabaseService.instance.client.db(process.env.DATABASE).collection('items').updateOne({ _id: new ObjectId(item.id) }, { $set: item }).then((result) => {
+            if (result == null) {
+                console.log('Item not updated');
+            }
+            else {
+                isUpdated = true;
+            }
+        }).catch((err) => {
+            console.log(err);
+        });
+
+        return isUpdated;
     }
 }

@@ -68,7 +68,6 @@ const Search = (props: { type: SearchStyle }) => {
         setQuery(term);
     }
 
-    //TODO: Add user ID
     const updateAllData = () => {
         GetUserItems().then((items: ItemModel[]) => {
             setAllData(items);

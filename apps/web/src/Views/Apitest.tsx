@@ -2,18 +2,21 @@ import '../CSS/Global.css'
 import '../CSS/Apitest.css'
 import React from "react";
 import { Button, Container } from "react-bootstrap";
-import {GetUserItems, SaveUserItem } from '../Other/itemService';
-import { ItemModel } from '../Api';
+import { GroupModel, ItemModel } from '../Api';
+import { UserModel } from '../Api';
 import { useCookies } from 'react-cookie';
+import { CreateUser } from '../Other/userService';
+import { AddUserToGroup, CreateGroup } from '../Other/groupService';
 
 // STORE TO COOKIE
 
 function Apitest() {
 
-    const [items, setItems] = React.useState<ItemModel[]>([]);
-    const [query, setQuery] = React.useState<string>('');
-    const [saveResult, setSaveResult] = React.useState<number>(-1);
-    const [cookies, setCookie] = useCookies(['userID']);
+    const [user, setUser] = React.useState('');
+    const [group, setGroup] = React.useState('');
+
+    const [cookies, setCookie] = useCookies(['userID', 'userName', 'groupID', 'groupName']);
+    // setCookie('userID', query, { path: '/', maxAge: 31536000 });
 
     return (
         <Container className="content">
@@ -21,50 +24,69 @@ function Apitest() {
 
             <h2 className="text-center">Cookies</h2>
             <h3 className="text-center">User ID: {cookies.userID}</h3>
+            <h3 className="text-center">User Name: {cookies.userName}</h3>
+            <h3 className="text-center">Group ID: {cookies.groupID}</h3>
+            <h3 className="text-center">Group Name: {cookies.groupName}</h3>
 
-            <br/><br/>
+            <br /><br />
+
             <h2 className="text-center">API</h2>
 
-            <h3 className="text-center">Get User Items</h3>
             <Container className="apitest-row">
-                <input className='apitest-input' type='text' placeholder='User ID' onChange={e => setQuery(e.target.value)} value={query} ></input>
-                <Button variant="primary" onClick={() => {
-                    setCookie('userID', query, { path: '/', maxAge: 31536000 });
+                <Container className="apitest-column">
+                    <input className='apitest-input' type='text' placeholder='User name' onChange={e => setUser(e.target.value)} value={user} ></input>
+                    <Button variant="primary" onClick={() => {
 
-                    GetUserItems().then((result) => {
-                        setItems(result);
-                    });
-                }}>Get Items</Button>
+                        // Create account
+                        const newUser: UserModel = {
+                            name: user
+                        }
+
+                        console.log(newUser);
+
+                        var result = CreateUser(newUser);
+                        result.then((res) => {
+                            if (res == null) return;
+                            setCookie('userID', res.data.id, { path: '/', maxAge: 31536000 });
+                            setCookie('userName', user, { path: '/', maxAge: 31536000 });
+                        });
+
+                    }}>Create Account</Button>
+                </Container>
+
+                <Container className="apitest-column">
+                    <input className='apitest-input' type='text' placeholder='Group' onChange={e => setGroup(e.target.value)} value={group} ></input>
+                    <Button variant="primary" onClick={() => {
+
+                        // Create group
+                        const newGroup: GroupModel = {
+                            name: group
+                        }
+
+                        var result = CreateGroup(newGroup);
+                        result.then((res) => {
+                            if (res == null) return;
+                            console.log(res);
+                            setCookie('groupID', res.data.id, { path: '/', maxAge: 31536000 });
+                            setCookie('groupName', group, { path: '/', maxAge: 31536000 });
+                        });
+
+                    }}>Create group</Button>
+                    <Button variant="primary" onClick={() => {
+
+                        // Add user to group
+                        var result = AddUserToGroup(group, cookies.userID);
+                        result.then((res) => {
+                            if (res == null) return;
+                            console.log(res);
+                            setCookie('groupID', res.data.id, { path: '/', maxAge: 31536000 });
+                            setCookie('groupName', group, { path: '/', maxAge: 31536000 });
+                        }
+                        );
+
+                    }}>Add to group</Button>
+                </Container>
             </Container>
-
-            {
-                items != null && items.length > 0 ? items.map((item: ItemModel) => {
-                    return (
-                        <p>{item.name}</p>
-                    )
-                }) : <p>Nothing</p>
-            }
-
-            <h3 className="text-center">Save Item</h3>
-            <Container className="apitest-row">
-                <Button variant="primary" onClick={() => {
-                    var item: ItemModel = {
-                        id: 500,
-                        name: "Test",
-                        price: 0,
-                        isOnBuylist: false,
-                        amount: 0,
-                    }
-                    SaveUserItem(item).then((result) => {
-                        setSaveResult(result);
-                    });
-
-                }}>Get Items</Button>
-            </Container>
-
-            {
-                saveResult != -1 ? <p>{saveResult}</p> : <p>Nothing</p>
-            }
         </Container>
     );
 }
