@@ -455,5 +455,11 @@
   "display": "standalone",
   "theme_color": "#000000",
   "background_color": "#ffffff",
-  "scope": "/"
+  "scope": "/",
+  "display_override": [
+    "standalone",
+    "fullscreen",
+    "minimal-ui",
+    "browser"
+  ]
 }

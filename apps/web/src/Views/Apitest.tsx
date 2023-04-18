@@ -28,9 +28,6 @@ function Apitest() {
             <h3 className="text-center">Group ID: {cookies.groupID}</h3>
             <h3 className="text-center">Group Name: {cookies.groupName}</h3>
 
-            <br />
-            <h5 className="text-center" style={{color: "#ff5050"}}>It's advisable to avoid adding users to multiple groups whenever possible to ensure optimal group management. This practice can help to prevent potential issues and ensure a more efficient group workflow.</h5>
-
             <br /><br />
 
             <h2 className="text-center">API</h2>
@@ -79,7 +76,7 @@ function Apitest() {
                 </Container>
 
                 <Container className="apitest-column">
-                    <input className='apitest-input' type='text' placeholder='Group' onChange={e => setGroup(e.target.value)} value={group} ></input>
+                    <input className='apitest-input' type='text' placeholder='Group' onChange={e => setGroup(e.target.value)} value={group} disabled={cookies.groupName}></input>
                     <Button variant="primary" onClick={() => {
 
                         // Create group
@@ -95,7 +92,7 @@ function Apitest() {
                             setCookie('groupName', group, { path: '/', maxAge: 31536000 });
                         });
 
-                    }}>Create group</Button>
+                    }}  disabled={cookies.groupName}>Create group</Button>
                     <Button variant="primary" onClick={() => {
 
                         // Add user to group
@@ -108,7 +105,7 @@ function Apitest() {
                         }
                         );
 
-                    }}>Add to group</Button>
+                    }} disabled={cookies.groupName}>Add to group</Button>
                 </Container>
             </Container>
         </Container>
