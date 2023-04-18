@@ -682,9 +682,9 @@
   "display_override": [
     "window-controls-overlay",
     "standalone",
-    "minimal-ui",
-    "browser"
+    "minimal-ui"
   ],
+  "display": "browser",
   "orientation": "portrait",
   "related_applications": [
     {
