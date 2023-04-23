@@ -1,6 +1,6 @@
 [{
         "relation": ["delegate_permission/common.handle_all_urls"],
         "target" : { "namespace": "android_app", "package_name": "com.vazacdaniel.spajzka.twa",
-                     "sha256_cert_fingerprints": ["14:AF:AE:86:3C:AC:23:9F:14:3A:29:88:A9:18:CB:A5:25:1B:37:49:B9:39:8A:85:3E:8C:8A:6F:14:AD:6A:E6"] }
+                     "sha256_cert_fingerprints": ["31:A3:E1:77:B3:4C:97:0F:60:2F:EE:94:6E:FA:F0:3F:77:EE:8C:EB:CD:DA:D8:78:B2:84:D8:CD:18:67:1D:B2"] }
       }
 ]
