@@ -621,8 +621,8 @@
     }
   ],
   "start_url": "/",
-  "theme_color": "#e1e1e1",
-  "background_color": "#f2f2f2",
+  "theme_color": "#121212",
+  "background_color": "#121212",
   "scope": "/",
   "display_override": [
     "window-controls-overlay",
