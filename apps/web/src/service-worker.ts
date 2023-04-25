@@ -69,17 +69,6 @@ registerRoute(
     })
 );
 
-// This allows the web app to trigger skipWaiting via
-// registration.waiting.postMessage({type: 'SKIP_WAITING'})
-self.addEventListener('message', (event) => {
-    console.log('message', event)
-
-    if (event.data && event.data.type === 'SKIP_WAITING' || event.data === 'skipWaiting') {
-        console.log('skip waiting')
-        self.skipWaiting();
-    }
-});
-
 self.addEventListener('fetch', (event) => {
     event.respondWith(async function (): Promise<any> {
         try {
@@ -91,9 +80,9 @@ self.addEventListener('fetch', (event) => {
 });
 
 self.addEventListener("install", (event) => {
-    // The promise that skipWaiting() returns can be safely ignored.
-    self.skipWaiting();
-  
+    event.waitUntil(self.clients.claim());
+    event.waitUntil(self.skipWaiting());
+    location.reload();
     // Perform any other actions required for your
     // service worker to install, potentially inside
     // of event.waitUntil();
@@ -105,3 +94,9 @@ self.addEventListener('push', (event) => {
     // Allow to send push notification from server
     console.log('push', event)
 });
+
+self.addEventListener('activate', event => {
+    event.waitUntil(self.clients.claim());
+    event.waitUntil(self.skipWaiting());
+    location.reload();
+  });

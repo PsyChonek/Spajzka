@@ -35,22 +35,28 @@ html {
     z-index: 1;
     background-color: var(--main-navbar-color) !important;
     box-shadow: 0px 0px 10px 10px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    justify-content: center !important;
+    /* Align horizontal */
+    align-items: center !important;
+    /* Align vertical */
 }
 
 .navbar-link {
     color: white !important;
 }
+
 .navbar-link-active {
     color: #C5BAEE !important;
 }
 
 .content {
-    padding-top: 76px;
+    padding-top: 20px;
     padding-bottom: 20px;
     background-color: var(--main-fg-color);
     text-align: center;
     min-height: 100%;
-    position: absolute;
+    /* position: absolute; */
     z-index: 0;
     top: 0;
     left: 0;
