@@ -94,7 +94,9 @@ self.addEventListener("install", (event) => {
     console.log('install', event)
     
     self.skipWaiting();
-    self.clients.claim();
+
+    window.location.reload();
+    
     // Perform any other actions required for your
     // service worker to install, potentially inside
     // of event.waitUntil();
