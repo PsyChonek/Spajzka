@@ -1,7 +1,8 @@
 :root {
     --main-bg-color: #f2f2f2;
     --main-fg-color: #e1e1e1;
-    --main-navbar-color: #121212;
+    --main-navbar-color: #f21212;
+    /* --main-navbar-color: #121212; */
 }
 
 @font-face {

@@ -81,8 +81,6 @@ self.addEventListener('message', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-    console.log('fetch', event)
-
     event.respondWith(async function (): Promise<any> {
         try {
             return await fetch(event.request);
@@ -95,9 +93,8 @@ self.addEventListener('fetch', (event) => {
 self.addEventListener("install", (event) => {
     console.log('install', event)
     
-    self.clients.claim();
     self.skipWaiting();
-    location.reload();
+    self.clients.claim();
     // Perform any other actions required for your
     // service worker to install, potentially inside
     // of event.waitUntil();
