@@ -92,24 +92,14 @@ self.addEventListener('push', (event) => {
 });
 
 self.addEventListener('activate', event => {
-    console.log('activate', event)
+    console.log('activate', event);
 
-    // Trigger reload message
-    self.clients.matchAll().then(function (clients) {
-        clients.forEach(function (client) {
-            client.postMessage('reload');
-        });
-    });
-});
-
-self.addEventListener('message', function (event) {
-    console.log('message', event)
-
-    if (event.data === 'reload') {
+    event.waitUntil(
+        // This Promise will resolve before the activation process completes
         self.clients.matchAll().then(function (clients) {
             clients.forEach(function (client) {
                 client.postMessage('reload');
             });
-        });
-    }
+        })
+    );
 });
