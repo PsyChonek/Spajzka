@@ -80,11 +80,8 @@ self.addEventListener('fetch', (event) => {
 });
 
 self.addEventListener("install", (event) => {
-    console.log('install', event)
     self.skipWaiting();    
-    // Perform any other actions required for your
-    // service worker to install, potentially inside
-    // of event.waitUntil();
+    console.log('install', event)
 });
 
 // Push notification event
@@ -96,5 +93,4 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('activate', event => {
     console.log('activate', event)
-    self.skipWaiting();    
   });
