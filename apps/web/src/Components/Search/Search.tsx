@@ -1,6 +1,6 @@
 import '../../CSS/Global.css'
 
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import Container from 'react-bootstrap/Container';
 import ItemSeparator from "./ItemSeparator";
 import Bar from "./Bar";
@@ -10,10 +10,10 @@ import ItemRow_Spajz from "./Spajz/ItemRow_Spajz";
 import ItemRow_Buylist from "./Buylist/ItemRow_Buylist";
 import ItemHead_Spajz from "./Spajz/ItemHead_Spajz";
 import ItemHead_Buylist from "./Buylist/ItemHead_Buylist";
-import {SortOptionsItem} from "./SortOptions";
-import {Spinner} from "react-bootstrap";
-import {ItemModel} from "../../Api";
-import {GetUserItems} from "../../Other/itemService";
+import { SortOptionsItem } from "./SortOptions";
+import { Spinner } from "react-bootstrap";
+import { ItemModel } from "../../Api";
+import { GetUserItems } from "../../Other/itemService";
 
 export enum SearchStyle {
     Spajz = 0,
@@ -26,7 +26,7 @@ const Search = (props: { type: SearchStyle }) => {
     const [results, setResults] = useState<ItemModel[]>([]);
     const [query, setQuery] = useState<string>('');
     const [sorts, setSorts] = useState<SortOptionsItem[]>([new SortOptionsItem("name", true), new SortOptionsItem("inSpajz"),
-        new SortOptionsItem("isOnBuylist"), new SortOptionsItem("price")]);
+    new SortOptionsItem("isOnBuylist"), new SortOptionsItem("price")]);
 
     // On page load, set all data
     useEffect(() => {
@@ -59,11 +59,6 @@ const Search = (props: { type: SearchStyle }) => {
         updateResults();
     }
 
-    // Result updated
-    useEffect(() => {   
-        setIsFetching(false);
-    }, [results])
-
     const onSearchSubmit = (term: string) => {
         setQuery(term);
     }
@@ -71,6 +66,7 @@ const Search = (props: { type: SearchStyle }) => {
     const updateAllData = () => {
         GetUserItems().then((items: ItemModel[]) => {
             setAllData(items);
+            setIsFetching(false);
         })
     }
 
@@ -87,7 +83,7 @@ const Search = (props: { type: SearchStyle }) => {
                 }
             }
         } else {
-            if (allData !=null && allData.length > 0) {
+            if (allData != null && allData.length > 0) {
                 results = [...allData];
             }
         }
@@ -131,25 +127,25 @@ const Search = (props: { type: SearchStyle }) => {
                 }
             })
         }
-        
+
         setResults(results)
     }
 
     const itemType = (result: ItemModel) => {
         switch (props.type) {
             case SearchStyle.Spajz:
-                return (<ItemRow_Spajz key={result.name} item={result} updateCallback={updateAllData}/>);
+                return (<ItemRow_Spajz key={result.name} item={result} updateCallback={updateAllData} />);
             case SearchStyle.Buylist:
-                return (<ItemRow_Buylist key={result.name} item={result} updateCallback={updateAllData}/>);
+                return (<ItemRow_Buylist key={result.name} item={result} updateCallback={updateAllData} />);
         }
     }
 
     const headType = () => {
         switch (props.type) {
             case SearchStyle.Spajz:
-                return (<ItemHead_Spajz sorts={sorts} updateSort={updateSort}/>);
+                return (<ItemHead_Spajz sorts={sorts} updateSort={updateSort} />);
             case SearchStyle.Buylist:
-                return (<ItemHead_Buylist sorts={sorts} updateSort={updateSort}/>);
+                return (<ItemHead_Buylist sorts={sorts} updateSort={updateSort} />);
         }
     }
 
@@ -160,16 +156,18 @@ const Search = (props: { type: SearchStyle }) => {
     })
 
     return (
+
+
         <Container>
-            {isFetching && <Spinner animation="border" variant="primary"/> || <><Bar onSearchSubmit={onSearchSubmit}/>
+            {isFetching && <Spinner animation="border" variant="primary" className='spinner' /> || <><Bar onSearchSubmit={onSearchSubmit} />
                 <Container className="searchContainer">
                     {renderedResults.length > 0 && headType()}
-                    {renderedResults.length != 0 && <ItemSeparator/>}
+                    {renderedResults.length != 0 && <ItemSeparator />}
                     {renderedResults}
-                    {renderedResults.length === 0 && <Add type={props.type} callbackUpdate={updateAllData} query={query}/>}
-                    {renderedResults.length >= 15 && <Navigation/>}
+                    {renderedResults.length === 0 && <Add type={props.type} callbackUpdate={updateAllData} query={query} />}
+                    {renderedResults.length >= 15 && <Navigation />}
                 </Container></>}
-            
+
         </Container>
 
     )
