@@ -38,16 +38,9 @@ navigator.serviceWorker.addEventListener('message', function (event) {
 });
 
 
-useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
-        if (event.data === 'reload') {
-            window.location.reload();
-        }
-    };
-
-    navigator.serviceWorker.addEventListener('message', handleMessage);
-
-    return () => {
-        navigator.serviceWorker.removeEventListener('message', handleMessage);
-    };
-}, []);
+const handleMessage = (event: MessageEvent) => {
+    if (event.data === 'reload') {
+        window.location.reload();
+    }
+};
+navigator.serviceWorker.addEventListener('message', handleMessage);
