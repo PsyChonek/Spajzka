@@ -25,7 +25,7 @@ const Search = (props: { type: SearchStyle }) => {
     const [allData, setAllData] = useState<ItemModel[]>([]);
     const [results, setResults] = useState<ItemModel[]>([]);
     const [query, setQuery] = useState<string>('');
-    const [sorts, setSorts] = useState<SortOptionsItem[]>([new SortOptionsItem("name", true), new SortOptionsItem("inSpajz"),
+    const [sorts, setSorts] = useState<SortOptionsItem[]>([new SortOptionsItem("name"), new SortOptionsItem("inSpajz"),
     new SortOptionsItem("isOnBuylist"), new SortOptionsItem("price")]);
 
     // On page load, set all data
@@ -45,11 +45,16 @@ const Search = (props: { type: SearchStyle }) => {
     }, [query])
 
     // Sort updated
-    const updateSort = (key: string) => {
+    const updateSort = (key: string, descending: boolean) => {
         var sortIndex = sorts.findIndex((sort) => sort.value === key);
         var SortOption: SortOptionsItem = sorts[sortIndex];
 
-        if (SortOption.isActive) {
+        if (descending !== undefined) {
+            SortOption.isDescending = descending;
+            sorts.forEach((sort) => sort.isActive = false);
+            SortOption.isActive = true;
+        }
+        else if (SortOption.isActive) {
             SortOption.isDescending = !SortOption.isDescending;
         } else {
             sorts.forEach((sort) => sort.isActive = false);
@@ -98,15 +103,6 @@ const Search = (props: { type: SearchStyle }) => {
             })
         }
 
-        if (sorts.find(x => x.value == "name")?.isActive) {
-            results.sort((a, b) => {
-                if (sorts.find(x => x.value == "name")?.isDescending) {
-                    return a.name.localeCompare(b.name);
-                } else {
-                    return b.name.localeCompare(a.name);
-                }
-            })
-        }
 
         if (sorts.find(x => x.value == "isOnBuylist")?.isActive) {
             results.sort((a, b) => {
@@ -124,6 +120,16 @@ const Search = (props: { type: SearchStyle }) => {
                     return a.price - b.price;
                 } else {
                     return b.price - a.price;
+                }
+            })
+        }
+
+        if (sorts.find(x => x.value == "name")?.isActive) {
+            results.sort((a, b) => {
+                if (sorts.find(x => x.value == "name")?.isDescending) {
+                    return a.name.localeCompare(b.name);
+                } else {
+                    return b.name.localeCompare(a.name);
                 }
             })
         }

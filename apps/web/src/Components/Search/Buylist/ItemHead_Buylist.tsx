@@ -5,6 +5,11 @@ import ItemSeparator from "../ItemSeparator";
 
 function ItemHead_Buylist(props: { sorts: SortOptionsItem[], updateSort: any }) {
 
+    // Set default sort, isOnBuylist descending
+    useEffect(() => {
+        props.updateSort("isOnBuylist", false);
+    }, [])
+
     return (
         <Container className="searchContainer">
             <div className="gridContainer-head-buylist">

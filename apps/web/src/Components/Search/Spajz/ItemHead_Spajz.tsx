@@ -1,9 +1,15 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {Container, DropdownButton, ToggleButton} from "react-bootstrap";
 import {SortOptionsItem} from "../SortOptions";
 import ItemSeparator from "../ItemSeparator";
 
 function ItemHead_Spajz(props: { sorts: SortOptionsItem[], updateSort: any }) {
+
+    // Set default sort, isOnBuylist descending
+    useEffect(() => {
+        props.updateSort("name", true);
+    }, [])
+
     return (
         <Container className="searchContainer">
             <div className="gridContainer-head-buylist">
