@@ -19,12 +19,6 @@ root.render(
     </BrowserRouter>
 );
 
-// Register event listener for service worker activation
-window.addEventListener('activate', (event) => {
-    console.log('Service worker activated');
-    window.location.reload();
-});
-
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.
 // Learn more about service workers: https://cra.link/PWA
@@ -34,3 +28,12 @@ serviceWorkerRegistration.register()
 // to log results (for example: reportWebVitals(console.log))
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 reportWebVitals();
+
+navigator.serviceWorker.addEventListener('message', function (event) {
+    console.log('Got reply from service worker: ' + event.data);
+
+    if (event.data === 'reload') {
+        window.location.reload();
+    }
+});
+
