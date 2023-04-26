@@ -9,7 +9,10 @@ const FooterCustom = (props: { setActive: any, active: string }) => {
         <>
             <Navbar className="footer" bg="dark" variant="dark">
                 <Container>
-                <Nav.Link onClick={() => props.setActive('privacy')} className={"navbar-link"} as={Link} to="/privacy">Privacy</Nav.Link>
+                    <Nav defaultActiveKey="/" className="me-auto">
+                        <Nav.Link onClick={() => props.setActive('privacy')} className={props.active === 'privacy' ? "navbar-link-active" : "navbar-link"} as={Link} to="/privacy">Privacy</Nav.Link>
+                        <Nav.Link onClick={() => props.setActive('accountdelete')} className={props.active === 'accountdelete' ? "navbar-link-active" : "navbar-link"} as={Link} to="/accountdelete">Account Delete</Nav.Link>
+                    </Nav>
                 </Container>
             </Navbar>
         </>

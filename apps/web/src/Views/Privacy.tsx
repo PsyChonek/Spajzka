@@ -5,7 +5,7 @@ import { Container } from 'react-bootstrap';
 const Privacy = () => {
 
     return (
-            <Container >
+            <Container  className='content'>
                 <div className="page">
 
                     <h1 className="title">Privacy Policy for Špajzka</h1>

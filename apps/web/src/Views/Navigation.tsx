@@ -7,6 +7,7 @@ import Apitest from './Apitest';
 import FooterCustom from '../Components/FooterCustom';
 import NavbarCustom from '../Components/NavbarCustom';
 import Privacy from './Privacy';
+import AccountDelete from './AccountDelete';
 
 const Navigation = () => {
 
@@ -43,8 +44,9 @@ const Navigation = () => {
                 <Route path="/buylist" element={<Buylist />} />
                 <Route path="/apitest" element={<Apitest />} />
                 <Route path="/privacy" element={<Privacy />} />
+                <Route path="/accountdelete" element={<AccountDelete />} />
             </Routes>
-            
+
             <FooterCustom setActive={setActive} active={active} />
         </>
     );
