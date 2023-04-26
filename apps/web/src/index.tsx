@@ -19,18 +19,16 @@ root.render(
     </BrowserRouter>
 );
 
-window.addEventListener("visibilitychange", function () {
-    console.log("Visibility changed");
-    if (document.visibilityState === "visible") {
-        console.log("APP resumed");
-        window.location.reload();
-    }
+// Register event listener for service worker activation
+window.addEventListener('activate', (event) => {
+    console.log('Service worker activated');
+    window.location.reload();
 });
 
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.
 // Learn more about service workers: https://cra.link/PWA
-serviceWorkerRegistration.register();
+serviceWorkerRegistration.register()
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))

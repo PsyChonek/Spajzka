@@ -93,5 +93,8 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('activate', event => {
     console.log('activate', event)
-    window.location.reload();
+    // Create new event
+    const activateEvent = new Event('activate');
+    // Dispatch event
+    self.dispatchEvent(activateEvent);
   });
