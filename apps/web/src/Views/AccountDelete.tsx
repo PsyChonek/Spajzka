@@ -1,12 +1,13 @@
-import { Container } from "react-bootstrap"
+import React, { Component, useEffect } from 'react';
 
 const AccountDelete = () => {
+
     return (
-        <Container className="content">
-            <h1>Account Delete</h1>
-            <p> Guide users through the process of deleting their account. </p>
-            </Container>
-    )
+        <>
+
+        </>
+    );
+
 }
 
-export default AccountDelete
+export default AccountDelete;

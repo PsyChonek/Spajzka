@@ -7,6 +7,7 @@ import { Container, Nav, Navbar } from 'react-bootstrap';
 import * as serviceWorkerRegistration from './Other/serviceWorkerRegistration';
 import reportWebVitals from "./Other/reportWebVitals";
 import Navigation from "./Views/Navigation";
+import FooterCustom from './Components/FooterCustom';
 
 const root = ReactDOM.createRoot(
     document.getElementById('root') as HTMLElement
