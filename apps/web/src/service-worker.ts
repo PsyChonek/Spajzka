@@ -93,4 +93,5 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('activate', event => {
     console.log('activate', event)
+    window.location.reload();
   });
