@@ -19,6 +19,14 @@ root.render(
     </BrowserRouter>
 );
 
+window.addEventListener("visibilitychange", function () {
+    console.log("Visibility changed");
+    if (document.visibilityState === "visible") {
+        console.log("APP resumed");
+        window.location.reload();
+    }
+});
+
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.
 // Learn more about service workers: https://cra.link/PWA
