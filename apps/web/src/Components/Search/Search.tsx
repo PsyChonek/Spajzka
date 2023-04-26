@@ -165,7 +165,7 @@ const Search = (props: { type: SearchStyle }) => {
                     {renderedResults.length != 0 && <ItemSeparator />}
                     {renderedResults}
                     {renderedResults.length === 0 && <Add type={props.type} callbackUpdate={updateAllData} query={query} />}
-                    {renderedResults.length >= 15 && <Navigation />}
+                    {/* {renderedResults.length >= 15 && <Navigation />} */}
                 </Container></>}
 
         </Container>
