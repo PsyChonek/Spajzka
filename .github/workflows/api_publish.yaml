@@ -35,7 +35,7 @@ jobs:
         with:
           server: vazacdaniel.com
           local-dir: apps/api/
-          server-dir: sub/api.vazacdaniel.com/
+          server-dir: sub/api.spajzka.vazacdaniel.com/
           username: github@vazacdaniel.com
           password: ${{ secrets.FTP_GITHUB_PASS }}
           exclude: |
