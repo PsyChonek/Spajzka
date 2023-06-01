@@ -2,9 +2,12 @@
 import { fastifySwagger } from '@fastify/swagger';
 import { fastifySwaggerUi } from '@fastify/swagger-ui';
 import { fastifyCors } from "@fastify/cors"
-import { registerRoutes } from './routes';
+import { toolRoutes } from './routes/tool';
 import * as dotenv from 'dotenv'
 import { createGenerator } from "ts-json-schema-generator";
+import { groupRoutes } from "./routes/group";
+import { itemRoutes } from "./routes/item";
+import { userRoutes } from "./routes/user";
 
 var start = async function () {
     console.log()
@@ -82,7 +85,11 @@ var start = async function () {
         routePrefix: '/docs'
     })
 
-    registerRoutes(server);
+    // Register routes
+    toolRoutes(server)
+    groupRoutes(server)
+    // itemRoutes(server)
+    // userRoutes(server)
 
     await server.ready()
     server.swagger()
