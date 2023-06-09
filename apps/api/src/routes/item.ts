@@ -1,55 +1,17 @@
 import { Item } from "src/models/item";
-import { ItemService } from "src/services/itemService";
+import { ItemService } from "../services/itemService";
 
 export const itemRoutes = (server: any) => {
-    server.route({
-        method: 'GET',
-        url: '/user/:userId/items',
-        schema: {
-            tags: ['User'],
-            summary: 'Get user items by user id',
-            params: {
-                type: 'object',
-                properties: {
-                    userId: { type: 'string' }
-                }
-            },
-            response: {
-                200: {
-                    type: 'array',
-                    items: {
-                        $ref: 'Item'
-                    }
-                }
-            }
-        },
-        handler: async (req: any, reply: any) => {
-            var itemsService = new ItemService();
 
-            var items: Item[] | null = await itemsService.getItems(req.params.userId);
+    const itemsService = new ItemService();
 
-            if (items == null) {
-                reply.code(500).send();
-                return;
-            }
-
-            reply.send(items);
-        }
-    })
-
+    // Create item
     server.route({
         method: 'POST',
-        url: '/user/:userId/item',
+        url: '/item',
         schema: {
-            tags: ['User'],
+            tags: ['Item'],
             summary: 'Store item to database',
-            params: {
-                type: 'object',
-                required: ['userId'],
-                properties: {
-                    userId: { type: 'string' }
-                }
-            },
             body: {
                 $ref: 'Item'
             },
@@ -63,8 +25,6 @@ export const itemRoutes = (server: any) => {
             }
         },
         handler: async (req: any, reply: any) => {
-            var itemsService = new ItemService();
-
             var insertedId: string | null = await itemsService.storeItem(req.params.userId, req.body);
 
             if (insertedId == null) {
@@ -80,12 +40,41 @@ export const itemRoutes = (server: any) => {
         }
     })
 
+    // Get item
 
+    // Update item
+    server.route({
+        method: 'PUT',
+        url: '/item',
+        schema: {
+            tags: ['Item'],
+            summary: 'Update item',
+            body: {
+                $ref: 'Item'
+            },
+            response: {
+                200: {
+                }
+            }
+        },
+        handler: async (req: any, reply: any) => {
+            var result: boolean = await itemsService.updateItem(req.body);
+
+            if (result == false) {
+                reply.code(500).send();
+            }
+            else {
+                reply.send();
+            }
+        }
+    })
+
+    // Delete item
     server.route({
         method: 'DELETE',
-        url: '/user/:userId/item/:itemId',
+        url: '/item/:itemId',
         schema: {
-            tags: ['User'],
+            tags: ['Item'],
             summary: 'Remove item from database',
             params: {
                 type: 'object',
@@ -99,9 +88,7 @@ export const itemRoutes = (server: any) => {
             }
         },
         handler: async (req: any, reply: any) => {
-            var itemsService = new ItemService();
-
-            var result: boolean = await itemsService.deleteItem(req.params.userId, req.params.itemId);
+            var result: boolean = await itemsService.deleteItem(req.params.itemId);
 
             const response = {
                 id: result
@@ -115,40 +102,4 @@ export const itemRoutes = (server: any) => {
             }
         }
     })
-
-
-    server.route({
-        method: 'PUT',
-        url: '/user/:userId/item',
-        schema: {
-            tags: ['User'],
-            summary: 'Update item',
-            params: {
-                type: 'object',
-                properties: {
-                    userId: { type: 'string' }
-                }
-            },
-            body: {
-                $ref: 'Item'
-            },
-            response: {
-                200: {
-                }
-            }
-        },
-        handler: async (req: any, reply: any) => {
-            var itemsService = new ItemService();
-
-            var result: boolean = await itemsService.updateItem(req.params.userId, req.body);
-
-            if (result == false) {
-                reply.code(500).send();
-            }
-            else {
-                reply.send();
-            }
-        }
-    })
-
 }

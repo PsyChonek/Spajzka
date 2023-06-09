@@ -1,7 +1,8 @@
 import { Group } from "src/models/group";
-import { UserService } from "src/services/userService";
-
+import { UserService } from "../services/userService";
 export const groupRoutes = (server: any) => {
+    const userService = new UserService(); 
+
     // Group create
     server.route({
         method: 'POST',
@@ -22,8 +23,6 @@ export const groupRoutes = (server: any) => {
             }
         },
         handler: async (req: any, reply: any) => {
-            var userService = new UserService();
-
             var result: string | null = await userService.createGroup(req.body);
 
             const response = {
@@ -43,19 +42,19 @@ export const groupRoutes = (server: any) => {
 
     // Group delete
 
-    // Group add user
+    // Group add user to group
     server.route({
         method: 'POST',
-        url: '/user/:userId/group/:groupName',
+        url: '/group/:groupId/user/:userId',
         schema: {
-            tags: ['User'],
+            tags: ['Group'],
             summary: 'Add user to group',
             params: {
                 type: 'object',
-                required: ['userId'],
+                required: ['userId', 'groupId'],
                 properties: {
                     userId: { type: 'string' },
-                    groupName: { type: 'string' }
+                    groupId: { type: 'string' }
                 }
             },
             response: {
@@ -68,9 +67,7 @@ export const groupRoutes = (server: any) => {
             }
         },
         handler: async (req: any, reply: any) => {
-            var userService = new UserService();
-
-            var result: string | null = await userService.addUserToGroup(req.params.groupName, req.params.userId);
+            var result = await userService.addUserToGroup(req.params.groupName, req.params.userId);
 
             const response = {
                 id: result
@@ -86,45 +83,4 @@ export const groupRoutes = (server: any) => {
     })
 
     // Group remove user
-
-    // Group get users
-    server.route({
-        method: 'GET',
-        url: '/user/:userId/groups',
-        schema: {
-            tags: ['User'],
-            summary: 'Get user groups',
-            params: {
-                type: 'object',
-                properties: {
-                    userId: { type: 'string' }
-                }
-            },
-            response: {
-                200: {
-                    type: 'array',
-                    items: {
-                        type: 'object',
-                        properties: {
-                            id: { type: 'string' },
-                            name: { type: 'string' }
-                        }
-                    }
-                }
-            }
-        },
-        handler: async (req: any, reply: any) => {
-            var userService = new UserService();
-
-            var result: Group[] | null = await userService.getUserGroups(req.params.userId);
-
-            if (result == null) {
-                reply.code(500).send();
-            }
-            else {
-                reply.send(result);
-            }
-
-        }
-    })
 }
