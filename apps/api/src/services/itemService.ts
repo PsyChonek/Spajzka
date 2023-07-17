@@ -62,15 +62,6 @@ export class ItemService {
         var insertedId: string | null = null;
         var userFound: boolean = false;
 
-        // Check if user exists
-        await DatabaseService.instance.client.db(process.env.DATABASE).collection('users').findOne({ _id: new ObjectId(userId) }).then((user) => {
-            if (user != null) {
-                userFound = true;
-            }
-        }).catch((err) => {
-            console.log(err);
-        });
-
         if (userFound == false) {
             console.log('User not found');
             return null;
@@ -114,17 +105,8 @@ export class ItemService {
     }
 
     // Delete item from database
-    public async deleteItem(userId: string, itemId: string): Promise<boolean> {
+    public async deleteItem(itemId: string): Promise<boolean> {
         var isDeleted: boolean = false;
-
-
-        var userService = new UserService();
-
-        // Check if user exists
-        if (await userService.getUser(userId) == null) {
-            console.log('User not found');
-            return false;
-        }
 
         await DatabaseService.instance.client.db(process.env.DATABASE).collection('items').deleteOne({ _id: new ObjectId(itemId) }).then((result) => {
             if (result == null) {
@@ -141,18 +123,11 @@ export class ItemService {
     }
 
     // Update item in database
-    public async updateItem(userId: string, item: ItemCollection): Promise<boolean> {
+    public async updateItem(item: ItemCollection): Promise<boolean> {
         var isUpdated: boolean = false;
-        var userService = new UserService();
 
         if(item.id == null) {
             console.log('Item id not found');
-            return false;
-        }
-
-        // Check if user exists
-        if (await userService.getUser(userId) == null) {
-            console.log('User not found');
             return false;
         }
 

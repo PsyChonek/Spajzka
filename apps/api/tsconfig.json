@@ -6,6 +6,7 @@
     "**/*.tsx",
     "*/src/*",
     "*/src/models/*",
+    "*/src/services/*",
     ".env"
   ],
   "$schema": "https://json.schemastore.org/tsconfig",
