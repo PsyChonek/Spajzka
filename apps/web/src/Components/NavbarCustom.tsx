@@ -1,6 +1,6 @@
 import React, { Component, useEffect } from 'react';
 import { Container, Nav, Navbar } from "react-bootstrap";
-import { Link, Navigate, Route, Routes } from "react-router-dom";
+import { Link } from "react-router-dom";
 import '../CSS/Global.css'
 
 const NavbarCustom = (props: { setActive: any, active: string }) => {
