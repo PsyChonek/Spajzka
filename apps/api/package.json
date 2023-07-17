@@ -1,12 +1,13 @@
 {
   "name": "api",
-  "version": "1.0.11",
+  "version": "0.1.8 - 20230717",
   "description": "",
   "private": true,
   "lib": [],
   "scripts": {
+    "appendVersionWithDate": "node ./scripts/appendVersionWithDate.js",
     "dev": "start http://localhost:3010/docs && cross-env NODE_ENV=development npx ts-node-dev --respawn --transpile-only --exit-child --watch . src/index.ts",
-    "build": "cross-env NODE_ENV=production npx tsc --build tsconfig.json",
+    "build": "npm run appendVersionWithDate && cross-env NODE_ENV=production npx tsc --build tsconfig.json",
     "start": "node ./build/index.js"
   },
   "dependencies": {

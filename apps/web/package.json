@@ -39,7 +39,7 @@
   },
   "scripts": {
     "appendVersionWithDate": "node ./scripts/appendVersionWithDate.js",
-    "dev": "npm run appendVersionWithDate && craco start",
+    "dev": "craco start",
     "build": "npm run appendVersionWithDate && craco build",
     "generateClient": "npx swagger-typescript-api -p http://127.0.0.1:3010/docs/json -o ./src --patch"
   },
