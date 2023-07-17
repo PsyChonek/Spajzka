@@ -4,7 +4,7 @@ on:
       - "apps/api/**"
     branches:
       - master
-name: 🚀 Deploy website on push
+name: 🚀 Deploy api on push
 jobs:
   web-deploy:
     name: 🎉 Deploy

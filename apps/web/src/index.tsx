@@ -1,13 +1,10 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
-
-import React, { useEffect } from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter, Link, Navigate, Route, Routes } from 'react-router-dom';
-import { Container, Nav, Navbar } from 'react-bootstrap';
+import { BrowserRouter } from 'react-router-dom';
 import * as serviceWorkerRegistration from './Other/serviceWorkerRegistration';
 import reportWebVitals from "./Other/reportWebVitals";
 import Navigation from "./Views/Navigation";
-import FooterCustom from './Components/FooterCustom';
 
 const root = ReactDOM.createRoot(
     document.getElementById('root') as HTMLElement

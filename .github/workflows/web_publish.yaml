@@ -4,7 +4,7 @@ on:
       - "apps/web/**"
     branches:
       - master
-name: 🚀 Deploy api on push
+name: 🚀 Deploy web on push
 
 env:
   REACT_APP_SpajzkaAPI: "https://api.vazacdaniel.com"
@@ -33,7 +33,8 @@ jobs:
       - name: 🔨 Build Project
         run: |
           cd ./apps/web
-          CI=false npm run build
+          CI=false npm run build 
+
       - name: 📂 Sync files
         uses: SamKirkland/FTP-Deploy-Action@4.3.2
         with:

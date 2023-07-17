@@ -23,4 +23,7 @@ packageJson.version = versionWithDate;
 // Write package.json
 fs.writeFileSync('./package.json', JSON.stringify(packageJson, null, 2));
 
+// Write version to .env
+fs.writeFileSync('./.env', `REACT_APP_VERSION=${versionWithDate}`);
+
 console.log(`versionWithDate: ${versionWithDate}`);
