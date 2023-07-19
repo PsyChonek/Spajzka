@@ -43,3 +43,4 @@ jobs:
           server-dir: sub/spajzka.vazacdaniel.com/
           username: github@vazacdaniel.com
           password: ${{ secrets.FTP_GITHUB_PASS }}
+          exclude: .env.development
