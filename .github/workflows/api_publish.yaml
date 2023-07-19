@@ -3,7 +3,7 @@ on:
     paths:
       - "apps/api/**"
     branches:
-      - master
+      - main
 name: 🚀 Deploy api on push
 jobs:
   web-deploy:

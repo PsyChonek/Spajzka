@@ -3,7 +3,7 @@ on:
     paths:
       - "apps/web/**"
     branches:
-      - master
+      - main
 name: 🚀 Deploy web on push
 
 env:
