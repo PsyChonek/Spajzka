@@ -7,7 +7,7 @@ on:
 name: 🚀 Deploy web on push
 
 env:
-  REACT_APP_SpajzkaAPI: "https://api.vazacdaniel.com"
+  REACT_APP_SpajzkaAPI: "https://api.spajzka.vazacdaniel.com/"
 
 jobs:
   web-deploy:
