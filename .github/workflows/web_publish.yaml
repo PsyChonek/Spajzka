@@ -6,9 +6,6 @@ on:
       - main
 name: 🚀 Deploy web on push
 
-env:
-  REACT_APP_SpajzkaAPI: "https://api.spajzka.vazacdaniel.com"
-
 jobs:
   web-deploy:
     name: 🎉 Deploy

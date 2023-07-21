@@ -41,3 +41,5 @@ const handleMessage = (event: MessageEvent) => {
     }
 };
 navigator.serviceWorker.addEventListener('message', handleMessage);
+
+require('dotenv').config();

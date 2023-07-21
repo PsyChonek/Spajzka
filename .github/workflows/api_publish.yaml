@@ -49,3 +49,5 @@ jobs:
           exclude: |
             **/node_modules/**
             .env.development
+            src/
+            scripts/
