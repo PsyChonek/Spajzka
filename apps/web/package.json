@@ -1,6 +1,6 @@
 {
   "name": "web",
-  "version": "0.1.9 - 20230717",
+  "version": "0.1.10 - 20230717",
   "private": true,
   "dependencies": {
     "bootstrap": "^5.2.3",

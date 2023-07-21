@@ -1,6 +1,6 @@
 {
   "name": "api",
-  "version": "0.1.9 - 20230717",
+  "version": "0.1.10 - 20230717",
   "description": "API fro Spajzka app",
   "private": true,
   "lib": [],
