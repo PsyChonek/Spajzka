@@ -34,12 +34,9 @@ navigator.serviceWorker.addEventListener('message', function (event) {
     }
 });
 
-
 const handleMessage = (event: MessageEvent) => {
     if (event.data === 'reload') {
         window.location.reload();
     }
 };
 navigator.serviceWorker.addEventListener('message', handleMessage);
-
-require('dotenv').config();
