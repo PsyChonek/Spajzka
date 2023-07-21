@@ -1,0 +1,375 @@
+[{
+  "_id": {
+    "oid": "64382d2e7a827804af35a4bd"
+  },
+  "name": "Potato 🥔",
+  "isOnBuylist": false,
+  "amount": 2,
+  "price": 0,
+  "groupId": {
+    "oid": "6437c23686c38dd99132e401"
+  },
+  "userId": {
+    "oid": "6437c23386c38dd99132e400"
+  }
+},
+{
+  "_id": {
+    "oid": "643858d77a827804af35a4be"
+  },
+  "name": "Onion 🧅",
+  "isOnBuylist": false,
+  "amount": 2,
+  "price": 0,
+  "groupId": {
+    "oid": "6437c23686c38dd99132e401"
+  },
+  "userId": {
+    "oid": "6437c23386c38dd99132e400"
+  }
+},
+{
+  "_id": {
+    "oid": "64392df07a827804af35a4bf"
+  },
+  "name": "Chleba 🍞",
+  "isOnBuylist": false,
+  "amount": 1,
+  "price": 0,
+  "groupId": {
+    "oid": "6437c23686c38dd99132e401"
+  },
+  "userId": {
+    "oid": "6437c23386c38dd99132e400"
+  }
+},
+{
+  "_id": {
+    "oid": "6439472a7a827804af35a4c0"
+  },
+  "name": "Rohlíkos 🥐",
+  "isOnBuylist": false,
+  "amount": 0,
+  "price": 0,
+  "groupId": {
+    "oid": "6437c23686c38dd99132e401"
+  },
+  "userId": {
+    "oid": "6437c23386c38dd99132e400"
+  }
+},
+{
+  "_id": {
+    "oid": "643d9e527a827804af35a4c1"
+  },
+  "name": "čipíky ",
+  "isOnBuylist": false,
+  "amount": 0,
+  "price": 0,
+  "groupId": {
+    "oid": "6437c23686c38dd99132e401"
+  },
+  "userId": {
+    "oid": "6437c23386c38dd99132e400"
+  }
+},
+{
+  "_id": {
+    "oid": "643e52607a827804af35a4c7"
+  },
+  "name": "Noods 🍜",
+  "isOnBuylist": false,
+  "amount": 0,
+  "price": 0,
+  "groupId": {
+    "oid": "6437c23686c38dd99132e401"
+  },
+  "userId": {
+    "oid": "643808b37a827804af35a4bb"
+  }
+},
+{
+  "_id": {
+    "oid": "643e52907a827804af35a4c8"
+  },
+  "name": "Mayo ",
+  "isOnBuylist": false,
+  "amount": 0,
+  "price": 0,
+  "groupId": {
+    "oid": "6437c23686c38dd99132e401"
+  },
+  "userId": {
+    "oid": "643808b37a827804af35a4bb"
+  }
+},
+{
+  "_id": {
+    "oid": "643e52bd7a827804af35a4c9"
+  },
+  "name": "Soy sauce ",
+  "isOnBuylist": false,
+  "amount": 0,
+  "price": 0,
+  "groupId": {
+    "oid": "6437c23686c38dd99132e401"
+  },
+  "userId": {
+    "oid": "643808b37a827804af35a4bb"
+  }
+},
+{
+  "_id": {
+    "oid": "644009277a827804af35a4ca"
+  },
+  "name": "Tatarka",
+  "isOnBuylist": false,
+  "amount": 0,
+  "price": 0,
+  "groupId": {
+    "oid": "6437c23686c38dd99132e401"
+  },
+  "userId": {
+    "oid": "643808b37a827804af35a4bb"
+  }
+},
+{
+  "_id": {
+    "oid": "644009377a827804af35a4cb"
+  },
+  "name": "Vajíčka ",
+  "isOnBuylist": false,
+  "amount": 0,
+  "price": 0,
+  "groupId": {
+    "oid": "6437c23686c38dd99132e401"
+  },
+  "userId": {
+    "oid": "643808b37a827804af35a4bb"
+  }
+},
+{
+  "_id": {
+    "oid": "64499bbb7a827804af35a4cc"
+  },
+  "name": "Čoko 🍫",
+  "isOnBuylist": false,
+  "amount": 0,
+  "price": 0,
+  "groupId": {
+    "oid": "6437c23686c38dd99132e401"
+  },
+  "userId": {
+    "oid": "6437c23386c38dd99132e400"
+  }
+},
+{
+  "_id": {
+    "oid": "64499bcd7a827804af35a4cd"
+  },
+  "name": "Apple 🍎",
+  "isOnBuylist": false,
+  "amount": 0,
+  "price": 0,
+  "groupId": {
+    "oid": "6437c23686c38dd99132e401"
+  },
+  "userId": {
+    "oid": "6437c23386c38dd99132e400"
+  }
+},
+{
+  "_id": {
+    "oid": "64499bde7a827804af35a4ce"
+  },
+  "name": "Prach 🍑",
+  "isOnBuylist": false,
+  "amount": 0,
+  "price": 0,
+  "groupId": {
+    "oid": "6437c23686c38dd99132e401"
+  },
+  "userId": {
+    "oid": "6437c23386c38dd99132e400"
+  }
+},
+{
+  "_id": {
+    "oid": "64499c147a827804af35a4cf"
+  },
+  "name": "Šunka",
+  "isOnBuylist": false,
+  "amount": 0,
+  "price": 0,
+  "groupId": {
+    "oid": "6437c23686c38dd99132e401"
+  },
+  "userId": {
+    "oid": "6437c23386c38dd99132e400"
+  }
+},
+{
+  "_id": {
+    "oid": "64499c227a827804af35a4d0"
+  },
+  "name": "Cheese 🧀",
+  "isOnBuylist": false,
+  "amount": 0,
+  "price": 0,
+  "groupId": {
+    "oid": "6437c23686c38dd99132e401"
+  },
+  "userId": {
+    "oid": "6437c23386c38dd99132e400"
+  }
+},
+{
+  "_id": {
+    "oid": "64499c2f7a827804af35a4d1"
+  },
+  "name": "Párek",
+  "isOnBuylist": false,
+  "amount": 0,
+  "price": 0,
+  "groupId": {
+    "oid": "6437c23686c38dd99132e401"
+  },
+  "userId": {
+    "oid": "6437c23386c38dd99132e400"
+  }
+},
+{
+  "_id": {
+    "oid": "64499c447a827804af35a4d2"
+  },
+  "name": "Okurka",
+  "isOnBuylist": false,
+  "amount": 0,
+  "price": 0,
+  "groupId": {
+    "oid": "6437c23686c38dd99132e401"
+  },
+  "userId": {
+    "oid": "6437c23386c38dd99132e400"
+  }
+},
+{
+  "_id": {
+    "oid": "6476217c7a827804af35a4d4"
+  },
+  "name": "Kalhoty ",
+  "isOnBuylist": false,
+  "amount": 0,
+  "price": 0,
+  "groupId": {
+    "oid": "6437c23686c38dd99132e401"
+  },
+  "userId": {
+    "oid": "6437c23386c38dd99132e400"
+  }
+},
+{
+  "_id": {
+    "oid": "6476219f7a827804af35a4d5"
+  },
+  "name": "Trička",
+  "isOnBuylist": false,
+  "amount": 0,
+  "price": 0,
+  "groupId": {
+    "oid": "6437c23686c38dd99132e401"
+  },
+  "userId": {
+    "oid": "6437c23386c38dd99132e400"
+  }
+},
+{
+  "_id": {
+    "oid": "647621a57a827804af35a4d6"
+  },
+  "name": "Trička",
+  "isOnBuylist": false,
+  "amount": 0,
+  "price": 0,
+  "groupId": {
+    "oid": "6437c23686c38dd99132e401"
+  },
+  "userId": {
+    "oid": "6437c23386c38dd99132e400"
+  }
+},
+{
+  "_id": {
+    "oid": "647621d17a827804af35a4d7"
+  },
+  "name": "Fancy Kraťasy",
+  "isOnBuylist": false,
+  "amount": 0,
+  "price": 0,
+  "groupId": {
+    "oid": "6437c23686c38dd99132e401"
+  },
+  "userId": {
+    "oid": "6437c23386c38dd99132e400"
+  }
+},
+{
+  "_id": {
+    "oid": "647622147a827804af35a4d9"
+  },
+  "name": "Plavky Kraťasy ",
+  "isOnBuylist": false,
+  "amount": 0,
+  "price": 0,
+  "groupId": {
+    "oid": "6437c23686c38dd99132e401"
+  },
+  "userId": {
+    "oid": "6437c23386c38dd99132e400"
+  }
+},
+{
+  "_id": {
+    "oid": "647622647a827804af35a4dc"
+  },
+  "name": "Velký klobrc",
+  "isOnBuylist": false,
+  "amount": 0,
+  "price": 0,
+  "groupId": {
+    "oid": "6437c23686c38dd99132e401"
+  },
+  "userId": {
+    "oid": "6437c23386c38dd99132e400"
+  }
+},
+{
+  "_id": {
+    "oid": "647622737a827804af35a4dd"
+  },
+  "name": "Sprej na opalování",
+  "isOnBuylist": false,
+  "amount": 0,
+  "price": 0,
+  "groupId": {
+    "oid": "6437c23686c38dd99132e401"
+  },
+  "userId": {
+    "oid": "6437c23386c38dd99132e400"
+  }
+},
+{
+  "_id": {
+    "oid": "647622887a827804af35a4de"
+  },
+  "name": "Sprej na komáry",
+  "isOnBuylist": false,
+  "amount": 0,
+  "price": 0,
+  "groupId": {
+    "oid": "6437c23686c38dd99132e401"
+  },
+  "userId": {
+    "oid": "6437c23386c38dd99132e400"
+  }
+}]

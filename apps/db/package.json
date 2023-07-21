@@ -1,0 +1,13 @@
+{
+  "name": "localDB",
+  "version": "0",
+  "private": true,
+  "lib": [],
+  "type": "commonjs",
+  "scripts": {
+    "dev": "node localDB.js"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0"
+  }
+}
