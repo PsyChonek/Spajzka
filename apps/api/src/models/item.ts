@@ -1,8 +1,13 @@
+import { ItemCategory } from "./itemCategory";
+
 export interface Item {
     id: string | undefined | null;
     name: string;
     price: number;
-    isOnBuylist: boolean;
-    amount: number;
+    description: string;
+    image: string;
+    /**
+     * @ref ItemCategory
+     */
+    category: ItemCategory | string | undefined | null;
 }
-

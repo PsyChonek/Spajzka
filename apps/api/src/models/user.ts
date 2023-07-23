@@ -1,5 +1,12 @@
+import { ItemUser } from "./itemUser";
+
 export interface User {
     id: string | undefined | null;
     name: string;
-    group: string | undefined | null;
+    password: string;
+    email: string;
+    /**
+ * @ref ItemUser
+ */
+    items: ItemUser[];
 }

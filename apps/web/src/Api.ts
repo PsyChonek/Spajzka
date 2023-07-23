@@ -205,7 +205,7 @@ export class HttpClient<SecurityDataType = unknown> {
         ...(requestParams.headers || {}),
         ...(type && type !== ContentType.FormData ? { "Content-Type": type } : {}),
       },
-      signal: cancelToken ? this.createAbortSignal(cancelToken) : requestParams.signal,
+      signal: (cancelToken ? this.createAbortSignal(cancelToken) : requestParams.signal) || null,
       body: typeof body === "undefined" || body === null ? null : payloadFormatter(body),
     }).then(async (response) => {
       const r = response as HttpResponse<T, E>;
@@ -251,98 +251,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags User
-     * @name ItemsDetail
-     * @summary Get user items by user id
-     * @request GET:/user/{userId}/items
-     */
-    itemsDetail: (userId: string, params: RequestParams = {}) =>
-      this.request<ItemModel[], any>({
-        path: `/user/${userId}/items`,
-        method: "GET",
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags User
-     * @name UserDetail
-     * @summary Get user by user name
-     * @request GET:/user/{userName}
-     */
-    userDetail: (userName: string, params: RequestParams = {}) =>
-      this.request<UserModel, any>({
-        path: `/user/${userName}`,
-        method: "GET",
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags User
-     * @name ItemCreate
-     * @summary Store item to database
-     * @request POST:/user/{userId}/item
-     */
-    itemCreate: (userId: string, body: ItemModel, params: RequestParams = {}) =>
-      this.request<
-        {
-          id?: string;
-        },
-        any
-      >({
-        path: `/user/${userId}/item`,
-        method: "POST",
-        body: body,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags User
-     * @name ItemUpdate
-     * @summary Update item
-     * @request PUT:/user/{userId}/item
-     */
-    itemUpdate: (userId: string, body: ItemModel, params: RequestParams = {}) =>
-      this.request<object, any>({
-        path: `/user/${userId}/item`,
-        method: "PUT",
-        body: body,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags User
-     * @name GroupCreate
-     * @summary Add user to group
-     * @request POST:/user/{userId}/group/{groupName}
-     */
-    groupCreate: (userId: string, groupName: string, params: RequestParams = {}) =>
-      this.request<
-        {
-          id?: string;
-        },
-        any
-      >({
-        path: `/user/${userId}/group/${groupName}`,
-        method: "POST",
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags User
      * @name UserCreate
      * @summary Create user
      * @request POST:/user
@@ -366,14 +274,14 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags User
-     * @name ItemDelete
-     * @summary Remove item from database
-     * @request DELETE:/user/{userId}/item/{itemId}
+     * @name UserDetail
+     * @summary Get user by user id
+     * @request GET:/user/{userId}
      */
-    itemDelete: (itemId: string, userId: string, params: RequestParams = {}) =>
-      this.request<object, any>({
-        path: `/user/${userId}/item/${itemId}`,
-        method: "DELETE",
+    userDetail: (userId: string, params: RequestParams = {}) =>
+      this.request<UserModel, any>({
+        path: `/user/${userId}`,
+        method: "GET",
         format: "json",
         ...params,
       }),
@@ -396,6 +304,78 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       >({
         path: `/user/${userId}/groups`,
         method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags User
+     * @name ItemsDetail
+     * @summary Get user items by user id
+     * @request GET:/user/{userId}/items
+     */
+    itemsDetail: (userId: string, params: RequestParams = {}) =>
+      this.request<ItemModel[], any>({
+        path: `/user/${userId}/items`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+  };
+  item = {
+    /**
+     * No description
+     *
+     * @tags Item
+     * @name ItemCreate
+     * @summary Store item to database
+     * @request POST:/item
+     */
+    itemCreate: (body: ItemModel, params: RequestParams = {}) =>
+      this.request<
+        {
+          id?: string;
+        },
+        any
+      >({
+        path: `/item`,
+        method: "POST",
+        body: body,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Item
+     * @name ItemUpdate
+     * @summary Update item
+     * @request PUT:/item
+     */
+    itemUpdate: (body: ItemModel, params: RequestParams = {}) =>
+      this.request<object, any>({
+        path: `/item`,
+        method: "PUT",
+        body: body,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Item
+     * @name ItemDelete
+     * @summary Remove item from database
+     * @request DELETE:/item/{itemId}
+     */
+    itemDelete: (itemId: string, params: RequestParams = {}) =>
+      this.request<object, any>({
+        path: `/item/${itemId}`,
+        method: "DELETE",
         format: "json",
         ...params,
       }),
@@ -423,12 +403,33 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         format: "json",
         ...params,
       }),
+
+    /**
+     * No description
+     *
+     * @tags Group
+     * @name UserCreate
+     * @summary Add user to group
+     * @request POST:/group/{groupId}/user/{userId}
+     */
+    userCreate: (userId: string, groupId: string, params: RequestParams = {}) =>
+      this.request<
+        {
+          id?: string;
+        },
+        any
+      >({
+        path: `/group/${groupId}/user/${userId}`,
+        method: "POST",
+        format: "json",
+        ...params,
+      }),
   };
   health = {
     /**
      * No description
      *
-     * @tags Health
+     * @tags Tools
      * @name HealthList
      * @summary Check if server can connect to database
      * @request GET:/health

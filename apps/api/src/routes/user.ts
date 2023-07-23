@@ -15,7 +15,7 @@ export const userRoutes = (server: any) => {
             tags: ['User'],
             summary: 'Create user',
             body: {
-                $ref: 'User'
+                $ref: 'User',
             },
             response: {
                 200: {
