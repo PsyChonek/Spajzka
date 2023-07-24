@@ -9,23 +9,208 @@
  * ---------------------------------------------------------------
  */
 
-export interface GroupModel {
-  id?: string | null;
+export interface CreateGroupInputModel {
   name: string;
+  users: string[];
 }
 
-export interface ItemModel {
-  id?: string | null;
+export interface CreateGroupOutputModel {
+  groupId: string;
+}
+
+export interface GetGroupInputModel {
+  groupId: string;
+}
+
+export interface GetGroupOutputModel {
+  groupId: string;
+  name: string;
+  users: string[];
+}
+
+export interface UpdateGroupInputModel {
+  groupId: string;
+  name: string;
+  users: string[];
+}
+
+export interface UpdateGroupOutputModel {
+  groupId: string;
+}
+
+export interface DeleteGroupInputModel {
+  groupId: string;
+}
+
+export interface DeleteGroupOutputModel {
+  groupId: string;
+}
+
+export interface AddUserToGroupInputModel {
+  groupId: string;
+  userId: string;
+}
+
+export interface AddUserToGroupOutputModel {
+  groupId: string;
+  userId: string;
+}
+
+export interface RemoveUserFromGroupInputModel {
+  groupId: string;
+  userId: string;
+}
+
+export interface RemoveUserFromGroupOutputModel {
+  groupId: string;
+  userId: string;
+}
+
+export interface CreateItemInputModel {
   name: string;
   price: number;
-  isOnBuylist: boolean;
-  amount: number;
+  description: string;
+  image: string;
+  category: ItemCategoryModel;
 }
 
-export interface UserModel {
-  id?: string | null;
+export interface CreateItemOutputModel {
+  itemId: string;
+}
+
+export interface GetItemInputModel {
+  itemId: string;
+}
+
+export interface GetItemOutputModel {
+  itemId: string;
   name: string;
-  group?: string | null;
+  price: number;
+  description: string;
+  image: string;
+  category: ItemCategoryModel;
+}
+
+export interface UpdateItemInputModel {
+  itemId: string;
+  name: string;
+  price: number;
+  description: string;
+  image: string;
+  category: ItemCategoryModel;
+}
+
+export interface UpdateItemOutputModel {
+  itemId: string;
+}
+
+export interface DeleteItemInputModel {
+  itemId: string;
+}
+
+export interface DeleteItemOutputModel {
+  itemId: string;
+}
+
+export interface ItemCategoryModel {
+  id: string;
+  name: string;
+}
+
+export interface CreateInputModel {
+  name: string;
+  password: string;
+  email: string;
+}
+
+export interface CreateOutputModel {
+  userId: string;
+}
+
+export interface GetUserInputModel {
+  userId: string;
+}
+
+export interface GetUserOutputModel {
+  userId: string;
+  name: string;
+  email: string;
+  items: UserItemModel;
+}
+
+export interface GetUserGroupInputModel {
+  userId: string;
+}
+
+export interface GetUserGroupOutputModel {
+  userId: string;
+  name: string;
+}
+
+export interface GetUserItemInputModel {
+  userId: string;
+}
+
+export interface GetUserItemOutputModel {
+  userId: string;
+  items: UserItemModel;
+}
+
+export interface UpdateUserInputModel {
+  userId: string;
+  name: string;
+  password: string;
+  email: string;
+}
+
+export interface UpdateUserOutputModel {
+  userId: string;
+}
+
+export interface DeleteUserInputModel {
+  userId: string;
+}
+
+export interface DeleteUserOutputModel {
+  userId: string;
+}
+
+export interface AddUserItemInputModel {
+  userId: string;
+  itemId: string;
+}
+
+export interface AddUserItemOutputModel {
+  userId: string;
+  itemId: string;
+}
+
+export interface RemoveUserItemInputModel {
+  userId: string;
+  itemId: string;
+}
+
+export interface RemoveUserItemOutputModel {
+  userId: string;
+  itemId: string;
+}
+
+export interface UpdateUserItemInputModel {
+  userId: string;
+  items: UserItemModel;
+}
+
+export interface UpdateUserItemOutputModel {
+  userId: string;
+  itemId: string;
+}
+
+export interface UserItemModel {
+  itemId: string;
+  quantity: number;
+  favoriteTier: number;
+  toBuyQuantity: number;
+  minToHave: number;
 }
 
 export type QueryParamsType = Record<string | number, any>;
@@ -255,17 +440,46 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @summary Create user
      * @request POST:/user
      */
-    userCreate: (body: UserModel, params: RequestParams = {}) =>
-      this.request<
-        {
-          id?: string;
-        },
-        any
-      >({
+    userCreate: (body: CreateInputModel, params: RequestParams = {}) =>
+      this.request<CreateOutputModel, any>({
         path: `/user`,
         method: "POST",
         body: body,
         type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags User
+     * @name UserUpdate
+     * @summary Update user
+     * @request PUT:/user
+     */
+    userUpdate: (body: UpdateUserInputModel, params: RequestParams = {}) =>
+      this.request<UpdateUserOutputModel, any>({
+        path: `/user`,
+        method: "PUT",
+        body: body,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags User
+     * @name UserDelete
+     * @summary Delete user by user id
+     * @request DELETE:/user/{userId}
+     */
+    userDelete: (userId: string, params: RequestParams = {}) =>
+      this.request<DeleteUserOutputModel, any>({
+        path: `/user/${userId}`,
+        method: "DELETE",
         format: "json",
         ...params,
       }),
@@ -279,7 +493,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request GET:/user/{userId}
      */
     userDetail: (userId: string, params: RequestParams = {}) =>
-      this.request<UserModel, any>({
+      this.request<GetUserOutputModel, any>({
         path: `/user/${userId}`,
         method: "GET",
         format: "json",
@@ -290,19 +504,13 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags User
-     * @name GroupsDetail
+     * @name GroupDetail
      * @summary Get user groups
-     * @request GET:/user/{userId}/groups
+     * @request GET:/user/{userId}/group
      */
-    groupsDetail: (userId: string, params: RequestParams = {}) =>
-      this.request<
-        {
-          id?: string;
-          name?: string;
-        }[],
-        any
-      >({
-        path: `/user/${userId}/groups`,
+    groupDetail: (userId: string, params: RequestParams = {}) =>
+      this.request<GetUserGroupOutputModel, any>({
+        path: `/user/${userId}/group`,
         method: "GET",
         format: "json",
         ...params,
@@ -312,14 +520,64 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags User
-     * @name ItemsDetail
+     * @name ItemDetail
      * @summary Get user items by user id
-     * @request GET:/user/{userId}/items
+     * @request GET:/user/{userId}/item
      */
-    itemsDetail: (userId: string, params: RequestParams = {}) =>
-      this.request<ItemModel[], any>({
-        path: `/user/${userId}/items`,
+    itemDetail: (userId: string, params: RequestParams = {}) =>
+      this.request<GetUserItemOutputModel, any>({
+        path: `/user/${userId}/item`,
         method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags User Item
+     * @name ItemCreate
+     * @summary Add item to user
+     * @request POST:/user/{userId}/item
+     */
+    itemCreate: (userId: string, body: AddUserItemInputModel, params: RequestParams = {}) =>
+      this.request<AddUserItemOutputModel, any>({
+        path: `/user/${userId}/item`,
+        method: "POST",
+        body: body,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags User Item
+     * @name ItemDelete
+     * @summary Remove user item
+     * @request DELETE:/user/{userId}/item/{itemId}
+     */
+    itemDelete: (userId: string, itemId: string, params: RequestParams = {}) =>
+      this.request<RemoveUserItemOutputModel, any>({
+        path: `/user/${userId}/item/${itemId}`,
+        method: "DELETE",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags User Item
+     * @name ItemUpdate
+     * @summary Update user item
+     * @request PUT:/user/{userId}/item/{itemId}
+     */
+    itemUpdate: (userId: string, items: any, itemId: string, params: RequestParams = {}) =>
+      this.request<UpdateUserItemOutputModel, any>({
+        path: `/user/${userId}/item/${itemId}`,
+        method: "PUT",
         format: "json",
         ...params,
       }),
@@ -333,16 +591,12 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @summary Store item to database
      * @request POST:/item
      */
-    itemCreate: (body: ItemModel, params: RequestParams = {}) =>
-      this.request<
-        {
-          id?: string;
-        },
-        any
-      >({
+    itemCreate: (body: CreateItemInputModel, params: RequestParams = {}) =>
+      this.request<CreateItemOutputModel, any>({
         path: `/item`,
         method: "POST",
         body: body,
+        type: ContentType.Json,
         format: "json",
         ...params,
       }),
@@ -355,11 +609,28 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @summary Update item
      * @request PUT:/item
      */
-    itemUpdate: (body: ItemModel, params: RequestParams = {}) =>
-      this.request<object, any>({
+    itemUpdate: (body: UpdateItemInputModel, params: RequestParams = {}) =>
+      this.request<UpdateItemOutputModel, any>({
         path: `/item`,
         method: "PUT",
         body: body,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Item
+     * @name ItemDetail
+     * @summary Get item by item id
+     * @request GET:/item/{itemId}
+     */
+    itemDetail: (itemId: string, params: RequestParams = {}) =>
+      this.request<GetItemOutputModel, any>({
+        path: `/item/${itemId}`,
+        method: "GET",
         format: "json",
         ...params,
       }),
@@ -373,7 +644,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request DELETE:/item/{itemId}
      */
     itemDelete: (itemId: string, params: RequestParams = {}) =>
-      this.request<object, any>({
+      this.request<DeleteItemOutputModel, any>({
         path: `/item/${itemId}`,
         method: "DELETE",
         format: "json",
@@ -389,13 +660,8 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @summary Create group
      * @request POST:/group
      */
-    groupCreate: (body: GroupModel, params: RequestParams = {}) =>
-      this.request<
-        {
-          id?: string;
-        },
-        any
-      >({
+    groupCreate: (body: CreateGroupInputModel, params: RequestParams = {}) =>
+      this.request<CreateGroupOutputModel, any>({
         path: `/group`,
         method: "POST",
         body: body,
@@ -408,19 +674,80 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Group
+     * @name GroupUpdate
+     * @summary Update group
+     * @request PUT:/group
+     */
+    groupUpdate: (body: UpdateGroupInputModel, params: RequestParams = {}) =>
+      this.request<UpdateGroupOutputModel, any>({
+        path: `/group`,
+        method: "PUT",
+        body: body,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Group
+     * @name GroupDetail
+     * @summary Get group by group id
+     * @request GET:/group/{groupId}
+     */
+    groupDetail: (groupId: string, params: RequestParams = {}) =>
+      this.request<GetGroupOutputModel, any>({
+        path: `/group/${groupId}`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Group
+     * @name GroupDelete
+     * @summary Delete group by group id
+     * @request DELETE:/group/{groupId}
+     */
+    groupDelete: (groupId: string, params: RequestParams = {}) =>
+      this.request<DeleteGroupOutputModel, any>({
+        path: `/group/${groupId}`,
+        method: "DELETE",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Group User
      * @name UserCreate
      * @summary Add user to group
      * @request POST:/group/{groupId}/user/{userId}
      */
-    userCreate: (userId: string, groupId: string, params: RequestParams = {}) =>
-      this.request<
-        {
-          id?: string;
-        },
-        any
-      >({
+    userCreate: (groupId: string, userId: string, params: RequestParams = {}) =>
+      this.request<AddUserToGroupOutputModel, any>({
         path: `/group/${groupId}/user/${userId}`,
         method: "POST",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Group User
+     * @name UserDelete
+     * @summary Remove user from group
+     * @request DELETE:/group/{groupId}/user/{userId}
+     */
+    userDelete: (groupId: string, userId: string, params: RequestParams = {}) =>
+      this.request<RemoveUserFromGroupOutputModel, any>({
+        path: `/group/${groupId}/user/${userId}`,
+        method: "DELETE",
         format: "json",
         ...params,
       }),
