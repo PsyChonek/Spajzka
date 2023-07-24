@@ -1,4 +1,3 @@
-import { Item } from "src/models/item";
 import { ItemService } from "../services/itemService";
 
 export const itemRoutes = (server: any) => {
@@ -13,34 +12,38 @@ export const itemRoutes = (server: any) => {
             tags: ['Item'],
             summary: 'Store item to database',
             body: {
-                $ref: 'Item'
+                $ref: 'CreateItemInput'
             },
             response: {
                 200: {
-                    type: 'object',
-                    properties: {
-                        id: { type: 'string' }
-                    }
+                    $ref: 'CreateItemOutput'
                 }
             }
         },
         handler: async (req: any, reply: any) => {
-            var insertedId: string | null = await itemsService.storeItem(req.params.userId, req.body);
 
-            if (insertedId == null) {
-                reply.code(500).send();
-                return;
-            }
-
-            const response = {
-                id: insertedId
-            }
-
-            reply.send(response);
         }
     })
 
     // Get item
+    server.route({
+        method: 'GET',
+        url: '/item/:itemId',
+        schema: {
+            tags: ['Item'],
+            summary: 'Get item by item id',
+            params: {
+                $ref: 'GetItemInput'
+            },
+            response: {
+                200: {
+                    $ref: 'GetItemOutput'
+                }
+            }
+        },
+        handler: async (req: any, reply: any) => {
+        }
+    })
 
     // Update item
     server.route({
@@ -50,22 +53,16 @@ export const itemRoutes = (server: any) => {
             tags: ['Item'],
             summary: 'Update item',
             body: {
-                $ref: 'Item'
+                $ref: 'UpdateItemInput'
             },
             response: {
                 200: {
+                    $ref: 'UpdateItemOutput'
                 }
             }
         },
         handler: async (req: any, reply: any) => {
-            var result: boolean = await itemsService.updateItem(req.body);
 
-            if (result == false) {
-                reply.code(500).send();
-            }
-            else {
-                reply.send();
-            }
         }
     })
 
@@ -77,29 +74,16 @@ export const itemRoutes = (server: any) => {
             tags: ['Item'],
             summary: 'Remove item from database',
             params: {
-                type: 'object',
-                properties: {
-                    itemId: { type: 'string' }
-                }
+                $ref: 'DeleteItemInput'
             },
             response: {
                 200: {
+                    $ref: 'DeleteItemOutput'
                 }
             }
         },
         handler: async (req: any, reply: any) => {
-            var result: boolean = await itemsService.deleteItem(req.params.itemId);
 
-            const response = {
-                id: result
-            }
-
-            if (result == false) {
-                reply.code(500).send();
-            }
-            else {
-                reply.send();
-            }
         }
     })
 }

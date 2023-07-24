@@ -88,9 +88,9 @@ var start = async function () {
 
     // Register routes
     userRoutes(server)
-    // itemRoutes(server)
+    itemRoutes(server)
     // groupRoutes(server)
-    // toolRoutes(server)
+    toolRoutes(server)
 
     await server.ready()
     server.swagger()
