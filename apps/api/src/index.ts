@@ -18,7 +18,7 @@ var start = async function () {
 
     console.log('Starting server...')
     const server = fastify()
-    const modelPath = 'src\\models\\*.ts';
+    const modelPath = 'src\\models\\api\\*.ts';
 
     const config = {
         path: modelPath,
@@ -34,9 +34,10 @@ var start = async function () {
 
     //@ts-ignore
     const schema = createGenerator(config).createSchema(config.type);
-
+    
     for (const key in schema.definitions) {
         const newSchema = Object.assign({}, schema.definitions[key] ,{$id: key})
+
         server.addSchema(newSchema)
     }
 

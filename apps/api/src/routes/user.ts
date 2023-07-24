@@ -1,13 +1,11 @@
-import { User } from "src/models/user";
 import { UserService } from "../services/userService";
-import { Group } from "src/models/group";
+import { Group } from "src/models/db/group";
 import { ItemService } from "../services/itemService";
-import { Item } from "src/models/item";
 
 export const userRoutes = (server: any) => {
     const userService = new UserService();
 
-    // User create 
+    // create 
     server.route({
         method: 'POST',
         url: '/user',
@@ -15,42 +13,63 @@ export const userRoutes = (server: any) => {
             tags: ['User'],
             summary: 'Create user',
             body: {
-                $ref: 'User'
+                $ref: 'CreateInput',
             },
             response: {
                 200: {
-                    type: 'object',
-                    properties: {
-                        id: { type: 'string' }
-                    }
+                    $ref: 'CreateOutput'
                 }
             }
         },
         handler: async (req: any, reply: any) => {
-            var result: string | null = await userService.createUser(req.body);
-
-            const response = {
-                id: result
-            }
-
-            if (result == null)
-                reply.code(500).send();
-            else
-                reply.send(response);
         }
     })
 
-    // User login
+    // login
 
-    // User logout
+    // logout
 
-    // User update
+    // update
+    server.route({
+        method: 'PUT',
+        url: '/user',
+        schema: {
+            tags: ['User'],
+            summary: 'Update user',
+            body: {
+                $ref: 'UpdateUserInput'
+            },
+            response: {
+                200: {
+                    $ref: 'UpdateUserOutput'
+                }
+            }
+        },
+        handler: async (req: any, reply: any) => {
+        }
+    })
 
-    // User delete
+    // delete
+    server.route({
+        method: 'DELETE',
+        url: '/user/:userId',
+        schema: {
+            tags: ['User'],
+            summary: 'Delete user by user id',
+            params: {
+                $ref: 'DeleteUserInput'
+            },
+            response: {
+                200: {
+                    $ref: 'DeleteUserOutput'
+                }
+            }
+        },
+        handler: async (req: any, reply: any) => {
+        }
+    })
 
-    // User get
-
-    // User find
+    // get
     server.route({
         method: 'GET',
         url: '/user/:userId',
@@ -58,101 +77,117 @@ export const userRoutes = (server: any) => {
             tags: ['User'],
             summary: 'Get user by user id',
             params: {
-                type: 'object',
-                properties: {
-                    userId: { type: 'string' }
-                }
+                $ref: 'GetUserInput',
             },
             response: {
                 200: {
-                    $ref: 'User'
+                    $ref: 'GetUserOutput'
                 }
             }
         },
         handler: async (req: any, reply: any) => {
-            var user = await userService.getUser(req.params.userId);
 
-            if (user == null) {
-                reply.code(500).send();
-                return;
-            }
-            else {
-                reply.send(user);
-            }
         }
     })
 
-    // Users get groups 
+    // get groups
     server.route({
         method: 'GET',
-        url: '/user/:userId/groups',
+        url: '/user/:userId/group',
         schema: {
             tags: ['User'],
             summary: 'Get user groups',
             params: {
-                type: 'object',
-                properties: {
-                    userId: { type: 'string' }
-                }
+                $ref: 'GetUserGroupInput'
             },
             response: {
                 200: {
-                    type: 'array',
-                    items: {
-                        type: 'object',
-                        properties: {
-                            id: { type: 'string' },
-                            name: { type: 'string' }
-                        }
-                    }
+                    $ref: 'GetUserGroupOutput'
                 }
             }
         },
         handler: async (req: any, reply: any) => {
-            var result: Group[] | null = await userService.getUserGroups(req.params.userId);
-
-            if (result == null) {
-                reply.code(500).send();
-            }
-            else {
-                reply.send(result);
-            }
         }
     })
 
-    // User get items
+    // items
     server.route({
         method: 'GET',
-        url: '/user/:userId/items',
+        url: '/user/:userId/item',
         schema: {
             tags: ['User'],
             summary: 'Get user items by user id',
             params: {
-                type: 'object',
-                properties: {
-                    userId: { type: 'string' }
-                }
+                $ref: 'GetUserItemInput'
             },
             response: {
                 200: {
-                    type: 'array',
-                    items: {
-                        $ref: 'Item'
-                    }
+                    $ref: 'GetUserItemOutput'
                 }
             }
         },
         handler: async (req: any, reply: any) => {
-            var itemsService = new ItemService();
 
-            var items: Item[] | null = await itemsService.getItems(req.params.userId);
+        }
+    })
 
-            if (items == null) {
-                reply.code(500).send();
-                return;
+    // add item
+    server.route({
+        method: 'POST',
+        url: '/user/:userId/item',
+        schema: {
+            tags: ['User Item'],
+            summary: 'Add item to user',
+            body: {
+                $ref: 'AddUserItemInput'
+            },
+            response: {
+                200: {
+                    $ref: 'AddUserItemOutput'
+                }
             }
+        },
+        handler: async (req: any, reply: any) => {
+        }
+    })
 
-            reply.send(items);
+    // remove item
+    server.route({
+        method: 'DELETE',
+        url: '/user/:userId/item/:itemId',
+        schema: {
+            tags: ['User Item'],
+            summary: 'Remove user item',
+            params: {
+                $ref: 'RemoveUserItemInput'
+            },
+            response: {
+                200: {
+                    $ref: 'RemoveUserItemOutput'
+                }
+            }
+        },
+        handler: async (req: any, reply: any) => {
+        }
+    })
+
+    // update item
+    server.route({
+        method: 'PUT',
+        url: '/user/:userId/item/:itemId',
+        schema: {
+            tags: ['User Item'],
+            summary: 'Update user item',
+            params: {
+                $ref: 'UpdateUserItemInput'
+            },
+            response: {
+                200: {
+                    $ref: 'UpdateUserItemOutput'
+                }
+            }
+        },
+        handler: async (req: any, reply: any) => {
         }
     })
 }
