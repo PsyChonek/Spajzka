@@ -89,7 +89,7 @@ export const groupRoutes = (server: any) => {
         method: 'POST',
         url: '/group/:groupId/user/:userId',
         schema: {
-            tags: ['Group'],
+            tags: ['Group User'],
             summary: 'Add user to group',
             params: {
                 $ref: 'AddUserToGroupInput'

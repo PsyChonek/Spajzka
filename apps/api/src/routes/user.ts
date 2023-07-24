@@ -90,7 +90,7 @@ export const userRoutes = (server: any) => {
         }
     })
 
-    // get group
+    // get groups
     server.route({
         method: 'GET',
         url: '/user/:userId/group',
@@ -110,7 +110,7 @@ export const userRoutes = (server: any) => {
         }
     })
 
-    // get items
+    // items
     server.route({
         method: 'GET',
         url: '/user/:userId/item',
@@ -122,14 +122,72 @@ export const userRoutes = (server: any) => {
             },
             response: {
                 200: {
-                    body: {
-                        $ref: 'GetUserItemOutput'
-                    }
+                    $ref: 'GetUserItemOutput'
                 }
             }
         },
         handler: async (req: any, reply: any) => {
 
+        }
+    })
+
+    // add item
+    server.route({
+        method: 'POST',
+        url: '/user/:userId/item',
+        schema: {
+            tags: ['User Item'],
+            summary: 'Add item to user',
+            body: {
+                $ref: 'AddUserItemInput'
+            },
+            response: {
+                200: {
+                    $ref: 'AddUserItemOutput'
+                }
+            }
+        },
+        handler: async (req: any, reply: any) => {
+        }
+    })
+
+    // remove item
+    server.route({
+        method: 'DELETE',
+        url: '/user/:userId/item/:itemId',
+        schema: {
+            tags: ['User Item'],
+            summary: 'Remove item from user',
+            params: {
+                $ref: 'RemoveUserItemInput'
+            },
+            response: {
+                200: {
+                    $ref: 'RemoveUserItemOutput'
+                }
+            }
+        },
+        handler: async (req: any, reply: any) => {
+        }
+    })
+
+    // update item
+    server.route({
+        method: 'PUT',
+        url: '/user/:userId/item/:itemId',
+        schema: {
+            tags: ['User Item'],
+            summary: 'Update item from user',
+            params: {
+                $ref: 'UpdateUserItemInput'
+            },
+            response: {
+                200: {
+                    $ref: 'UpdateUserItemOutput'
+                }
+            }
+        },
+        handler: async (req: any, reply: any) => {
         }
     })
 }

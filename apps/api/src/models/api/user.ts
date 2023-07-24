@@ -62,6 +62,39 @@ export interface DeleteUserOutput {
     userId: string;
 }
 
+export interface AddUserItemInput {
+    userId: string;
+    itemId: string;
+}
+
+export interface AddUserItemOutput {
+    userId: string;
+    itemId: string;
+}
+
+export interface RemoveUserItemInput {
+    userId: string;
+    itemId: string;
+}
+
+export interface RemoveUserItemOutput {
+    userId: string;
+    itemId: string;
+}
+
+export interface UpdateUserItemInput {
+    userId: string;
+    /**
+    * @ref UserItem
+    */
+    items: UserItem;
+}
+
+export interface UpdateUserItemOutput {
+    userId: string;
+    itemId: string;
+}
+
 //#region Helper Interfaces
 
 export interface UserItem {
