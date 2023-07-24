@@ -18,7 +18,7 @@ var start = async function () {
 
     console.log('Starting server...')
     const server = fastify()
-    const modelPath = 'src\\models\\*.ts';
+    const modelPath = 'src\\models\\api\\*.ts';
 
     const config = {
         path: modelPath,
@@ -88,9 +88,9 @@ var start = async function () {
 
     // Register routes
     userRoutes(server)
-    itemRoutes(server)
-    groupRoutes(server)
-    toolRoutes(server)
+    // itemRoutes(server)
+    // groupRoutes(server)
+    // toolRoutes(server)
 
     await server.ready()
     server.swagger()

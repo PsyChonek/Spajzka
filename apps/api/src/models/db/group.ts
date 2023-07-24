@@ -1,5 +1,7 @@
+import { ObjectId } from "mongodb";
+
 export interface Group {
-    id: string | undefined | null;
+    id: ObjectId
     name: string;
     users: string[];
 }

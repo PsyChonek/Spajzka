@@ -1,4 +1,4 @@
-import { Group } from "src/models/group";
+import { Group } from "src/models/db/group";
 import { UserService } from "../services/userService";
 export const groupRoutes = (server: any) => {
     const userService = new UserService(); 

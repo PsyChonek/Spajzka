@@ -1,8 +1,6 @@
-import { User } from "src/models/user";
 import { UserService } from "../services/userService";
-import { Group } from "src/models/group";
+import { Group } from "src/models/db/group";
 import { ItemService } from "../services/itemService";
-import { Item } from "src/models/item";
 
 export const userRoutes = (server: any) => {
     const userService = new UserService();
@@ -15,28 +13,15 @@ export const userRoutes = (server: any) => {
             tags: ['User'],
             summary: 'Create user',
             body: {
-                $ref: 'User',
+                $ref: 'CreateInput',
             },
             response: {
                 200: {
-                    type: 'object',
-                    properties: {
-                        id: { type: 'string' }
-                    }
+                    $ref: 'CreateOutput'
                 }
             }
         },
         handler: async (req: any, reply: any) => {
-            var result: string | null = await userService.createUser(req.body);
-
-            const response = {
-                id: result
-            }
-
-            if (result == null)
-                reply.code(500).send();
-            else
-                reply.send(response);
         }
     })
 
@@ -49,8 +34,6 @@ export const userRoutes = (server: any) => {
     // User delete
 
     // User get
-
-    // User find
     server.route({
         method: 'GET',
         url: '/user/:userId',
@@ -58,101 +41,59 @@ export const userRoutes = (server: any) => {
             tags: ['User'],
             summary: 'Get user by user id',
             params: {
-                type: 'object',
-                properties: {
-                    userId: { type: 'string' }
-                }
+                $ref: 'GetUserInput',
             },
             response: {
                 200: {
-                    $ref: 'User'
+                    $ref: 'GetUserOutput'
                 }
             }
         },
         handler: async (req: any, reply: any) => {
-            var user = await userService.getUser(req.params.userId);
 
-            if (user == null) {
-                reply.code(500).send();
-                return;
-            }
-            else {
-                reply.send(user);
-            }
         }
     })
 
-    // Users get groups 
+    // Users get group
     server.route({
         method: 'GET',
-        url: '/user/:userId/groups',
+        url: '/user/:userId/group',
         schema: {
             tags: ['User'],
             summary: 'Get user groups',
             params: {
-                type: 'object',
-                properties: {
-                    userId: { type: 'string' }
-                }
+                $ref: 'GetUserGroupInput'
             },
             response: {
                 200: {
-                    type: 'array',
-                    items: {
-                        type: 'object',
-                        properties: {
-                            id: { type: 'string' },
-                            name: { type: 'string' }
-                        }
-                    }
+                    $ref: 'GetUserGroupOutput'
                 }
             }
         },
         handler: async (req: any, reply: any) => {
-            var result: Group[] | null = await userService.getUserGroups(req.params.userId);
-
-            if (result == null) {
-                reply.code(500).send();
-            }
-            else {
-                reply.send(result);
-            }
         }
     })
 
     // User get items
     server.route({
         method: 'GET',
-        url: '/user/:userId/items',
+        url: '/user/:userId/item',
         schema: {
             tags: ['User'],
             summary: 'Get user items by user id',
             params: {
-                type: 'object',
-                properties: {
-                    userId: { type: 'string' }
-                }
+                $ref: 'GetUserItemInput'
             },
             response: {
                 200: {
-                    type: 'array',
-                    items: {
-                        $ref: 'Item'
+                    body: {
+                        $ref: 'GetUserItemOutput'
                     }
                 }
             }
         },
         handler: async (req: any, reply: any) => {
-            var itemsService = new ItemService();
 
-            var items: Item[] | null = await itemsService.getItems(req.params.userId);
-
-            if (items == null) {
-                reply.code(500).send();
-                return;
-            }
-
-            reply.send(items);
         }
     })
 }
