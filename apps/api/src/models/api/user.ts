@@ -43,6 +43,24 @@ export interface GetUserItemOutput {
     items: UserItem[];
 }
 
+export interface UpdateUserInput {
+    userId: string;
+    name: string;
+    password: string;
+    email: string;
+}
+
+export interface UpdateUserOutput {
+    userId: string;
+}
+
+export interface DeleteUserInput {
+    userId: string;
+}
+
+export interface DeleteUserOutput {
+    userId: string;
+}
 
 //#region Helper Interfaces
 

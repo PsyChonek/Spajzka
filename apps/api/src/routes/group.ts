@@ -1,9 +1,9 @@
 import { Group } from "src/models/db/group";
 import { UserService } from "../services/userService";
 export const groupRoutes = (server: any) => {
-    const userService = new UserService(); 
+    const userService = new UserService();
 
-    // Group create
+    // create
     server.route({
         method: 'POST',
         url: '/group',
@@ -11,36 +11,78 @@ export const groupRoutes = (server: any) => {
             tags: ['Group'],
             summary: 'Create group',
             body: {
-                $ref: 'Group'
+                $ref: 'CreateGroupInput'
             },
             response: {
                 200: {
-                    type: 'object',
-                    properties: {
-                        id: { type: 'string' }
-                    }
+                    $ref: 'CreateGroupOutput'
                 }
             }
         },
         handler: async (req: any, reply: any) => {
-            var result: string | null = await userService.createGroup(req.body);
 
-            const response = {
-                id: result
-            }
-
-            if (result == null)
-                reply.code(500).send();
-            else
-                reply.send(response);
         }
     })
 
-    // Group get
+    // get
+    server.route({
+        method: 'GET',
+        url: '/group/:groupId',
+        schema: {
+            tags: ['Group'],
+            summary: 'Get group by group id',
+            params: {
+                $ref: 'GetGroupInput'
+            },
+            response: {
+                200: {
+                    $ref: 'GetGroupOutput'
+                }
+            }
+        },
+        handler: async (req: any, reply: any) => {
+        }
+    })
 
-    // Group update
+    // update
+    server.route({
+        method: 'PUT',
+        url: '/group',
+        schema: {
+            tags: ['Group'],
+            summary: 'Update group',
+            body: {
+                $ref: 'UpdateGroupInput'
+            },
+            response: {
+                200: {
+                    $ref: 'UpdateGroupOutput'
+                }
+            }
+        },
+        handler: async (req: any, reply: any) => {
+        }
+    })
 
-    // Group delete
+    // delete
+    server.route({
+        method: 'DELETE',
+        url: '/group/:groupId',
+        schema: {
+            tags: ['Group'],
+            summary: 'Delete group by group id',
+            params: {
+                $ref: 'DeleteGroupInput'
+            },
+            response: {
+                200: {
+                    $ref: 'DeleteGroupOutput'
+                }
+            }
+        },
+        handler: async (req: any, reply: any) => {
+        }
+    })
 
     // Group add user to group
     server.route({
@@ -50,35 +92,15 @@ export const groupRoutes = (server: any) => {
             tags: ['Group'],
             summary: 'Add user to group',
             params: {
-                type: 'object',
-                required: ['userId', 'groupId'],
-                properties: {
-                    userId: { type: 'string' },
-                    groupId: { type: 'string' }
-                }
+                $ref: 'AddUserToGroupInput'
             },
             response: {
                 200: {
-                    type: 'object',
-                    properties: {
-                        id: { type: 'string' }
-                    }
+                    $ref: 'AddUserToGroupOutput'
                 }
             }
         },
         handler: async (req: any, reply: any) => {
-            var result = await userService.addUserToGroup(req.params.groupName, req.params.userId);
-
-            const response = {
-                id: result
-            }
-
-            if (result == null) {
-                reply.code(500).send();
-            }
-            else {
-                reply.send(response);
-            }
         }
     })
 

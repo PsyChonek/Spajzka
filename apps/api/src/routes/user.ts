@@ -5,7 +5,7 @@ import { ItemService } from "../services/itemService";
 export const userRoutes = (server: any) => {
     const userService = new UserService();
 
-    // User create 
+    // create 
     server.route({
         method: 'POST',
         url: '/user',
@@ -25,15 +25,51 @@ export const userRoutes = (server: any) => {
         }
     })
 
-    // User login
+    // login
 
-    // User logout
+    // logout
 
-    // User update
+    // update
+    server.route({
+        method: 'PUT',
+        url: '/user',
+        schema: {
+            tags: ['User'],
+            summary: 'Update user',
+            body: {
+                $ref: 'UpdateUserInput'
+            },
+            response: {
+                200: {
+                    $ref: 'UpdateUserOutput'
+                }
+            }
+        },
+        handler: async (req: any, reply: any) => {
+        }
+    })
 
-    // User delete
+    // delete
+    server.route({
+        method: 'DELETE',
+        url: '/user/:userId',
+        schema: {
+            tags: ['User'],
+            summary: 'Delete user by user id',
+            params: {
+                $ref: 'DeleteUserInput'
+            },
+            response: {
+                200: {
+                    $ref: 'DeleteUserOutput'
+                }
+            }
+        },
+        handler: async (req: any, reply: any) => {
+        }
+    })
 
-    // User get
+    // get
     server.route({
         method: 'GET',
         url: '/user/:userId',
@@ -54,7 +90,7 @@ export const userRoutes = (server: any) => {
         }
     })
 
-    // Users get group
+    // get group
     server.route({
         method: 'GET',
         url: '/user/:userId/group',
@@ -74,7 +110,7 @@ export const userRoutes = (server: any) => {
         }
     })
 
-    // User get items
+    // get items
     server.route({
         method: 'GET',
         url: '/user/:userId/item',
