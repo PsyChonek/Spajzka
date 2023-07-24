@@ -45,6 +45,16 @@ export interface AddUserToGroupOutput {
     userId: string;
 }
 
+export interface RemoveUserFromGroupInput {
+    groupId: string;
+    userId: string;
+}
+
+export interface RemoveUserFromGroupOutput {
+    groupId: string;
+    userId: string;
+}
+
 //#region Helper Interfaces
 
 //#endregion Helper Interfaces

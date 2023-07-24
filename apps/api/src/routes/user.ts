@@ -157,7 +157,7 @@ export const userRoutes = (server: any) => {
         url: '/user/:userId/item/:itemId',
         schema: {
             tags: ['User Item'],
-            summary: 'Remove item from user',
+            summary: 'Remove user item',
             params: {
                 $ref: 'RemoveUserItemInput'
             },
@@ -177,7 +177,7 @@ export const userRoutes = (server: any) => {
         url: '/user/:userId/item/:itemId',
         schema: {
             tags: ['User Item'],
-            summary: 'Update item from user',
+            summary: 'Update user item',
             params: {
                 $ref: 'UpdateUserItemInput'
             },

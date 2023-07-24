@@ -84,7 +84,7 @@ export const groupRoutes = (server: any) => {
         }
     })
 
-    // Group add user to group
+    // add user to group
     server.route({
         method: 'POST',
         url: '/group/:groupId/user/:userId',
@@ -104,5 +104,23 @@ export const groupRoutes = (server: any) => {
         }
     })
 
-    // Group remove user
+    // remove user
+    server.route({
+        method: 'DELETE',
+        url: '/group/:groupId/user/:userId',
+        schema: {
+            tags: ['Group User'],
+            summary: 'Remove user from group',
+            params: {
+                $ref: 'RemoveUserFromGroupInput'
+            },
+            response: {
+                200: {
+                    $ref: 'RemoveUserFromGroupOutput'
+                }
+            }
+        },
+        handler: async (req: any, reply: any) => {
+        }
+    })
 }
