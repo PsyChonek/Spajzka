@@ -26,6 +26,24 @@ export const userRoutes = (server: any) => {
     })
 
     // login
+    server.route({
+        method: 'POST',
+        url: '/user/login',
+        schema: {
+            tags: ['User'],
+            summary: 'Login user',
+            body: {
+                $ref: 'LoginUserInput'
+            },
+            response: {
+                200: {
+                    $ref: 'LoginUserOutput'
+                }
+            }
+        },
+        handler: async (req: any, reply: any) => {
+        }
+    })
 
     // logout
 

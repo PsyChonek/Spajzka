@@ -138,6 +138,17 @@ export interface GetUserOutputModel {
   items: UserItemModel;
 }
 
+export interface LoginUserInputModel {
+  name: string;
+  email: string;
+  password: string;
+}
+
+export interface LoginUserOutputModel {
+  userId: string;
+  jwt: string;
+}
+
 export interface GetUserGroupInputModel {
   userId: string;
 }
@@ -462,6 +473,24 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<UpdateUserOutputModel, any>({
         path: `/user`,
         method: "PUT",
+        body: body,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags User
+     * @name LoginCreate
+     * @summary Login user
+     * @request POST:/user/login
+     */
+    loginCreate: (body: LoginUserInputModel, params: RequestParams = {}) =>
+      this.request<LoginUserOutputModel, any>({
+        path: `/user/login`,
+        method: "POST",
         body: body,
         type: ContentType.Json,
         format: "json",

@@ -22,6 +22,17 @@ export interface GetUserOutput {
     items: UserItem[];
 }
 
+export interface LoginUserInput {
+    name: string;
+    email: string;
+    password: string;
+}
+
+export interface LoginUserOutput {
+    userId: string;
+    jwt: string;
+}
+
 export interface GetUserGroupInput {
     userId: string;
 }
