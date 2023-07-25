@@ -1,6 +1,5 @@
 import { DatabaseService } from "./databaseService";
 import { ObjectId } from "mongodb";
-import { ItemCollection } from "src/collections/itemCollection";
 import { UserService } from "./userService";
 
 export class ItemService {

@@ -172,7 +172,7 @@ export const userRoutes = (server: any) => {
     // remove item
     server.route({
         method: 'DELETE',
-        url: '/user/:userId/item/:itemId',
+        url: '/user/:userId/item/:userItemId',
         schema: {
             tags: ['User Item'],
             summary: 'Remove user item',
@@ -192,11 +192,11 @@ export const userRoutes = (server: any) => {
     // update item
     server.route({
         method: 'PUT',
-        url: '/user/:userId/item/:itemId',
+        url: '/user/:userId/item/:userItemId',
         schema: {
             tags: ['User Item'],
             summary: 'Update user item',
-            params: {
+            body: {
                 $ref: 'UpdateUserItemInput'
             },
             response: {

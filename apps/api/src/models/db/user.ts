@@ -1,15 +1,15 @@
 import { ObjectId } from "mongodb";
 
 export interface User {
-    id: ObjectId
+    id: ObjectId;
     name: string;
     password: string;
     email: string;
-    // items: UserItem[];
+    items: UserItem[];
 }
 
 export interface UserItem {
-    id: ObjectId // item id
+    itemId: ObjectId; // item id
     quantity: number; // quantity of item
     favoriteTier: number; // 0-5
     toBuyQuantity: number; // quantity of item to buy

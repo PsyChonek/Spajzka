@@ -57,4 +57,10 @@ export interface RemoveUserFromGroupOutput {
 
 //#region Helper Interfaces
 
+export interface Group {
+    groupId: string;
+    name: string;
+    users: string[];
+}
+
 //#endregion Helper Interfaces

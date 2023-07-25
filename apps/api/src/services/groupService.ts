@@ -1,7 +1,5 @@
 import { DatabaseService } from "./databaseService";
 import { ObjectId } from "mongodb";
-import { UserCollection } from "src/collections/userCollection";
-import { GroupCollection } from "src/collections/groupCollection";
 import { Group } from "src/models/db/group";
 import { UserService } from "./userService";
 

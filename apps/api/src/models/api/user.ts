@@ -106,14 +106,24 @@ export interface UpdateUserItemOutput {
     itemId: string;
 }
 
-//#region Helper Interfaces
+//#region Base Interfaces
 
 export interface UserItem {
-    itemId: string // item id
+    itemId: string; // item id
     quantity: number; // quantity of item
     favoriteTier: number; // 0-5
     toBuyQuantity: number; // quantity of item to buy
     minToHave: number; // minimum quantity of item to have before is marked as "to buy"
 }
 
-//#endregion Helper Interfaces
+export interface User {
+    userId: string;
+    name: string;
+    password: string;
+    email: string;
+    /**
+    * @ref UserItem
+    */
+    items: UserItem[];
+}
+//#endregion Base Interfaces

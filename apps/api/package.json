@@ -1,6 +1,6 @@
 {
   "name": "api",
-  "version": "0.1.10 - 20230717",
+  "version": "0.1.10 - 20230725",
   "description": "API fro Spajzka app",
   "private": true,
   "lib": [],
@@ -11,6 +11,7 @@
     "start": "node ./build/index.js"
   },
   "dependencies": {
+    "@automapper/core": "^8.7.7",
     "@fastify/cors": "^8.2.1",
     "@fastify/swagger": "^8.3.1",
     "@fastify/swagger-ui": "^1.6.0",
@@ -21,7 +22,7 @@
     "ts-json-schema-generator": "^1.2.0"
   },
   "devDependencies": {
-    "ts-node": "^10.9.1",
-    "cross-env": "^7.0.3"
+    "cross-env": "^7.0.3",
+    "ts-node": "^10.9.1"
   }
 }

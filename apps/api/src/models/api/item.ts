@@ -54,8 +54,20 @@ export interface DeleteItemOutput {
 }
 
 //#region Helper Interfaces
+
 export interface ItemCategory {
-    id: string
     name: string;
+}
+
+export interface Item {
+    itemId: string;
+    name: string;
+    price: number;
+    description: string;
+    image: string;
+    /**
+     * @ref ItemCategory
+     */
+    category: ItemCategory | null;
 }
 //#endregion Helper Interfaces
