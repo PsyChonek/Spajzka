@@ -1,10 +1,6 @@
-import { UserService } from "../services/userService";
 import { Group } from "src/models/db/group";
-import { ItemService } from "../services/itemService";
 
 export const userRoutes = (server: any) => {
-    const userService = new UserService();
-
     // create 
     server.route({
         method: 'POST',

@@ -1,8 +1,4 @@
-import { ItemService } from "../services/itemService";
-
 export const itemRoutes = (server: any) => {
-
-    const itemsService = new ItemService();
 
     // Create item
     server.route({
