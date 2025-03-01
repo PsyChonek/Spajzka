@@ -1,0 +1,45 @@
+Název;Ingredience;Množství;Jednotka;Máme
+Mexický těstovinový salát;celozrnné těstoviny;250;g;Yes
+Mexický těstovinový salát;kukuřice cukrová;125;g;Yes
+Mexický těstovinový salát;avokádo;250;g;Yes
+Mexický těstovinový salát;fazole vařené;320;g;Yes
+Mexický těstovinový salát;rajčata cherry;250;g;Yes
+Mexický těstovinový salát;sůl;3;g;Yes
+Mexický těstovinový salát;mletý pepř;4;g;Yes
+Losos na pomerančové omáčce;losos;600;g;Yes
+Losos na pomerančové omáčce;pomeranč;300;g;No
+Losos na pomerančové omáčce;med včelí;50;g;Yes
+Losos na pomerančové omáčce;sójová omáčka;56;ml;Yes
+Losos na pomerančové omáčce;sůl;2;g;Yes
+Losos na pomerančové omáčce;mletý pepř;2;g;Yes
+Karbanátky;mleté maso (mix vepřové a hovězí);1;kg;Yes
+Karbanátky;cibule;2;ks;Yes
+Karbanátky;česnek;2;stroužky;Yes
+Karbanátky;vejce;3;ks;Yes
+Karbanátky;sůl;dle chuti;;Yes
+Karbanátky;mletý pepř;dle chuti;;Yes
+Karbanátky;majoránka sušená;2-3;lžíce;Yes
+Karbanátky;petržel nať;4;lžíce;Yes
+Karbanátky;olej;dle potřeby;;Yes
+Karbanátky;strouhanka;dle potřeby;;Yes
+Kuřecí maso na špenátu a kari;kuřecí prsa syrová;800;g;
+Kuřecí maso na špenátu a kari;špenát baby;100;g;No
+Kuřecí maso na špenátu a kari;kokosové mléko;400;ml;Yes
+Kuřecí maso na špenátu a kari;kari koření;6;g;Yes
+Kuřecí maso na špenátu a kari;sůl;4;g;Yes
+Kuřecí maso na špenátu a kari;kmín mletý;6;g;Yes
+Boloňské špagety;mleté hovězí maso;300;g;Yes
+Boloňské špagety;rajčata konzervovaná;500;g;Yes
+Boloňské špagety;rajčatový protlak;90;g;Yes
+Boloňské špagety;špagety;400;g;Yes
+Boloňské špagety;voda;dle potřeby;;Yes
+Boloňské špagety;sůl;1,5;lžíce;Yes
+Boloňské špagety;olej;2,5;lžíce;Yes
+Boloňské špagety;sýr parmezán;50;g;Yes
+Boloňské špagety;cibule;2;ks;Yes
+Boloňské špagety;česnek;2;ks;Yes
+Boloňské špagety;paprika mletá;dle chuti;;No
+Boloňské špagety;sůl;dle chuti;;Yes
+Boloňské špagety;mletý pepř;dle chuti;;Yes
+Boloňské špagety;bazalka;dle chuti;;Yes
+Boloňské špagety;tymián;dle chuti;;Yes
