@@ -1,66 +1,66 @@
 export interface CreateGroupInput {
-    name: string;
-    users: string[];
+	name: string;
+	users: string[];
 }
 
 export interface CreateGroupOutput {
-    groupId: string;
+	id: string;
 }
 
 export interface GetGroupInput {
-    groupId: string;
+	id: string;
 }
 
 export interface GetGroupOutput {
-    groupId: string;
-    name: string;
-    users: string[];
+	id: string;
+	name: string;
+	users: string[];
 }
 
 export interface UpdateGroupInput {
-    groupId: string;
-    name: string;
-    users: string[];
+	id: string;
+	name: string;
+	users: string[];
 }
 
 export interface UpdateGroupOutput {
-    groupId: string;
+	id: string;
 }
 
 export interface DeleteGroupInput {
-    groupId: string;
+	id: string;
 }
 
 export interface DeleteGroupOutput {
-    groupId: string;
+	id: string;
 }
 
 export interface AddUserToGroupInput {
-    groupId: string;
-    userId: string;
+	id: string;
+	userId: string;
 }
 
 export interface AddUserToGroupOutput {
-    groupId: string;
-    userId: string;
+	id: string;
+	userId: string;
 }
 
 export interface RemoveUserFromGroupInput {
-    groupId: string;
-    userId: string;
+	id: string;
+	userId: string;
 }
 
 export interface RemoveUserFromGroupOutput {
-    groupId: string;
-    userId: string;
+	id: string;
+	userId: string;
 }
 
 //#region Helper Interfaces
 
 export interface Group {
-    groupId: string;
-    name: string;
-    users: string[];
+	id: string;
+	name: string;
+	users: string[];
 }
 
 //#endregion Helper Interfaces

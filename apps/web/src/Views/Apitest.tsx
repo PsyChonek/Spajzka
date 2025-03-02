@@ -39,7 +39,11 @@ function Apitest() {
 
                         // Create account
                         const newUser: UserModel = {
-                            name: user
+                            name: user,
+                            userId: '',
+                            password: '',
+                            email: '',
+                            items: [],
                         }
 
                         console.log(newUser);
