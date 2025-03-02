@@ -1,10 +1,10 @@
 export const toolRoutes = (server: any) => {
-	// Check if server can connect to database¨
+	// Check if server can connect to database
 	server.route({
 		method: "GET",
 		url: "/health",
 		schema: {
-			tags: ["Tools"],
+			tags: ["System"], // Changed from "Tools" to "System" for clarity
 			summary: "Check if server can connect to database",
 			response: {
 				200: {
