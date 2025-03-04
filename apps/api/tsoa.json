@@ -1,0 +1,33 @@
+{
+  "entryFile": "src/index.ts",
+  "noImplicitAdditionalProperties": "throw-on-extras",
+  "controllerPathGlobs": ["src/controllers/**/*.ts"],
+  "spec": {
+    "outputDirectory": "public",
+    "specVersion": 3,
+    "basePath": "/api/v1",
+    "securityDefinitions": {
+      "jwt": {
+        "type": "apiKey",
+        "name": "Authorization",
+        "in": "header"
+      }
+    },
+    "tags": [
+      { "name": "Users", "description": "User management" },
+      { "name": "Groups", "description": "Shopping group management" },
+      { "name": "Items", "description": "Shopping items management" }
+    ],
+    "title": "Custom API Title",
+    "version": "1.0.0",
+    "description": "API for managing shopping lists",
+    "contact": {
+      "name": "API Support",
+      "email": "support@example.com"
+    }
+  },
+  "routes": {
+    "routesDir": "src/routes",
+    "authenticationModule": "src/middleware/AuthMiddleware.ts"
+  }
+}

@@ -1,104 +1,72 @@
+import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { JWTPayload, RefreshToken } from "src/models/api/auth";
+import User, { IUser } from "../models/Users";
+import {
+  CreateUserDto,
+  LoginDto,
+  TokenResponseDto,
+  UserDto,
+} from "../types/dto";
+import config from "../config/config";
 
-/**
- * Validate user credentials (email and password).
- * @param email - User's email address.
- * @param password - User's password.
- * @returns User ID if valid, or null if invalid.
- */
-export const validateUser = async (email: string, password: string): Promise<{ id: string } | null> => {
-	// Replace this with your database logic
-	const user = await findUserByEmail(email); // Fetch user from the database
-	if (!user || user.password !== password) {
-		return null; // Invalid credentials
-	}
-	return { id: user.id }; // Return user ID if valid
-};
+class AuthService {
+  async createUser(userData: CreateUserDto): Promise<UserDto> {
+    const { email, password, displayName } = userData;
 
-/**
- * Generate a JWT token for the given user ID.
- * @param userId - User's unique identifier.
- * @returns A signed JWT token.
- */
-export const generateJWT = (userId: string): string => {
-	const secret = process.env.JWT_SECRET || "your_jwt_secret";
-	return jwt.sign({ id: userId } as JWTPayload, secret, { expiresIn: "1h" });
-};
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      throw new Error("User already exists");
+    }
 
-/**
- * Generate a refresh token for the given user ID.
- * @param userId - User's unique identifier.
- * @returns A refresh token string.
- */
-export const generateRefreshToken = (userId: string): string => {
-	const refreshToken = "random_refresh_token_string"; // Replace with a secure random string
-	const expiresAt = new Date();
-	expiresAt.setDate(expiresAt.getDate() + 7); // Set expiration to 7 days
+    // Create salt and hash
+    const salt = await bcrypt.genSalt(10);
+    const passHash = await bcrypt.hash(password, salt);
 
-	// Store the refresh token in the database or memory
-	storeRefreshToken({ token: refreshToken, userId, expiresAt });
+    // Create and save user
+    const user: IUser = new User({
+      email,
+      passHash,
+      salt,
+      displayName,
+    });
 
-	return refreshToken;
-};
+    await user.save();
 
-/**
- * Invalidate a JWT token (e.g., add it to a blacklist).
- * @param token - JWT token to invalidate.
- */
-export const invalidateToken = async (token: string): Promise<void> => {
-	// Add the token to a blacklist or remove it from the database
-	await blacklistToken(token);
-};
+    return {
+      id: user._id.toString(),
+      email: user.email,
+      displayName: user.displayName,
+    };
+  }
 
-/**
- * Refresh a JWT token using a valid refresh token.
- * @param refreshToken - Refresh token to validate and renew JWT.
- * @returns A new JWT token if valid, or null if invalid.
- */
-export const refreshJWT = async (refreshToken: string): Promise<string | null> => {
-	// Validate the refresh token
-	const storedToken = await findRefreshToken(refreshToken); // Fetch from database or memory
-	if (!storedToken || storedToken.expiresAt < new Date()) {
-		return null; // Invalid or expired refresh token
-	}
+  async login(loginData: LoginDto): Promise<TokenResponseDto> {
+    const { email, password } = loginData;
 
-	// Generate a new JWT
-	return generateJWT(storedToken.userId);
-};
+    // Find user
+    const user = await User.findOne({ email });
+    if (!user) {
+      throw new Error("Invalid credentials");
+    }
 
-/**
- * Find a user by their email address.
- * @param email - User's email address.
- * @returns User data if found, or null if not found.
- */
-const findUserByEmail = async (email: string): Promise<{ id: string; password: string } | null> => {
-	// Replace this with your database logic
-	return { id: "user_id", password: "user_password" }; // Sample user data
-};
+    // Verify password
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
+      throw new Error("Invalid credentials");
+    }
 
-/**
- * Store a refresh token in the database or memory.
- * @param refreshToken - Refresh token object to store.
- */
-const storeRefreshToken = (refreshToken: RefreshToken): void => {
-	// Store the refresh token in the database or memory
-};
+    // Create JWT
+    const token = jwt.sign(
+      { id: user._id },
+      config.jwtSecret,
+      { expiresIn: "7d" }
+    );
 
-/**
- * Add a token to a blacklist or remove it from the database.
- * @param token - JWT token to blacklist.
- */
-const blacklistToken = async (token: string): Promise<void> => {
-	// Add the token to a blacklist or remove it from the database
-};
+    return {
+      token,
+      expiresIn: 7 * 24 * 60 * 60, // 7 days in seconds
+    };
+  }
+}
 
-/**
- * Find a refresh token in the database or memory.
- * @param refreshToken - Refresh token string to find.
- * @returns Refresh token object if found, or null if not found.
- */
-const findRefreshToken = async (refreshToken: string): Promise<RefreshToken | null> => {
-	// Fetch the refresh token from the database or memory
-	return null;
-};
+export default AuthService;
