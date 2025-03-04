@@ -8,7 +8,7 @@ export interface User {
 	name: string; // Name of the user
 	password: string; // Hashed password of the user
 	email: string; // Email address of the user
-	items: UserItem[]; // List of items associated with the user
+	items: Array<UserItem>; // List of items associated with the user
 }
 
 /**

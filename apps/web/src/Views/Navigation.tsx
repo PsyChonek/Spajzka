@@ -2,8 +2,8 @@
 import { Container, Nav, Navbar } from "react-bootstrap";
 import { Link, Navigate, Route, Routes } from "react-router-dom";
 import Spajz from "./Spajz";
-import Buylist from "./Buylist";
-import Apitest from './Apitest';
+import BuyList from "./BuyList";
+import ApiTest from './ApiTest';
 import FooterCustom from '../Components/FooterCustom';
 import NavbarCustom from '../Components/NavbarCustom';
 import Privacy from './Privacy';
@@ -41,8 +41,8 @@ const Navigation = () => {
             <Routes>
                 <Route path="/" element={<Spajz />} />
                 <Route path="/spajz" element={<Spajz />} />
-                <Route path="/buylist" element={<Buylist />} />
-                <Route path="/apitest" element={<Apitest />} />
+                <Route path="/buylist" element={<BuyList />} />
+                <Route path="/apitest" element={<ApiTest />} />
                 <Route path="/privacy" element={<Privacy />} />
                 <Route path="/accountdelete" element={<AccountDelete />} />
             </Routes>

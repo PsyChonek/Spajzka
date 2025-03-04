@@ -3,7 +3,7 @@ import React from "react";
 import {Container} from "react-bootstrap";
 import Search, {SearchStyle} from "../Components/Search/Search";
 
-function Buylist() {
+function BuyList() {
     return (
         <Container className="content">
             <Search type={SearchStyle.Buylist}/>
@@ -11,4 +11,4 @@ function Buylist() {
     );
 }
 
-export default Buylist;
+export default BuyList;

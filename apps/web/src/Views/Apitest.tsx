@@ -10,7 +10,7 @@ import { AddUserToGroup, CreateGroup } from '../Other/groupService';
 
 // STORE TO COOKIE
 
-function Apitest() {
+function ApiTest() {
 
     const [user, setUser] = React.useState('');
     const [group, setGroup] = React.useState('');
@@ -43,7 +43,7 @@ function Apitest() {
                             userId: '',
                             password: '',
                             email: '',
-                            items: [],
+                            items: []
                         }
 
                         console.log(newUser);
@@ -116,4 +116,4 @@ function Apitest() {
     );
 }
 
-export default Apitest;
+export default ApiTest;
