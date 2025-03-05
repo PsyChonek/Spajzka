@@ -1,42 +1,42 @@
-on:
-  push:
-    paths:
-      - "apps/web/**"
-    branches:
-      - main
-name: 🚀 Deploy web on push
-jobs:
-  web-deploy:
-    name: 🎉 Deploy
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./
-    steps:
-      - name: 🚚 Get latest code
-        uses: actions/checkout@v3
+# on:
+#   push:
+#     paths:
+#       - "apps/web/**"
+#     branches:
+#       - main
+# name: 🚀 Deploy web on push
+# jobs:
+#   web-deploy:
+#     name: 🎉 Deploy
+#     runs-on: ubuntu-latest
+#     defaults:
+#       run:
+#         working-directory: ./
+#     steps:
+#       - name: 🚚 Get latest code
+#         uses: actions/checkout@v3
 
-      - name: Use Node.js 18
-        uses: actions/setup-node@v3
-        with:
-          node-version: "18"
-          cache: "npm"
+#       - name: Use Node.js 18
+#         uses: actions/setup-node@v3
+#         with:
+#           node-version: "18"
+#           cache: "npm"
 
-      - name: "Install dependencies"
-        run: |
-          npm install
+#       - name: "Install dependencies"
+#         run: |
+#           npm install
 
-      - name: 🔨 Build Project
-        run: |
-          cd ./apps/web
-          CI=false npm run build 
+#       - name: 🔨 Build Project
+#         run: |
+#           cd ./apps/web
+#           CI=false npm run build 
 
-      - name: 📂 Sync files
-        uses: SamKirkland/FTP-Deploy-Action@4.3.2
-        with:
-          server: vazacdaniel.com
-          local-dir: apps/web/build/
-          server-dir: sub/spajzka.vazacdaniel.com/
-          username: github@vazacdaniel.com
-          password: ${{ secrets.FTP_GITHUB_PASS }}
-          exclude: .env.development
+#       - name: 📂 Sync files
+#         uses: SamKirkland/FTP-Deploy-Action@4.3.2
+#         with:
+#           server: vazacdaniel.com
+#           local-dir: apps/web/build/
+#           server-dir: sub/spajzka.vazacdaniel.com/
+#           username: github@vazacdaniel.com
+#           password: ${{ secrets.FTP_GITHUB_PASS }}
+#           exclude: .env.development
