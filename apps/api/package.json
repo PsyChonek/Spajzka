@@ -1,5 +1,4 @@
 {
-  "name": "spajzka-api",
   "main": "src/index.ts",
   "scripts": {
     "build": "tsoa spec-and-routes && tsc",

@@ -1,6 +1,7 @@
 {
     "watch": [
-        "src"
+        "src",
+        "tsoa.json"
     ],
     "ext": "ts",
     "ignore": [
@@ -8,11 +9,7 @@
         "*.spec.ts",
         "public/*"
     ],
-    "exec": "ts-node src/index.ts",
-    "events": {
-        "restart": "npm run tsoa",
-        "config:update": "npm run tsoa"
-    },
+    "exec": "tsoa spec-and-routes && ts-node src/index.ts",
     "env": {
         "NODE_ENV": "development"
     }

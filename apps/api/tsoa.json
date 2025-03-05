@@ -1,7 +1,9 @@
 {
   "entryFile": "src/index.ts",
   "noImplicitAdditionalProperties": "throw-on-extras",
-  "controllerPathGlobs": ["src/controllers/**/*.ts"],
+  "controllerPathGlobs": [
+    "src/controllers/**/*.ts"
+  ],
   "spec": {
     "outputDirectory": "public",
     "specVersion": 3,
@@ -14,11 +16,20 @@
       }
     },
     "tags": [
-      { "name": "Users", "description": "User management" },
-      { "name": "Groups", "description": "Shopping group management" },
-      { "name": "Items", "description": "Shopping items management" }
+      {
+        "name": "Users",
+        "description": "User management"
+      },
+      {
+        "name": "Groups",
+        "description": "Shopping group management"
+      },
+      {
+        "name": "Items",
+        "description": "Shopping items management"
+      }
     ],
-    "title": "Custom API Title",
+    "name": "Spajzka API OK",
     "version": "1.0.0",
     "description": "API for managing shopping lists",
     "contact": {
