@@ -10,7 +10,7 @@ import {
   Security,
   Tags
 } from "tsoa";
-import { UserDto, CreateUserDto } from "../types/dto";
+import type { UserDto, CreateUserDto } from "../types/dto";
 import UserService from "../services/UserService";
 
 @Route("users")

@@ -3,9 +3,10 @@
   "scripts": {
     "build": "tsoa spec-and-routes && tsc",
     "start": "node dist/index.js",
-    "dev": "npm run tsoa && nodemon --config nodemon.json",
+    "dev": "concurrently \"nodemon\" \"nodemon -x tsoa spec-and-routes\"",
     "swagger": "tsoa spec",
-    "tsoa": "tsoa spec-and-routes"
+    "tsoa": "tsoa spec-and-routes",
+    "debug": "concurrently \"nodemon --inspect\" \"nodemon -x tsoa spec-and-routes\""
   },
   "dependencies": {
     "bcrypt": "^5.1.1",
@@ -25,6 +26,7 @@
     "@types/jsonwebtoken": "^9.0.9",
     "@types/mongoose": "^5.11.96",
     "@types/swagger-ui-express": "^4.1.8",
+    "concurrently": "^9.1.2",
     "nodemon": "^3.1.9",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.2"

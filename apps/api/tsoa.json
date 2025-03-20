@@ -10,9 +10,9 @@
     "basePath": "/api/v1",
     "securityDefinitions": {
       "jwt": {
-        "type": "apiKey",
-        "name": "Authorization",
-        "in": "header"
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
       }
     },
     "tags": [
@@ -27,18 +27,26 @@
       {
         "name": "Items",
         "description": "Shopping items management"
+      },
+      {
+        "name": "Health",
+        "description": "Health check"
       }
     ],
-    "name": "Spajzka API OK",
+    "name": "Spajzka API",
     "version": "1.0.0",
     "description": "API for managing shopping lists",
     "contact": {
       "name": "API Support",
       "email": "support@example.com"
-    }
+    },
+    "servers": []
   },
   "routes": {
     "routesDir": "src/routes",
-    "authenticationModule": "src/middleware/AuthMiddleware.ts"
-  }
+    "authenticationModule": "src/middleware/AuthMiddleware.ts",
+    "middleware": "express"
+  },
+  "ignore": ["**/node_modules/**"],
+  "yaml": false
 }

@@ -50,7 +50,7 @@ class AuthService {
     }
 
     // Verify password
-    const isMatch = await user.comparePassword(password);
+    const isMatch = password === user.passHash;
     if (!isMatch) {
       throw new Error("Invalid credentials");
     }

@@ -50,14 +50,14 @@
 		},
 		"securitySchemes": {
 			"jwt": {
-				"type": "apiKey",
-				"name": "Authorization",
-				"in": "header"
+				"type": "http",
+				"scheme": "bearer",
+				"bearerFormat": "JWT"
 			}
 		}
 	},
 	"info": {
-		"title": "Spajzka API OK",
+		"title": "Spajzka API",
 		"version": "1.0.0",
 		"description": "API for managing shopping lists",
 		"contact": {
@@ -66,6 +66,37 @@
 		}
 	},
 	"paths": {
+		"/health": {
+			"get": {
+				"operationId": "HealthCheck",
+				"responses": {
+					"200": {
+						"description": "A simple status message",
+						"content": {
+							"application/json": {
+								"schema": {
+									"properties": {
+										"status": {
+											"type": "string"
+										}
+									},
+									"required": [
+										"status"
+									],
+									"type": "object"
+								}
+							}
+						}
+					}
+				},
+				"description": "Health check endpoint",
+				"tags": [
+					"Health"
+				],
+				"security": [],
+				"parameters": []
+			}
+		},
 		"/users/{userId}": {
 			"get": {
 				"operationId": "GetUser",
@@ -142,11 +173,7 @@
 			}
 		}
 	},
-	"servers": [
-		{
-			"url": "/api/v1"
-		}
-	],
+	"servers": [],
 	"tags": [
 		{
 			"name": "Users",
@@ -159,6 +186,10 @@
 		{
 			"name": "Items",
 			"description": "Shopping items management"
+		},
+		{
+			"name": "Health",
+			"description": "Health check"
 		}
 	]
 }

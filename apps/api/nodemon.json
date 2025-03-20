@@ -9,7 +9,7 @@
         "*.spec.ts",
         "public/*"
     ],
-    "exec": "tsoa spec-and-routes && ts-node src/index.ts",
+    "exec": "ts-node src/index.ts",
     "env": {
         "NODE_ENV": "development"
     }
