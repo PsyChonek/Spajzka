@@ -1,0 +1,31 @@
+# Dependencies
+node_modules
+npm-debug.log*
+
+# Build output
+build
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Environment files
+.env
+.env.*
+
+# Testing
+coverage
+src/**/*.test.tsx
+src/**/*.test.ts
+
+# Development files
+craco.config.js
+
+# Service worker
+src/service-worker.ts
+src/serviceWorkerRegistration.ts
+
+# Documentation
+*.md

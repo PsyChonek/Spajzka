@@ -1,0 +1,102 @@
+version: '3.8'
+
+services:
+  # MongoDB Database (Development)
+  mongo:
+    image: mongo:7
+    container_name: spajzka-mongo-dev
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: spajzkaadmin
+      MONGO_INITDB_ROOT_PASSWORD: spajzkaadmin
+      MONGO_INITDB_DATABASE: spajzka
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo-data-dev:/data/db
+      - mongo-config-dev:/data/configdb
+      # Mount sample data for seeding
+      - ./apps/db/sample:/docker-entrypoint-initdb.d:ro
+    networks:
+      - spajzka-network-dev
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/spajzka --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  # API Service (Development with hot reload)
+  api:
+    build:
+      context: .
+      dockerfile: ./apps/api/Dockerfile.dev
+      target: development
+    container_name: spajzka-api-dev
+    restart: unless-stopped
+    environment:
+      PORT: 3010
+      MONGO_URI: mongodb://spajzkaadmin:spajzkaadmin@mongo:27017/spajzka?authSource=admin
+      DATABASE: spajzka
+      JWT_SECRET: your-secret-key-change-in-production
+      NODE_ENV: development
+    ports:
+      - '3010:3010'
+      - '9229:9229' # Debug port
+    volumes:
+      # Mount source code for hot reload
+      - ./apps/api/src:/app/apps/api/src:ro
+      - ./apps/api/tsoa.json:/app/apps/api/tsoa.json:ro
+      # Persist generated files
+      - api-generated:/app/apps/api/src/routes
+      - api-swagger:/app/apps/api/public
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - spajzka-network-dev
+    command: npm run dev
+
+  # Web Application (Development with hot reload)
+  web:
+    build:
+      context: .
+      dockerfile: ./apps/web/Dockerfile.dev
+      target: development
+    container_name: spajzka-web-dev
+    restart: unless-stopped
+    environment:
+      REACT_APP_SpajzkaAPI: http://localhost:3010
+      CHOKIDAR_USEPOLLING: true
+      WATCHPACK_POLLING: true
+    ports:
+      - '3000:3000'
+    volumes:
+      # Mount source code for hot reload
+      - ./apps/web/src:/app/apps/web/src:ro
+      - ./apps/web/public:/app/apps/web/public:ro
+      # Persist node_modules
+      - web-node-modules:/app/apps/web/node_modules
+    depends_on:
+      - api
+    networks:
+      - spajzka-network-dev
+    stdin_open: true
+    tty: true
+    command: npm run dev
+
+networks:
+  spajzka-network-dev:
+    driver: bridge
+
+volumes:
+  mongo-data-dev:
+    driver: local
+  mongo-config-dev:
+    driver: local
+  api-generated:
+    driver: local
+  api-swagger:
+    driver: local
+  web-node-modules:
+    driver: local

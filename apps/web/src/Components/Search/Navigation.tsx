@@ -1,15 +1,14 @@
 import React from 'react';
-import {Container, Pagination} from "react-bootstrap";
 
 function Navigation() {
     return (
-        <Container>
-            <Pagination className="justify-content-center">
-                <Pagination.Prev/>
-                <Pagination.Item active>{1}</Pagination.Item>
-                <Pagination.Next/>
-            </Pagination>
-        </Container>
+        <div>
+            <nav className="pagination justify-content-center">
+                <button className="page-link">Previous</button>
+                <button className="page-link active">1</button>
+                <button className="page-link">Next</button>
+            </nav>
+        </div>
     );
 }
 

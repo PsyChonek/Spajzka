@@ -1,5 +1,4 @@
-﻿import {Button, Container} from "react-bootstrap";
-import React from "react";
+﻿import React from "react";
 import PopUpWindow, {PopUpWindowState} from "../../PopUpWindow";
 import Input from "../../Input";
 
@@ -7,8 +6,8 @@ const AddButton_Spajz = (popUpState:any, setPopUpState: any, setValue: any, quer
 {
 
     return (
-        <Container>
-            <Button onClick={() => setPopUpState(PopUpWindowState.WaitingAccept)} variant="primary">Přidat</Button>
+        <div>
+            <button onClick={() => setPopUpState(PopUpWindowState.WaitingAccept)} className="btn btn-primary">Přidat</button>
             <PopUpWindow
                 state={popUpState}
                 setState={setPopUpState}
@@ -26,7 +25,7 @@ const AddButton_Spajz = (popUpState:any, setPopUpState: any, setValue: any, quer
                 }
                 buttonText={"Přidat"}
             />
-        </Container>
+        </div>
     )
 }
 export default AddButton_Spajz;

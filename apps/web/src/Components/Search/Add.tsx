@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { Button, Container } from "react-bootstrap";
 import PopUpWindow, { PopUpWindowState } from "../PopUpWindow";
 import Input from "../Input";
 import { ItemModel } from "../../Api";
@@ -25,9 +24,10 @@ function Add(props: { type: SearchStyle; callbackUpdate: any; query: string }) {
 			name: value == "" ? props.query : value,
 			price: 0,
 			id: "",
-			description: "",
-			image: "",
-			category: null,
+			amount: 0,
+			isOnBuylist: isOnBuylist,
+			groupId: "",
+			userId: "",
 		};
 
 		SaveUserItem(newItem);
@@ -49,7 +49,7 @@ function Add(props: { type: SearchStyle; callbackUpdate: any; query: string }) {
 		}
 	};
 
-	return <Container style={{ paddingTop: 20 }}>{Type()}</Container>;
+	return <div style={{ paddingTop: 20 }}>{Type()}</div>;
 }
 
 export default Add;

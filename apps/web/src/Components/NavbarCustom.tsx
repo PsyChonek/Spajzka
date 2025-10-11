@@ -1,19 +1,36 @@
-import React, { Component, useEffect } from 'react';
-import { Container, Nav, Navbar } from "react-bootstrap";
+import React from 'react';
 import { Link } from "react-router-dom";
 import '../CSS/Global.css'
 
 const NavbarCustom = (props: { setActive: any, active: string }) => {
     return (
-        <Navbar className="navbar" bg="dark" variant="dark">
-            <Container>
-                <Navbar.Brand onClick={() => props.setActive('spajz')} className={"navbar-link"} as={Link} to="/spajz">Špajzka</Navbar.Brand>
-                <Nav defaultActiveKey="/" className="me-auto">
-                    <Nav.Link onClick={() => props.setActive('buylist')} className={props.active === 'buylist' ? "navbar-link-active" : "navbar-link"} as={Link} to="/buylist">Nákupní lístek</Nav.Link>
-                    <Nav.Link onClick={() => props.setActive('apitest')} className={props.active === 'apitest' ? "navbar-link-active" : "navbar-link"} as={Link} to="/apitest">API</Nav.Link>
-                </Nav>
-            </Container>
-        </Navbar>
+        <nav className="navbar">
+            <div className="navbar-container">
+                <Link
+                    to="/spajz"
+                    onClick={() => props.setActive('spajz')}
+                    className="navbar-brand navbar-link"
+                >
+                    Špajzka
+                </Link>
+                <div className="navbar-nav">
+                    <Link
+                        to="/buylist"
+                        onClick={() => props.setActive('buylist')}
+                        className={props.active === 'buylist' ? "navbar-link-active" : "navbar-link"}
+                    >
+                        Nákupní lístek
+                    </Link>
+                    <Link
+                        to="/apitest"
+                        onClick={() => props.setActive('apitest')}
+                        className={props.active === 'apitest' ? "navbar-link-active" : "navbar-link"}
+                    >
+                        API
+                    </Link>
+                </div>
+            </div>
+        </nav>
     )
 };
 

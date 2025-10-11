@@ -1,11 +1,10 @@
-import React, { Component, useEffect } from 'react';
-import { Container } from 'react-bootstrap';
+import React from 'react';
 
 
 const Privacy = () => {
 
     return (
-            <Container  className='content'>
+            <div className='content'>
                 <div className="page">
 
                     <h1 className="title">Privacy Policy for Špajzka</h1>
@@ -197,7 +196,7 @@ const Privacy = () => {
                         <li>By email: psychonek.studios@gmail.com</li>
                     </ul>
                 </div>
-            </Container>
+            </div>
     );
 
 }

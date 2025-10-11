@@ -20,6 +20,9 @@ export function expressAuthentication(
         if (err) {
           reject(err);
         } else {
+          // Attach user info to request for use in controllers
+          (request as any).user = decoded;
+
           // Check if scopes are required and included in the token
           if (scopes && scopes.length > 0) {
             // Add scope checking logic here if needed

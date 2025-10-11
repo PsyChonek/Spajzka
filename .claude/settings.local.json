@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run dev:*)",
+      "Bash(curl:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(taskkill:*)",
+      "Bash(powershell:*)",
+      "Bash(node -e \"console.log(require(''fs'').readdirSync(''./sample''))\")",
+      "Bash(npm run build:*)",
+      "Bash(timeout:*)",
+      "Bash(npm run generateClient:*)",
+      "Bash(dir appsapipublicswagger.json)",
+      "Bash(git mv:*)",
+      "Bash(npm install)",
+      "Bash(dir:*)",
+      "Bash(node:*)",
+      "Bash(docker ps:*)",
+      "Bash(docker exec:*)",
+      "Bash(docker-compose:*)",
+      "Bash(docker logs:*)",
+      "Bash(dos2unix:*)",
+      "Bash(git rm:*)",
+      "Bash(git add:*)",
+      "Bash(python:*)",
+      "Bash(cat:*)",
+      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4ZWE5MzhlMjU5NjIwNTAxOWFiMmY5MCIsInVzZXJuYW1lIjoiZ3Vlc3RfMTc2MDIwMzY2Mjg0M185Nm1kIiwiaWF0IjoxNzYwMjAzNjYyLCJleHAiOjE3NjI3OTU2NjJ9.qQ_8bNbhWsusJAeKsCMlqE1g8eTmWRawfAEBzZ9i4WE\" curl -X POST http://localhost:3010/auth/upgrade-guest -H \"Content-Type: application/json\" -H \"Authorization: Bearer $TOKEN\" -d \"{\"\"username\"\": \"\"john_doe\"\", \"\"displayName\"\": \"\"John Doe\"\"}\")"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

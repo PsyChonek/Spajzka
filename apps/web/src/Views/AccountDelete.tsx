@@ -1,13 +1,12 @@
-import React, { Component, useEffect } from 'react';
-import { Container } from 'react-bootstrap';
+import React from 'react';
 
 const AccountDelete = () => {
 
     return (
-        <Container className='content' >
+        <div className='content' >
             <h1>Account Delete</h1>
             <p> Guide users through the process of deleting their account. </p>
-        </Container>
+        </div>
     );
 
 }

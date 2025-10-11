@@ -12,27 +12,218 @@
 					"id": {
 						"type": "string"
 					},
-					"email": {
+					"username": {
+						"type": "string"
+					},
+					"displayName": {
+						"type": "string"
+					},
+					"accessCode": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"id",
+					"username",
+					"displayName"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"UpdateUserDto": {
+				"properties": {
+					"username": {
 						"type": "string"
 					},
 					"displayName": {
 						"type": "string"
 					}
 				},
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ItemDto": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"name": {
+						"type": "string"
+					},
+					"isOnBuylist": {
+						"type": "boolean"
+					},
+					"amount": {
+						"type": "number",
+						"format": "double"
+					},
+					"price": {
+						"type": "number",
+						"format": "double"
+					},
+					"groupId": {
+						"type": "string"
+					},
+					"userId": {
+						"type": "string"
+					},
+					"createdAt": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"updatedAt": {
+						"type": "string",
+						"format": "date-time"
+					}
+				},
 				"required": [
 					"id",
-					"email",
-					"displayName"
+					"name",
+					"isOnBuylist",
+					"amount",
+					"price",
+					"groupId",
+					"userId"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"GroupDto": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"name": {
+						"type": "string"
+					},
+					"description": {
+						"type": "string"
+					},
+					"userIds": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"createdAt": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"updatedAt": {
+						"type": "string",
+						"format": "date-time"
+					}
+				},
+				"required": [
+					"id",
+					"name",
+					"userIds"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"CreateItemDto": {
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"isOnBuylist": {
+						"type": "boolean"
+					},
+					"amount": {
+						"type": "number",
+						"format": "double"
+					},
+					"price": {
+						"type": "number",
+						"format": "double"
+					},
+					"groupId": {
+						"type": "string"
+					},
+					"userId": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"name",
+					"groupId",
+					"userId"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"UpdateItemDto": {
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"isOnBuylist": {
+						"type": "boolean"
+					},
+					"amount": {
+						"type": "number",
+						"format": "double"
+					},
+					"price": {
+						"type": "number",
+						"format": "double"
+					},
+					"groupId": {
+						"type": "string"
+					}
+				},
+				"type": "object",
+				"additionalProperties": false
+			},
+			"CreateGroupDto": {
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"description": {
+						"type": "string"
+					},
+					"userIds": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					}
+				},
+				"required": [
+					"name"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"UpdateGroupDto": {
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"description": {
+						"type": "string"
+					}
+				},
+				"type": "object",
+				"additionalProperties": false
+			},
+			"AddUserToGroupDto": {
+				"properties": {
+					"userId": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"userId"
 				],
 				"type": "object",
 				"additionalProperties": false
 			},
 			"CreateUserDto": {
 				"properties": {
-					"email": {
-						"type": "string"
-					},
-					"password": {
+					"username": {
 						"type": "string"
 					},
 					"displayName": {
@@ -40,9 +231,67 @@
 					}
 				},
 				"required": [
-					"email",
-					"password",
-					"displayName"
+					"username"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"TokenResponseDto": {
+				"properties": {
+					"token": {
+						"type": "string"
+					},
+					"expiresIn": {
+						"type": "number",
+						"format": "double"
+					},
+					"user": {
+						"$ref": "#/components/schemas/UserDto"
+					}
+				},
+				"required": [
+					"token",
+					"expiresIn",
+					"user"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"LoginDto": {
+				"properties": {
+					"accessCode": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"accessCode"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ResetAccessCodeResponseDto": {
+				"properties": {
+					"accessCode": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"accessCode"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"UpgradeGuestDto": {
+				"properties": {
+					"username": {
+						"type": "string"
+					},
+					"displayName": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"username"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -66,34 +315,33 @@
 		}
 	},
 	"paths": {
-		"/health": {
+		"/users": {
 			"get": {
-				"operationId": "HealthCheck",
+				"operationId": "GetAllUsers",
 				"responses": {
 					"200": {
-						"description": "A simple status message",
+						"description": "Ok",
 						"content": {
 							"application/json": {
 								"schema": {
-									"properties": {
-										"status": {
-											"type": "string"
-										}
+									"items": {
+										"$ref": "#/components/schemas/UserDto"
 									},
-									"required": [
-										"status"
-									],
-									"type": "object"
+									"type": "array"
 								}
 							}
 						}
 					}
 				},
-				"description": "Health check endpoint",
+				"description": "Get all users",
 				"tags": [
-					"Health"
+					"Users"
 				],
-				"security": [],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
 				"parameters": []
 			}
 		},
@@ -134,14 +382,675 @@
 						}
 					}
 				]
+			},
+			"put": {
+				"operationId": "UpdateUser",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UserDto"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Validation error"
+					},
+					"404": {
+						"description": "User not found"
+					}
+				},
+				"description": "Update a user",
+				"tags": [
+					"Users"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "userId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateUserDto"
+							}
+						}
+					}
+				}
+			},
+			"delete": {
+				"operationId": "DeleteUser",
+				"responses": {
+					"204": {
+						"description": "User deleted"
+					},
+					"404": {
+						"description": "User not found"
+					}
+				},
+				"description": "Delete a user",
+				"tags": [
+					"Users"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "userId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
 			}
 		},
-		"/users": {
+		"/users/{userId}/items": {
+			"get": {
+				"operationId": "GetUserItems",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"items": {
+										"$ref": "#/components/schemas/ItemDto"
+									},
+									"type": "array"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "User not found"
+					}
+				},
+				"description": "Get all items for a user",
+				"tags": [
+					"Users"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "userId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/users/{userId}/groups": {
+			"get": {
+				"operationId": "GetUserGroups",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"items": {
+										"$ref": "#/components/schemas/GroupDto"
+									},
+									"type": "array"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "User not found"
+					}
+				},
+				"description": "Get all groups for a user",
+				"tags": [
+					"Users"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "userId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/items": {
+			"get": {
+				"operationId": "GetAllItems",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"items": {
+										"$ref": "#/components/schemas/ItemDto"
+									},
+									"type": "array"
+								}
+							}
+						}
+					}
+				},
+				"description": "Get all items",
+				"tags": [
+					"Items"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": []
+			},
 			"post": {
-				"operationId": "CreateUser",
+				"operationId": "CreateItem",
 				"responses": {
 					"201": {
-						"description": "User created",
+						"description": "Item created",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ItemDto"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Validation error"
+					}
+				},
+				"description": "Create a new item",
+				"tags": [
+					"Items"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CreateItemDto"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/items/{itemId}": {
+			"get": {
+				"operationId": "GetItem",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ItemDto"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Item not found"
+					}
+				},
+				"description": "Get an item by ID",
+				"tags": [
+					"Items"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "itemId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			},
+			"put": {
+				"operationId": "UpdateItem",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ItemDto"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Validation error"
+					},
+					"404": {
+						"description": "Item not found"
+					}
+				},
+				"description": "Update an item",
+				"tags": [
+					"Items"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "itemId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateItemDto"
+							}
+						}
+					}
+				}
+			},
+			"delete": {
+				"operationId": "DeleteItem",
+				"responses": {
+					"204": {
+						"description": "Item deleted"
+					},
+					"404": {
+						"description": "Item not found"
+					}
+				},
+				"description": "Delete an item",
+				"tags": [
+					"Items"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "itemId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/health": {
+			"get": {
+				"operationId": "HealthCheck",
+				"responses": {
+					"200": {
+						"description": "A simple status message",
+						"content": {
+							"application/json": {
+								"schema": {
+									"properties": {
+										"status": {
+											"type": "string"
+										}
+									},
+									"required": [
+										"status"
+									],
+									"type": "object"
+								}
+							}
+						}
+					}
+				},
+				"description": "Health check endpoint",
+				"tags": [
+					"Health"
+				],
+				"security": [],
+				"parameters": []
+			}
+		},
+		"/groups": {
+			"get": {
+				"operationId": "GetAllGroups",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"items": {
+										"$ref": "#/components/schemas/GroupDto"
+									},
+									"type": "array"
+								}
+							}
+						}
+					}
+				},
+				"description": "Get all groups",
+				"tags": [
+					"Groups"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": []
+			},
+			"post": {
+				"operationId": "CreateGroup",
+				"responses": {
+					"201": {
+						"description": "Group created",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GroupDto"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Validation error"
+					}
+				},
+				"description": "Create a new group",
+				"tags": [
+					"Groups"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CreateGroupDto"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/groups/{groupId}": {
+			"get": {
+				"operationId": "GetGroup",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GroupDto"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Group not found"
+					}
+				},
+				"description": "Get a group by ID",
+				"tags": [
+					"Groups"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "groupId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			},
+			"put": {
+				"operationId": "UpdateGroup",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GroupDto"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Validation error"
+					},
+					"404": {
+						"description": "Group not found"
+					}
+				},
+				"description": "Update a group",
+				"tags": [
+					"Groups"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "groupId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateGroupDto"
+							}
+						}
+					}
+				}
+			},
+			"delete": {
+				"operationId": "DeleteGroup",
+				"responses": {
+					"204": {
+						"description": "Group deleted"
+					},
+					"404": {
+						"description": "Group not found"
+					}
+				},
+				"description": "Delete a group",
+				"tags": [
+					"Groups"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "groupId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/groups/{groupId}/users": {
+			"post": {
+				"operationId": "AddUserToGroup",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GroupDto"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Validation error"
+					},
+					"404": {
+						"description": "Group not found"
+					}
+				},
+				"description": "Add a user to a group",
+				"tags": [
+					"Groups"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "groupId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/AddUserToGroupDto"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/groups/{groupId}/users/{userId}": {
+			"delete": {
+				"operationId": "RemoveUserFromGroup",
+				"responses": {
+					"204": {
+						"description": "User removed from group"
+					},
+					"404": {
+						"description": "Group not found"
+					}
+				},
+				"description": "Remove a user from a group",
+				"tags": [
+					"Groups"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "groupId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "path",
+						"name": "userId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/auth/register": {
+			"post": {
+				"operationId": "Register",
+				"responses": {
+					"201": {
+						"description": "User registered successfully",
 						"content": {
 							"application/json": {
 								"schema": {
@@ -154,9 +1063,9 @@
 						"description": "Validation error"
 					}
 				},
-				"description": "Create a new user",
+				"description": "Register a new user with username only. Returns a unique access code (UUID) for login.",
 				"tags": [
-					"Users"
+					"Authentication"
 				],
 				"security": [],
 				"parameters": [],
@@ -166,6 +1075,141 @@
 						"application/json": {
 							"schema": {
 								"$ref": "#/components/schemas/CreateUserDto"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/auth/login": {
+			"post": {
+				"operationId": "Login",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/TokenResponseDto"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Invalid access code"
+					}
+				},
+				"description": "Login using access code. Returns JWT token and user info.",
+				"tags": [
+					"Authentication"
+				],
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/LoginDto"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/auth/reset-code": {
+			"post": {
+				"operationId": "ResetAccessCode",
+				"responses": {
+					"200": {
+						"description": "Access code reset successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ResetAccessCodeResponseDto"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"404": {
+						"description": "User not found"
+					}
+				},
+				"description": "Reset access code. Generates a new UUID and invalidates the old one (logs out all devices).\nRequires authentication.",
+				"tags": [
+					"Authentication"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": []
+			}
+		},
+		"/auth/register-guest": {
+			"post": {
+				"operationId": "RegisterGuest",
+				"responses": {
+					"201": {
+						"description": "Guest user created and logged in",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/TokenResponseDto"
+								}
+							}
+						}
+					}
+				},
+				"description": "Register a new guest user with auto-generated username. Automatically logs in and returns JWT token.",
+				"tags": [
+					"Authentication"
+				],
+				"security": [],
+				"parameters": []
+			}
+		},
+		"/auth/upgrade-guest": {
+			"post": {
+				"operationId": "UpgradeGuest",
+				"responses": {
+					"200": {
+						"description": "Guest account upgraded successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UserDto"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Username already taken or invalid"
+					},
+					"401": {
+						"description": "Unauthorized"
+					}
+				},
+				"description": "Upgrade guest account to permanent account with a custom username.\nRequires authentication.",
+				"tags": [
+					"Authentication"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpgradeGuestDto"
 							}
 						}
 					}

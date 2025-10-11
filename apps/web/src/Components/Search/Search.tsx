@@ -1,7 +1,6 @@
 import '../../CSS/Global.css'
 
 import React, { useEffect, useState } from 'react';
-import Container from 'react-bootstrap/Container';
 import ItemSeparator from "./ItemSeparator";
 import Bar from "./Bar";
 import Navigation from "./Navigation";
@@ -11,7 +10,6 @@ import ItemRow_Buylist from "./Buylist/ItemRow_Buylist";
 import ItemHead_Spajz from "./Spajz/ItemHead_Spajz";
 import ItemHead_Buylist from "./Buylist/ItemHead_Buylist";
 import { SortOptionsItem } from "./SortOptions";
-import { Spinner } from "react-bootstrap";
 import { ItemModel } from "../../Api";
 import { GetUserItems } from "../../Other/itemService";
 
@@ -69,8 +67,8 @@ const Search = (props: { type: SearchStyle }) => {
     }
 
     const updateAllData = () => {
-        GetUserItems().then((items: ItemModel[]) => {
-            setAllData(items);
+        GetUserItems().then((response) => {
+            setAllData(response as any);
             setIsFetching(false);
         })
     }
@@ -164,17 +162,17 @@ const Search = (props: { type: SearchStyle }) => {
     return (
 
 
-        <Container>
-            {isFetching && <Spinner animation="border" variant="primary" className='spinner' /> || <><Bar onSearchSubmit={onSearchSubmit} />
-                <Container className="searchContainer">
+        <div>
+            {isFetching && <div className='spinner'>Loading...</div> || <><Bar onSearchSubmit={onSearchSubmit} />
+                <div className="searchContainer">
                     {renderedResults.length > 0 && headType()}
                     {renderedResults.length != 0 && <ItemSeparator />}
                     {renderedResults}
                     {renderedResults.length === 0 && <Add type={props.type} callbackUpdate={updateAllData} query={query} />}
                     {/* {renderedResults.length >= 15 && <Navigation />} */}
-                </Container></>}
+                </div></>}
 
-        </Container>
+        </div>
 
     )
         ;

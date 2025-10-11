@@ -1,6 +1,5 @@
-﻿import React, { Component, useEffect } from 'react';
-import { Container, Nav, Navbar } from "react-bootstrap";
-import { Link, Navigate, Route, Routes } from "react-router-dom";
+﻿import React, { useEffect, useState } from 'react';
+import { Route, Routes } from "react-router-dom";
 import Spajz from "./Spajz";
 import BuyList from "./BuyList";
 import ApiTest from './ApiTest';
@@ -8,10 +7,12 @@ import FooterCustom from '../Components/FooterCustom';
 import NavbarCustom from '../Components/NavbarCustom';
 import Privacy from './Privacy';
 import AccountDelete from './AccountDelete';
+import { initializeAuth } from '../Other/authInitializer';
 
 const Navigation = () => {
 
-    const [active, setActive] = React.useState("");
+    const [active, setActive] = useState("");
+    const [authInitialized, setAuthInitialized] = useState(false);
 
     const validURLs = ["spajz", "buylist", "apitest", "", "privacy", "accountdelete"];
 
@@ -23,6 +24,15 @@ const Navigation = () => {
             window.location.href = "/";
         }
     }
+
+    // Initialize authentication on mount
+    useEffect(() => {
+        const initAuth = async () => {
+            await initializeAuth();
+            setAuthInitialized(true);
+        };
+        initAuth();
+    }, []);
 
     useEffect(() => {
         var url: string = window.location.pathname.split("/")[1];

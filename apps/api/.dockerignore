@@ -1,0 +1,32 @@
+# Dependencies
+node_modules
+npm-debug.log*
+
+# Build outputs
+dist
+*.tsbuildinfo
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Environment files
+.env
+.env.*
+
+# Testing
+coverage
+*.test.ts
+*.spec.ts
+
+# Generated files (will be regenerated during build)
+src/routes/*.ts
+public/swagger.json
+
+# Development files
+nodemon.json
+
+# Documentation
+*.md

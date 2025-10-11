@@ -1,5 +1,4 @@
 import '../CSS/Popup.css'
-import {Button, Col, Container, Row} from "react-bootstrap";
 import React, {useEffect} from "react";
 
 export enum PopUpWindowState {
@@ -34,22 +33,18 @@ const PopUpWindow = (props: { state: PopUpWindowState, setState: any, title: str
         switch (props.state) {
             case PopUpWindowState.WaitingOK:
                 return (
-                    <Button onClick={() => props.setState(PopUpWindowState.OK)} variant="primary">{props.buttonText}</Button>)
+                    <button onClick={() => props.setState(PopUpWindowState.OK)} className="btn btn-primary">{props.buttonText}</button>)
                 break;
             case PopUpWindowState.WaitingResult:
                 return (
-                    <Row>
-                        <Col>
-                            <Button onClick={() => props.setState(PopUpWindowState.Accept)} variant="success">Ano</Button>
-                        </Col>
-                        <Col>
-                            <Button onClick={() => props.setState(PopUpWindowState.Decline)} variant="danger">Ne</Button>
-                        </Col>
-                    </Row>)
+                    <div className="popup-buttons">
+                        <button onClick={() => props.setState(PopUpWindowState.Accept)} className="btn btn-success">Ano</button>
+                        <button onClick={() => props.setState(PopUpWindowState.Decline)} className="btn btn-danger">Ne</button>
+                    </div>)
                 break;
             case PopUpWindowState.WaitingAccept:
                 return (
-                    <Button onClick={() => props.setState(PopUpWindowState.Accept)} variant="success">{props.buttonText}</Button>
+                    <button onClick={() => props.setState(PopUpWindowState.Accept)} className="btn btn-success">{props.buttonText}</button>
                 )
                 break;
         }
@@ -57,13 +52,13 @@ const PopUpWindow = (props: { state: PopUpWindowState, setState: any, title: str
 
 
     return (props.state == PopUpWindowState.WaitingOK || props.state == PopUpWindowState.WaitingResult || props.state == PopUpWindowState.WaitingAccept) ? (
-        <Container ref={element} className="popup-container">
+        <div ref={element} className="popup-container">
             <div className='popup-top'><h1>{props.title}</h1></div>
             <div className='popup-middle'>{props.content}</div>
             <div className='popup-bottom'>
                 {popUpType()}
             </div>
-        </Container>
+        </div>
     ) : <></>;
 }
 

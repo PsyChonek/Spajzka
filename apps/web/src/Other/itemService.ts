@@ -1,41 +1,28 @@
-import { ItemModel, Api, RequestParams, ContentType } from '../Api';
+import { ItemDto, CreateItemDto, UpdateItemDto } from '../Api';
 import { Cookies } from 'react-cookie';
-
-const client = new Api({
-    baseUrl: process.env.REACT_APP_SpajzkaAPI,
-})
+import { getAuthenticatedClient } from './apiClient';
 
 const cookies = new Cookies;
 
-export async function RemoveItem(item: ItemModel) {
-    try {
-        if (item.id == null) {
-            return null;
-        }
-
-        const result = await client.user.itemDelete(item.id,cookies.get('userID'));
-        return result;
-    }
-    catch (e) {
-        console.log(e);
-        return null;
-    }
-}
-
+// Get user items
 export const GetUserItems = async () => {
-    const items = await client.user.itemsDetail(cookies.get('userID'));
-    return items.data;
+    try {
+        const client = getAuthenticatedClient();
+        const userId = cookies.get('userID');
+        const result = await client.users.getUserItems(userId);
+        return result.data;
+    }
+    catch (e) {
+        console.log(e);
+        return [];
+    }
 }
 
-export const SaveUserItem = async (item: ItemModel) => {
+// Create item
+export const CreateItem = async (item: CreateItemDto) => {
     try {
-
-        const requestParams: RequestParams = {
-            type: ContentType.Json,
-        }
-
-        const result = await client.user.itemCreate(cookies.get('userID'), item, requestParams);
-
+        const client = getAuthenticatedClient();
+        const result = await client.items.createItem(item);
         return result;
     }
     catch (e) {
@@ -44,19 +31,87 @@ export const SaveUserItem = async (item: ItemModel) => {
     }
 }
 
-// Update item in database
-export const UpdateUserItem = async (item: ItemModel) => {
+// Get item by ID
+export const GetItem = async (itemId: string) => {
     try {
-        if (item.id == null) {
+        const client = getAuthenticatedClient();
+        const result = await client.items.getItem(itemId);
+        return result;
+    }
+    catch (e) {
+        console.log(e);
+        return null;
+    }
+}
+
+// Update item
+export const UpdateItem = async (itemId: string, itemData: UpdateItemDto) => {
+    try {
+        const client = getAuthenticatedClient();
+        const result = await client.items.updateItem(itemId, itemData);
+        return result;
+    }
+    catch (e) {
+        console.log(e);
+        return null;
+    }
+}
+
+// Delete item
+export const RemoveItem = async (itemId: string) => {
+    try {
+        const client = getAuthenticatedClient();
+        await client.items.deleteItem(itemId);
+        return true;
+    }
+    catch (e) {
+        console.log(e);
+        return null;
+    }
+}
+
+// Legacy compatibility - Save/Create item (keeping the old interface for now)
+export const SaveUserItem = async (item: ItemDto) => {
+    try {
+        const client = getAuthenticatedClient();
+        const userId = cookies.get('userID');
+        const groupId = cookies.get('groupID');
+
+        const createData: CreateItemDto = {
+            name: item.name,
+            isOnBuylist: item.isOnBuylist,
+            amount: item.amount,
+            price: item.price,
+            groupId: groupId || item.groupId,
+            userId: userId,
+        };
+
+        const result = await client.items.createItem(createData);
+        return result;
+    }
+    catch (e) {
+        console.log(e);
+        return null;
+    }
+}
+
+// Legacy compatibility - Update item (keeping the old interface for now)
+export const UpdateUserItem = async (item: ItemDto) => {
+    try {
+        const client = getAuthenticatedClient();
+        if (!item.id) {
             return null;
         }
 
-        const requestParams: RequestParams = {
-            type: ContentType.Json,
-        }
+        const updateData: UpdateItemDto = {
+            name: item.name,
+            isOnBuylist: item.isOnBuylist,
+            amount: item.amount,
+            price: item.price,
+            groupId: item.groupId,
+        };
 
-        const result = await client.user.itemUpdate(cookies.get('userID'),  item, requestParams);
-
+        const result = await client.items.updateItem(item.id, updateData);
         return result;
     }
     catch (e) {

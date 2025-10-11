@@ -2,9 +2,8 @@ import mongoose, { Document, Types } from "mongoose";
 
 export interface IUser extends Document {
   _id: Types.ObjectId;
-  email: string;
-  passHash: string;
-  salt: string;
+  username: string;
+  accessCode: string;
   displayName: string;
   createdAt: Date;
   updatedAt: Date;
@@ -12,20 +11,15 @@ export interface IUser extends Document {
 
 const UserSchema = new mongoose.Schema(
   {
-    email: {
+    username: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    accessCode: {
       type: String,
       required: true,
       unique: true,
-      trim: true,
-      lowercase: true,
-    },
-    passHash: {
-      type: String,
-      required: true,
-    },
-    salt: {
-      type: String,
-      required: true,
     },
     displayName: {
       type: String,
@@ -36,14 +30,5 @@ const UserSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
-
-// // Password comparison method
-// UserSchema.methods.comparePassword = async function (
-//   password: string
-// ): Promise<boolean> {
-//   const user = this as IUser;
-//   const hash = await bcrypt.hash(password, user.salt);
-//   return hash === user.passHash;
-// };
 
 export default mongoose.model<IUser>("User", UserSchema);

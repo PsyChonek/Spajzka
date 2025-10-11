@@ -1,5 +1,4 @@
 import React, {useEffect, useState} from "react";
-import {Button, Container} from "react-bootstrap";
 import PopUpWindow, {PopUpWindowState} from "../../PopUpWindow";
 import ItemDetail from "../ItemDetail";
 import {ItemModel} from "../../../Api";
@@ -25,11 +24,11 @@ const ItemRow_Spajz = (props: { item: ItemModel, updateCallback: any }) => {
                 <div><b>{props.item.name.toLowerCase().charAt(0).toUpperCase() + props.item.name.slice(1).toLowerCase()}</b></div>
                 <div>W.I.P.</div>
 
-                <Button variant="primary" onClick={() => setPopUpState(PopUpWindowState.WaitingOK)}>Detail</Button>
+                <button className="btn btn-primary" onClick={() => setPopUpState(PopUpWindowState.WaitingOK)}>Detail</button>
                 <div className="amountButtonsContainer">
-                    <Button className="amountButton" variant="danger" onClick={() => AddItem(-1)}>-</Button>
+                    <button className="amountButton btn btn-danger" onClick={() => AddItem(-1)}>-</button>
                     <b className="amountCount">{props.item.amount}</b>
-                    <Button className="amountButton" variant="success" onClick={() => AddItem(1)}>+</Button>
+                    <button className="amountButton btn btn-success" onClick={() => AddItem(1)}>+</button>
                 </div>
             </div>
 

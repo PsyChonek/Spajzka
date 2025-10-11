@@ -1,0 +1,89 @@
+version: '3.8'
+
+services:
+  # MongoDB Database
+  mongo:
+    image: mongo:7
+    container_name: spajzka-mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: spajzkaadmin
+      MONGO_INITDB_ROOT_PASSWORD: spajzkaadmin
+      MONGO_INITDB_DATABASE: spajzka
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo-data:/data/db
+      - mongo-config:/data/configdb
+      # Optional: mount initialization scripts
+      - ./apps/db/sample:/docker-entrypoint-initdb.d:ro
+    networks:
+      - spajzka-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/spajzka --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  # API Service
+  api:
+    build:
+      context: .
+      dockerfile: ./apps/api/Dockerfile
+    container_name: spajzka-api
+    restart: unless-stopped
+    environment:
+      PORT: 3010
+      MONGO_URI: mongodb://spajzkaadmin:spajzkaadmin@mongo:27017/spajzka?authSource=admin
+      DATABASE: spajzka
+      JWT_SECRET: your-secret-key-change-in-production
+      NODE_ENV: production
+    ports:
+      - '3010:3010'
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - spajzka-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3010/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 40s
+
+  # Web Application
+  web:
+    build:
+      context: .
+      dockerfile: ./apps/web/Dockerfile
+      args:
+        REACT_APP_SpajzkaAPI: http://localhost:3010
+    container_name: spajzka-web
+    restart: unless-stopped
+    environment:
+      REACT_APP_SpajzkaAPI: http://localhost:3010
+    ports:
+      - '3000:80'
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - spajzka-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+networks:
+  spajzka-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
+    driver: local
+  mongo-config:
+    driver: local

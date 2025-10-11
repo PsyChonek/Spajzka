@@ -1,18 +1,15 @@
-import { Await } from 'react-router-dom';
-import { ItemModel, Api, UserModel, GroupModel } from '../Api';
+import { UserDto, CreateUserDto, UpdateUserDto } from '../Api';
 import { Cookies } from 'react-cookie';
-
-const client = new Api({
-    baseUrl: process.env.REACT_APP_SpajzkaAPI,
-})
+import { getAuthenticatedClient, getPublicClient } from './apiClient';
 
 const cookies = new Cookies;
 
-// Create user
-export const CreateUser = async (user: UserModel) => {
+// Create user (via auth/register) - does not require authentication
+export const CreateUser = async (userData: CreateUserDto) => {
     try
     {
-        const result = await client.user.userCreate(user);
+        const client = getPublicClient();
+        const result = await client.auth.register(userData);
         return result;
     }
     catch (e)
@@ -22,11 +19,27 @@ export const CreateUser = async (user: UserModel) => {
     }
 }
 
-// Get user
+// Create guest user - does not require authentication
+export const CreateGuestUser = async () => {
+    try
+    {
+        const client = getPublicClient();
+        const result = await client.auth.registerGuest();
+        return result;
+    }
+    catch (e)
+    {
+        console.log(e);
+        return null;
+    }
+}
+
+// Get user - requires authentication
 export const GetUser = async (userId: string) => {
     try
     {
-        const result = await client.user.userDetail(userId);
+        const client = getAuthenticatedClient();
+        const result = await client.users.getUser(userId);
         return result;
     }
     catch (e)
@@ -36,11 +49,42 @@ export const GetUser = async (userId: string) => {
     }
 }
 
-// Get user groups
+// Update user - requires authentication
+export const UpdateUser = async (userId: string, userData: UpdateUserDto) => {
+    try
+    {
+        const client = getAuthenticatedClient();
+        const result = await client.users.updateUser(userId, userData);
+        return result;
+    }
+    catch (e)
+    {
+        console.log(e);
+        return null;
+    }
+}
+
+// Get user groups - requires authentication
 export const GetUserGroups = async (userId: string) => {
     try
     {
-        const result = await client.user.groupsDetail(userId);
+        const client = getAuthenticatedClient();
+        const result = await client.users.getUserGroups(userId);
+        return result;
+    }
+    catch (e)
+    {
+        console.log(e);
+        return null;
+    }
+}
+
+// Get user items - requires authentication
+export const GetUserItems = async (userId: string) => {
+    try
+    {
+        const client = getAuthenticatedClient();
+        const result = await client.users.getUserItems(userId);
         return result;
     }
     catch (e)

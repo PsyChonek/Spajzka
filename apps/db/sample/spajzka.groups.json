@@ -1,0 +1,8 @@
+[{
+  "_id": {
+    "oid": "6437c23686c38dd99132e401"
+  },
+  "name": "My Family",
+  "description": "Family shopping group",
+  "userIds": ["6437c23386c38dd99132e400", "643808b37a827804af35a4bb"]
+}]
