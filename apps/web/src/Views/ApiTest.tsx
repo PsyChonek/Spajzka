@@ -5,6 +5,8 @@ import { Api, CreateUserDto, CreateGroupDto, LoginDto } from '../Api';
 import { useCookies } from 'react-cookie';
 import { GetUser, GetUserGroups } from '../Other/userService';
 import { AddUserToGroup, CreateGroup } from '../Other/groupService';
+import '@awesome.me/webawesome/dist/components/button/button.js';
+import '@awesome.me/webawesome/dist/components/input/input.js';
 
 const apiClient = new Api({
     baseUrl: process.env.REACT_APP_SpajzkaAPI,
@@ -40,7 +42,7 @@ function ApiTest() {
             <h3 className="text-center">Group Name: {cookies.groupName}</h3>
             {cookies.token && (
                 <div className="text-center">
-                    <button className="btn btn-danger" onClick={() => {
+                    <wa-button variant="danger" onClick={() => {
                         removeCookie('userID');
                         removeCookie('userName');
                         removeCookie('token');
@@ -48,7 +50,9 @@ function ApiTest() {
                         removeCookie('groupID');
                         removeCookie('groupName');
                         showMessage('Logged out successfully', 'success');
-                    }}>Logout</button>
+                    }}>
+                        Logout
+                    </wa-button>
                 </div>
             )}
 
@@ -64,8 +68,15 @@ function ApiTest() {
                             ? 'Upgrade your guest account by choosing a username'
                             : 'Change your username'}
                     </p>
-                    <input className='apitest-input' type='text' placeholder='Username' onChange={e => setUsername(e.target.value)} value={username} ></input>
-                    <button className="btn btn-primary" onClick={async () => {
+                    <wa-input 
+                        className='apitest-input' 
+                        type='text' 
+                        placeholder='Username' 
+                        onWaInput={(e: any) => setUsername(e.target.value)} 
+                        value={username}
+                        appearance="outlined"
+                    ></wa-input>
+                    <wa-button variant="brand" onClick={async () => {
                         try {
                             if (!cookies.token) {
                                 showMessage('You must be logged in to set a username', 'danger');
@@ -92,13 +103,22 @@ function ApiTest() {
                         } catch (e: any) {
                             showMessage(`Error: ${e.message}`, 'danger');
                         }
-                    }}>Set Username</button>
+                    }}>
+                        Set Username
+                    </wa-button>
                 </div>
 
                 <div className="apitest-column">
                     <h3>Login</h3>
-                    <input className='apitest-input' type='text' placeholder='Access Code (UUID)' onChange={e => setAccessCode(e.target.value)} value={accessCode} ></input>
-                    <button className="btn btn-success" onClick={async () => {
+                    <wa-input 
+                        className='apitest-input' 
+                        type='text' 
+                        placeholder='Access Code (UUID)' 
+                        onWaInput={(e: any) => setAccessCode(e.target.value)} 
+                        value={accessCode}
+                        appearance="outlined"
+                    ></wa-input>
+                    <wa-button variant="success" onClick={async () => {
                         try {
                             const loginData: LoginDto = {
                                 accessCode: accessCode,
@@ -124,7 +144,9 @@ function ApiTest() {
                         } catch (e: any) {
                             showMessage(`Login failed: ${e.message}`, 'danger');
                         }
-                    }}>Login</button>
+                    }}>
+                        Login
+                    </wa-button>
                 </div>
             </div>
 
@@ -136,7 +158,7 @@ function ApiTest() {
                         <div className="apitest-column">
                             <h3>Reset Access Code</h3>
                             <p style={{fontSize: '12px'}}>This will generate a new access code and logout all devices</p>
-                            <button className="btn btn-warning" onClick={async () => {
+                            <wa-button variant="warning" onClick={async () => {
                                 try {
                                     const client = new Api({
                                         baseUrl: process.env.REACT_APP_SpajzkaAPI,
@@ -153,7 +175,9 @@ function ApiTest() {
                                 } catch (e: any) {
                                     showMessage(`Error: ${e.message}`, 'danger');
                                 }
-                            }}>Reset Access Code</button>
+                            }}>
+                                Reset Access Code
+                            </wa-button>
                         </div>
                     </div>
 
@@ -161,8 +185,15 @@ function ApiTest() {
                     <h2 className="text-center">Groups</h2>
                     <div className="apitest-row">
                         <div className="apitest-column">
-                            <input className='apitest-input' type='text' placeholder='Group name' onChange={e => setGroup(e.target.value)} value={group}></input>
-                            <button className="btn btn-primary" onClick={async () => {
+                            <wa-input 
+                                className='apitest-input' 
+                                type='text' 
+                                placeholder='Group name' 
+                                onWaInput={(e: any) => setGroup(e.target.value)} 
+                                value={group}
+                                appearance="outlined"
+                            ></wa-input>
+                            <wa-button variant="brand" onClick={async () => {
                                 try {
                                     const newGroup: CreateGroupDto = {
                                         name: group,
@@ -179,7 +210,9 @@ function ApiTest() {
                                 } catch (e: any) {
                                     showMessage(`Error: ${e.message}`, 'danger');
                                 }
-                            }}>Create Group</button>
+                            }}>
+                                Create Group
+                            </wa-button>
                         </div>
                     </div>
                 </>

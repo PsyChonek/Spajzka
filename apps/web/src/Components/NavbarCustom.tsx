@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from "react-router-dom";
-import ThemeSwitch from './ThemeSwitch';
+import ThemeToggle from './ThemeToggle';
 import '../CSS/Global.css'
 
 const NavbarCustom = (props: { setActive: any, active: string }) => {
@@ -29,7 +29,7 @@ const NavbarCustom = (props: { setActive: any, active: string }) => {
                     >
                         API
                     </Link>
-                    <ThemeSwitch />
+                    <ThemeToggle />
                 </div>
             </div>
         </nav>

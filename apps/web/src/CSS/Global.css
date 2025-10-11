@@ -433,38 +433,70 @@ body {
     border-color: var(--color-primary);
 }
 
-/* Theme Toggle */
-.theme-toggle {
+/* Theme Switch Wrapper */
+.theme-switch-wrapper {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    padding: 0;
-    background: transparent;
-    border: 2px solid var(--color-border);
-    border-radius: 50%;
-    cursor: pointer;
-    color: var(--color-primary-contrast);
+    margin-left: 1rem;
     transition: all 0.3s ease;
 }
 
-.theme-toggle:hover {
-    background-color: var(--color-surface-hover);
-    border-color: var(--color-secondary);
+.theme-switch-wrapper:hover {
     transform: scale(1.05);
 }
 
-.theme-toggle:active {
-    transform: scale(0.95);
+/* Theme Toggle Wrapper */
+.theme-toggle-wrapper {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 1rem;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
 }
 
-.theme-toggle svg {
-    transition: transform 0.3s ease;
+.theme-toggle-wrapper:hover {
+    transform: scale(1.15) translateY(-2px);
 }
 
-.theme-toggle:hover svg {
-    transform: rotate(20deg);
+.theme-toggle-wrapper:hover wa-button {
+    box-shadow: 0 8px 25px rgba(255, 255, 255, 0.15), 0 0 30px rgba(147, 51, 234, 0.2);
+}
+
+.theme-toggle-wrapper:hover wa-icon {
+    transform: rotate(180deg) scale(1.1);
+    filter: drop-shadow(0 4px 12px rgba(147, 51, 234, 0.4));
+}
+
+.theme-toggle-wrapper:active {
+    transform: scale(1.05) translateY(0px);
+}
+
+/* Theme Toggle Animations */
+@keyframes themePulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+    50% {
+        transform: scale(1.2);
+        box-shadow: 0 8px 30px rgba(147, 51, 234, 0.4), 0 0 40px rgba(147, 51, 234, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+}
+
+@keyframes iconFlip {
+    0% {
+        transform: rotateY(0deg) scale(1);
+    }
+    50% {
+        transform: rotateY(180deg) scale(1.2);
+    }
+    100% {
+        transform: rotateY(360deg) scale(1);
+    }
 }
 
 /* Utility classes */

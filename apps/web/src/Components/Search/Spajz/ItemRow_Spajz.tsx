@@ -3,6 +3,7 @@ import PopUpWindow, {PopUpWindowState} from "../../PopUpWindow";
 import ItemDetail from "../ItemDetail";
 import {ItemModel} from "../../../Api";
 import { UpdateUserItem } from "../../../Other/itemService";
+import '@awesome.me/webawesome/dist/components/button/button.js';
 
 const ItemRow_Spajz = (props: { item: ItemModel, updateCallback: any }) => {
     const [popUpState, setPopUpState] = useState(PopUpWindowState.Hidden);
@@ -24,11 +25,17 @@ const ItemRow_Spajz = (props: { item: ItemModel, updateCallback: any }) => {
                 <div><b>{props.item.name.toLowerCase().charAt(0).toUpperCase() + props.item.name.slice(1).toLowerCase()}</b></div>
                 <div>W.I.P.</div>
 
-                <button className="btn btn-primary" onClick={() => setPopUpState(PopUpWindowState.WaitingOK)}>Detail</button>
+                <wa-button variant="brand" size="small" onClick={() => setPopUpState(PopUpWindowState.WaitingOK)}>
+                    Detail
+                </wa-button>
                 <div className="amountButtonsContainer">
-                    <button className="amountButton btn btn-danger" onClick={() => AddItem(-1)}>-</button>
+                    <wa-button className="amountButton" variant="danger" size="small" onClick={() => AddItem(-1)}>
+                        -
+                    </wa-button>
                     <b className="amountCount">{props.item.amount}</b>
-                    <button className="amountButton btn btn-success" onClick={() => AddItem(1)}>+</button>
+                    <wa-button className="amountButton" variant="success" size="small" onClick={() => AddItem(1)}>
+                        +
+                    </wa-button>
                 </div>
             </div>
 
