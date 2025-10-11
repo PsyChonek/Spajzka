@@ -1,0 +1,13 @@
+{
+  "watch": ["src/controllers", "src/types", "tsoa.json"],
+  "ignore": [
+    "src/routes/**",
+    "public/**",
+    "dist/**",
+    "node_modules/**"
+  ],
+  "ext": "ts,json",
+  "exec": "tsoa spec-and-routes",
+  "legacyWatch": true,
+  "delay": 2000
+}

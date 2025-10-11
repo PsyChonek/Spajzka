@@ -45,11 +45,13 @@ services:
       - '9229:9229' # Debug port
     volumes:
       # Mount source code for hot reload
-      - ./apps/api/src:/app/apps/api/src:ro
-      - ./apps/api/tsoa.json:/app/apps/api/tsoa.json:ro
-      # Persist generated files
-      - api-generated:/app/apps/api/src/routes
-      - api-swagger:/app/apps/api/public
+      - ./apps/api/src:/app/src:ro
+      - ./apps/api/tsoa.json:/app/tsoa.json:ro
+      - ./apps/api/nodemon.json:/app/nodemon.json:ro
+      - ./apps/api/nodemon-tsoa.json:/app/nodemon-tsoa.json:ro
+      # Don't mount generated directories - let container manage them
+      - /app/src/routes
+      - /app/public
     depends_on:
       mongo:
         condition: service_healthy
@@ -67,16 +69,22 @@ services:
     restart: unless-stopped
     environment:
       REACT_APP_SpajzkaAPI: http://localhost:3010
+      # Enable file watching in Docker
       CHOKIDAR_USEPOLLING: true
       WATCHPACK_POLLING: true
+      # Prevent memory issues
+      NODE_OPTIONS: --max_old_space_size=4096
+      # Fast refresh
+      FAST_REFRESH: true
     ports:
       - '3000:3000'
     volumes:
-      # Mount source code for hot reload
-      - ./apps/web/src:/app/apps/web/src:ro
-      - ./apps/web/public:/app/apps/web/public:ro
-      # Persist node_modules
-      - web-node-modules:/app/apps/web/node_modules
+      # Mount source code for hot reload (remove :ro to allow webpack dev server to work properly)
+      - ./apps/web/src:/app/src
+      - ./apps/web/public:/app/public
+      - ./apps/web/craco.config.js:/app/craco.config.js:ro
+      # Anonymous volume for build artifacts
+      - /app/build
     depends_on:
       - api
     networks:
@@ -93,10 +101,4 @@ volumes:
   mongo-data-dev:
     driver: local
   mongo-config-dev:
-    driver: local
-  api-generated:
-    driver: local
-  api-swagger:
-    driver: local
-  web-node-modules:
     driver: local

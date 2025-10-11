@@ -1,13 +1,16 @@
 ﻿import React from "react";
 import PopUpWindow, {PopUpWindowState} from "../../PopUpWindow";
 import Input from "../../Input";
+import '@awesome.me/webawesome/dist/components/button/button.js';
 
 const AddButton_Spajz = (popUpState:any, setPopUpState: any, setValue: any, query: string) =>
 {
 
     return (
         <div>
-            <button onClick={() => setPopUpState(PopUpWindowState.WaitingAccept)} className="btn btn-primary">Přidat</button>
+            <wa-button onClick={() => setPopUpState(PopUpWindowState.WaitingAccept)} variant="brand" appearance="filled">
+                Přidat
+            </wa-button>
             <PopUpWindow
                 state={popUpState}
                 setState={setPopUpState}

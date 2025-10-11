@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from "react";
 import {ItemModel} from "../../../Api";
 import { UpdateUserItem } from "../../../Other/itemService";
+import '@awesome.me/webawesome/dist/components/icon/icon.js';
 
 var isHoolding: boolean = false;
 var timer: any;
@@ -37,11 +38,11 @@ const ItemRow_Buylist = (props: { item: ItemModel, updateCallback: any }) => {
             <div className={props.item.isOnBuylist ? "" : "cross-text"}><b>{props.item.name.toLowerCase().charAt(0).toUpperCase() + props.item.name.slice(1).toLowerCase()}</b></div>
             {
                 props.item.amount > 0 ?
-                    <> <i className="bi bi-check-lg" style={{WebkitTextStrokeWidth: "0.8px", fontStyle: "normal"}}>
-                    </i>
+                    <> 
+                        <wa-icon name="check" style={{ color: 'var(--success-color, #28a745)', fontSize: '1.2rem' } as React.CSSProperties}></wa-icon>
                         <div className={"gridContainer-item-buylist-count"}> ({props.item.amount})</div>
                     </> :
-                    <><i className="bi bi-x-lg" style={{WebkitTextStrokeWidth: "0.8px", fontStyle: "normal"}}></i></>
+                    <wa-icon name="xmark" style={{ color: 'var(--danger-color, #dc3545)', fontSize: '1.2rem' } as React.CSSProperties}></wa-icon>
             }
         </div>
     );

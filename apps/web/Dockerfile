@@ -2,14 +2,13 @@
 FROM node:18-alpine AS base
 WORKDIR /app
 
-# Copy package files from root and web workspace
-COPY package*.json ./
+# Copy package files
 COPY apps/web/package*.json ./apps/web/
-COPY packages ./packages
 
 # Install dependencies stage
 FROM base AS dependencies
-RUN npm install --workspace=web
+WORKDIR /app/apps/web
+RUN npm install
 
 # Build stage
 FROM dependencies AS build

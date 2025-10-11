@@ -1,5 +1,6 @@
 import '../CSS/Popup.css'
 import React, {useEffect} from "react";
+import '@awesome.me/webawesome/dist/components/button/button.js';
 
 export enum PopUpWindowState {
     WaitingOK,
@@ -33,18 +34,28 @@ const PopUpWindow = (props: { state: PopUpWindowState, setState: any, title: str
         switch (props.state) {
             case PopUpWindowState.WaitingOK:
                 return (
-                    <button onClick={() => props.setState(PopUpWindowState.OK)} className="btn btn-primary">{props.buttonText}</button>)
+                    <wa-button onClick={() => props.setState(PopUpWindowState.OK)} variant="brand" appearance="filled">
+                        {props.buttonText}
+                    </wa-button>
+                )
                 break;
             case PopUpWindowState.WaitingResult:
                 return (
                     <div className="popup-buttons">
-                        <button onClick={() => props.setState(PopUpWindowState.Accept)} className="btn btn-success">Ano</button>
-                        <button onClick={() => props.setState(PopUpWindowState.Decline)} className="btn btn-danger">Ne</button>
-                    </div>)
+                        <wa-button onClick={() => props.setState(PopUpWindowState.Accept)} variant="success" appearance="filled">
+                            Ano
+                        </wa-button>
+                        <wa-button onClick={() => props.setState(PopUpWindowState.Decline)} variant="danger" appearance="filled">
+                            Ne
+                        </wa-button>
+                    </div>
+                )
                 break;
             case PopUpWindowState.WaitingAccept:
                 return (
-                    <button onClick={() => props.setState(PopUpWindowState.Accept)} className="btn btn-success">{props.buttonText}</button>
+                    <wa-button onClick={() => props.setState(PopUpWindowState.Accept)} variant="success" appearance="filled">
+                        {props.buttonText}
+                    </wa-button>
                 )
                 break;
         }

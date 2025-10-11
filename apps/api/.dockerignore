@@ -21,12 +21,6 @@ coverage
 *.test.ts
 *.spec.ts
 
-# Generated files (will be regenerated during build)
+# Generated files (will be regenerated during build or runtime)
 src/routes/*.ts
 public/swagger.json
-
-# Development files
-nodemon.json
-
-# Documentation
-*.md

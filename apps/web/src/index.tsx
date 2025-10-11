@@ -4,15 +4,21 @@ import { BrowserRouter } from 'react-router-dom';
 import * as serviceWorkerRegistration from './Other/serviceWorkerRegistration';
 import reportWebVitals from "./Other/reportWebVitals";
 import Navigation from "./Views/Navigation";
+import { ThemeProvider } from './Theme';
+
+// Import WebAwesome types
+import './types/webawesome.d.ts';
 
 const root = ReactDOM.createRoot(
     document.getElementById('root') as HTMLElement
 );
 
 root.render(
-    <BrowserRouter>
-        <Navigation />
-    </BrowserRouter>
+    <ThemeProvider>
+        <BrowserRouter>
+            <Navigation />
+        </BrowserRouter>
+    </ThemeProvider>
 );
 
 // If you want your app to work offline and load faster, you can change

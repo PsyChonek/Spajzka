@@ -2,17 +2,11 @@
 FROM node:18-alpine AS development
 WORKDIR /app
 
-# Install dependencies for nodemon and development
-COPY package*.json ./
-COPY apps/api/package*.json ./apps/api/
-COPY packages ./packages
-
-# Install all dependencies (including dev)
-# Using install instead of ci since we're in a monorepo and may not have all lock files
-RUN npm install --workspace=api
+# Copy package files and install dependencies
+COPY apps/api/package*.json ./
+RUN npm install
 
 # Copy API source files
-WORKDIR /app/apps/api
 COPY apps/api/ ./
 
 # Expose API and debug ports

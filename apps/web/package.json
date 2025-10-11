@@ -1,8 +1,11 @@
 {
   "name": "web",
-  "version": "0.1.10 - 20251010",
+  "version": "0.1.10 - 20251011",
   "private": true,
   "dependencies": {
+    "@awesome.me/webawesome": "^3.0.0-beta.6",
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "@fortawesome/fontawesome-free": "^7.1.0",
     "idb": "^7.1.1",
     "os-browserify": "^0.3.0",
     "path-browserify": "^1.0.1",
@@ -24,20 +27,21 @@
     "workbox-range-requests": "^6.5.4",
     "workbox-routing": "^6.5.4",
     "workbox-strategies": "^6.5.4",
-    "workbox-streams": "^6.5.4",
-    "@babel/plugin-proposal-private-property-in-object": "^7.21.11"
+    "workbox-streams": "^6.5.4"
   },
   "devDependencies": {
     "@craco/craco": "^7.1.0",
-    "@types/react-router-dom": "^5.3.3",
     "@types/node": "^18.15.11",
     "@types/react": "^18.0.31",
     "@types/react-dom": "^18.0.11",
+    "@types/react-router-dom": "^5.3.3",
     "cross-env": "^7.0.3"
   },
   "scripts": {
     "appendVersionWithDate": "node ./scripts/appendVersionWithDate.js",
-    "build": "npm run appendVersionWithDate && craco build"
+    "dev": "craco start",
+    "build": "npm run appendVersionWithDate && craco build",
+    "generateClient": "npx swagger-typescript-api -p http://127.0.0.1:3010/docs/json -o ./src --patch"
   },
   "browserslist": {
     "production": [

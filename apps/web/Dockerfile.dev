@@ -2,17 +2,11 @@
 FROM node:18-alpine AS development
 WORKDIR /app
 
-# Install dependencies
-COPY package*.json ./
-COPY apps/web/package*.json ./apps/web/
-COPY packages ./packages
-
-# Install all dependencies (including dev)
-# Using install instead of ci since we're in a monorepo and may not have all lock files
-RUN npm install --workspace=web
+# Copy package files and install dependencies
+COPY apps/web/package*.json ./
+RUN npm install
 
 # Copy web source files
-WORKDIR /app/apps/web
 COPY apps/web/ ./
 
 # Expose port for dev server

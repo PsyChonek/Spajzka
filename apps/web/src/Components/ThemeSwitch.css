@@ -1,0 +1,141 @@
+/* Theme Switch Wrapper */
+.theme-switch-wrapper {
+  display: flex;
+  align-items: center;
+  margin-left: 1rem;
+}
+
+/* Theme Switch Container */
+.theme-switch {
+  position: relative;
+  display: inline-block;
+  width: 56px;
+  height: 28px;
+  cursor: pointer;
+}
+
+/* Hide default checkbox */
+.theme-switch input[type="checkbox"] {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+/* The slider */
+.theme-switch-slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 28px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 6px;
+}
+
+/* Hover effect */
+.theme-switch:hover .theme-switch-slider {
+  background-color: rgba(255, 255, 255, 0.25);
+  border-color: var(--color-secondary);
+}
+
+/* Slider thumb (the moving circle) */
+.theme-switch-slider::before {
+  content: '';
+  position: absolute;
+  height: 20px;
+  width: 20px;
+  left: 4px;
+  bottom: 2px;
+  background-color: #ffffff;
+  border-radius: 50%;
+  transition: transform 0.3s ease, background-color 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  z-index: 2;
+}
+
+/* When checked (dark mode) */
+.theme-switch input:checked + .theme-switch-slider {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-color: var(--color-secondary);
+}
+
+.theme-switch input:checked + .theme-switch-slider::before {
+  transform: translateX(26px);
+  background-color: var(--color-secondary);
+}
+
+/* Icons */
+.theme-switch-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.9);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.theme-switch-icon svg {
+  display: block;
+}
+
+.theme-switch-icon-sun {
+  opacity: 1;
+}
+
+.theme-switch-icon-moon {
+  opacity: 0.5;
+}
+
+/* When checked (dark mode), switch icon visibility */
+.theme-switch input:checked + .theme-switch-slider .theme-switch-icon-sun {
+  opacity: 0.5;
+}
+
+.theme-switch input:checked + .theme-switch-slider .theme-switch-icon-moon {
+  opacity: 1;
+}
+
+/* Focus state for accessibility */
+.theme-switch input:focus + .theme-switch-slider {
+  box-shadow: 0 0 0 3px rgba(197, 186, 238, 0.3);
+  outline: none;
+}
+
+/* Active state */
+.theme-switch:active .theme-switch-slider::before {
+  width: 24px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .theme-switch-wrapper {
+    margin-left: 0.5rem;
+  }
+
+  .theme-switch {
+    width: 50px;
+    height: 26px;
+  }
+
+  .theme-switch-slider::before {
+    height: 18px;
+    width: 18px;
+  }
+
+  .theme-switch input:checked + .theme-switch-slider::before {
+    transform: translateX(22px);
+  }
+
+  .theme-switch-icon svg {
+    width: 12px;
+    height: 12px;
+  }
+}

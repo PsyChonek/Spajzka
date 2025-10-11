@@ -1,60 +1,56 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import {SortOptionsItem} from "../SortOptions";
 import ItemSeparator from "../ItemSeparator";
+import '@awesome.me/webawesome/dist/components/dropdown/dropdown.js';
+import '@awesome.me/webawesome/dist/components/button/button.js';
+import '@awesome.me/webawesome/dist/components/icon/icon.js';
 
 function ItemHead_Spajz(props: { sorts: SortOptionsItem[], updateSort: any }) {
-    const [dropdownOpen, setDropdownOpen] = useState(false);
-
     // Set default sort, isOnBuylist descending
     useEffect(() => {
         props.updateSort("name", true);
     }, [])
 
+    const getSortIcon = (sortKey: string) => {
+        const sort = props.sorts?.find(x => x.value === sortKey);
+        return sort?.isDescending ? 'sort-down' : 'sort-up';
+    };
+
     return (
         <div className="container searchContainer">
             <div className="gridContainer-head-buylist">
-                <div className="dropdown">
-                    <button
-                        className="btn btn-secondary dropdown-toggle"
-                        type="button"
-                        onClick={() => setDropdownOpen(!dropdownOpen)}
-                        aria-expanded={dropdownOpen}
-                    >
+                <wa-dropdown>
+                    <wa-button slot="trigger" with-caret variant="neutral">
                         Seřadit
-                    </button>
-                    <div className={`dropdown-menu ${dropdownOpen ? 'show' : ''}`}>
-                        <button
-                            id="sort-name-spajz"
-                            className={`gridContainer-head-buylist-item btn ${props.sorts?.find(x => x.value == "name")?.isActive ? 'active' : ''}`}
-                            type="button"
-                            onClick={(e) => props.updateSort("name")}
-                        >
-                            Název
-                            {props.sorts?.find(x => x.value == "name")?.isDescending && <i className="bi-sort-down gridContainer-head-item-icon"></i>
-                                || <i className="bi-sort-up gridContainer-head-item-icon"></i>}
-                        </button>
-                        <button
-                            id="sort-price"
-                            className={`gridContainer-head-buylist-item btn ${props.sorts?.find(x => x.value == "price")?.isActive ? 'active' : ''}`}
-                            type="button"
-                            onClick={(e) => props.updateSort("price")}
-                        >
-                            Cena
-                            {props.sorts?.find(x => x.value == "price")?.isDescending && <i className="bi-sort-down gridContainer-head-item-icon"></i>
-                                || <i className="bi-sort-up gridContainer-head-item-icon"></i>}
-                        </button>
-                        <button
-                            id="sort-inSpajz-spajz"
-                            className={`gridContainer-head-buylist-item btn ${props.sorts?.find(x => x.value == "inSpajz")?.isActive ? 'active' : ''}`}
-                            type="button"
-                            onClick={(e) => props.updateSort("inSpajz")}
-                        >
-                            Ve Špajzu?
-                            {props.sorts?.find(x => x.value == "inSpajz")?.isDescending && <i className="bi-sort-down gridContainer-head-item-icon"></i>
-                                || <i className="bi-sort-up gridContainer-head-item-icon"></i>}
-                        </button>
-                    </div>
-                </div>
+                    </wa-button>
+                    
+                    <wa-dropdown-item
+                        onClick={() => props.updateSort("name")}
+                        type="button"
+                        checked={props.sorts?.find(x => x.value === "name")?.isActive}
+                    >
+                        <wa-icon slot="start" name={getSortIcon("name")}></wa-icon>
+                        Název
+                    </wa-dropdown-item>
+                    
+                    <wa-dropdown-item
+                        onClick={() => props.updateSort("price")}
+                        type="button"
+                        checked={props.sorts?.find(x => x.value === "price")?.isActive}
+                    >
+                        <wa-icon slot="start" name={getSortIcon("price")}></wa-icon>
+                        Cena
+                    </wa-dropdown-item>
+                    
+                    <wa-dropdown-item
+                        onClick={() => props.updateSort("inSpajz")}
+                        type="button"
+                        checked={props.sorts?.find(x => x.value === "inSpajz")?.isActive}
+                    >
+                        <wa-icon slot="start" name={getSortIcon("inSpajz")}></wa-icon>
+                        Ve Špajzu?
+                    </wa-dropdown-item>
+                </wa-dropdown>
             </div>
             <ItemSeparator/>
             <div className="gridContainer-head-spajz">

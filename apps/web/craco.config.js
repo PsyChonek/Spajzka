@@ -1,7 +1,18 @@
 module.exports = {
   devServer:
     {
-      port: 'auto'
+      port: 3000,
+      host: '0.0.0.0',
+      // Enable hot reload in Docker
+      hot: true,
+      // Use watchFiles for Docker environment (webpack-dev-server v4+)
+      watchFiles: {
+        paths: ['src/**/*', 'public/**/*'],
+        options: {
+          usePolling: true,
+          interval: 1000,
+        }
+      }
     },
   webpack: {
     configure: {

@@ -8,6 +8,7 @@ import NavbarCustom from '../Components/NavbarCustom';
 import Privacy from './Privacy';
 import AccountDelete from './AccountDelete';
 import { initializeAuth } from '../Other/authInitializer';
+import ThemeDebug from '../Components/ThemeDebug';
 
 const Navigation = () => {
 
@@ -58,6 +59,9 @@ const Navigation = () => {
             </Routes>
 
             <FooterCustom setActive={setActive} active={active} />
+            
+            {/* Temporary debug component - remove after testing */}
+            <ThemeDebug />
         </>
     );
 

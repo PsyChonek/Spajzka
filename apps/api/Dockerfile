@@ -2,14 +2,13 @@
 FROM node:18-alpine AS base
 WORKDIR /app
 
-# Copy package files from root and api workspace
-COPY package*.json ./
+# Copy package files
 COPY apps/api/package*.json ./apps/api/
-COPY packages ./packages
 
 # Install dependencies stage
 FROM base AS dependencies
-RUN npm install --workspace=api
+WORKDIR /app/apps/api
+RUN npm install
 
 # Build stage
 FROM dependencies AS build
@@ -23,17 +22,16 @@ RUN npm run build
 
 # Production stage
 FROM node:18-alpine AS production
-WORKDIR /app
+WORKDIR /app/apps/api
 
 # Install production dependencies only
-COPY package*.json ./
-COPY apps/api/package*.json ./apps/api/
-RUN npm install --workspace=api --omit=dev
+COPY apps/api/package*.json ./
+RUN npm install --omit=dev
 
 # Copy built files from build stage
-COPY --from=build /app/apps/api/dist ./apps/api/dist
-COPY --from=build /app/apps/api/public ./apps/api/public
-COPY --from=build /app/apps/api/tsoa.json ./apps/api/tsoa.json
+COPY --from=build /app/apps/api/dist ./dist
+COPY --from=build /app/apps/api/public ./public
+COPY --from=build /app/apps/api/tsoa.json ./tsoa.json
 
 WORKDIR /app/apps/api
 

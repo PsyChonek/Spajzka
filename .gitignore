@@ -13,6 +13,12 @@ coverage
 out/
 build
 
+# API build artifacts
+apps/api/dist
+apps/api/*.tsbuildinfo
+apps/api/src/routes/*.ts
+apps/api/public/swagger.json
+
 # misc
 .DS_Store
 *.pem
@@ -24,13 +30,11 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # local env files
+.env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
-
-# turbo
-.turbo
 
 # code
 .vscode

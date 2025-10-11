@@ -9,14 +9,15 @@ only
     width: 100%;
     padding: 1.5%;
     border-radius: 5px;
-    border: solid 1px white;
-    background-color: rgba(255, 255, 255, 1);
-    color: rgb(46, 46, 46);
+    border: solid 1px var(--color-border);
+    background-color: var(--color-surface);
+    color: var(--color-text-primary);
     font-size: 1em;
+    transition: all 0.3s ease;
 }
 
 .searchbar-input:focus {
-    border: solid 1px aquamarine;
+    border: solid 1px var(--color-primary);
 }
 
 .searchContainer {
@@ -38,6 +39,7 @@ only
     align-items: center;
     height: 3em;
     text-align: left;
+    color: var(--color-text-primary);
     justify-content: space-evenly;
     display: grid;
 }
@@ -50,6 +52,7 @@ only
     padding-left: 1em;
     padding-right: 1em;
     text-align: left;
+    color: var(--color-text-primary);
     justify-content: space-evenly;
     contain: content;
     align-items: center;
@@ -67,6 +70,7 @@ only
     padding-right: 0;
     padding-left: 0;
     font-weight: bold;
+    color: var(--color-text-primary);
     justify-content: space-between;
     contain: content;
     -webkit-user-select: none; /* Safari */
@@ -76,15 +80,15 @@ only
 
 
 .gridContainer-head-buylist-item:hover {
-    background: rgba(0, 0, 0, 0.2) !important;
+    background: var(--color-surface-hover) !important;
     border: none !important;
-    color: black !important;
+    color: var(--color-text-primary) !important;
 }
 
 .btn-check:checked + .gridContainer-head-buylist-item {
-    background: rgb(196, 167, 224) !important;
+    background: var(--color-secondary) !important;
     border: none !important;
-    color: black !important;
+    color: var(--color-text-primary) !important;
 }
 
 .gridContainer-separator {
@@ -121,7 +125,7 @@ only
 }
 
 .cross-text {
-    color: rgba(0, 0, 0, 0.5) !important;
+    color: var(--color-text-disabled) !important;
 }
 
 .gridContainer-head-item-icon {
@@ -132,7 +136,7 @@ only
 
 .cross {
     height: 2px;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: var(--color-text-disabled);
     box-sizing: border-box;
     width: 85%;
     position: fixed;
@@ -156,13 +160,14 @@ only
     height: 60px;
     align-items: center;
     display: grid;
-    background: rgba(0, 0, 0, 0.1);
-    border: none;
-    color: black;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-primary);
     padding: 5px;
     margin: 7px;
     text-align: center;
     grid-template-columns: 80% 20%;
+    transition: all 0.3s ease;
 }
 
 .dropdown-toggle {
@@ -172,9 +177,10 @@ only
     align-items: center !important;
     display: flex !important;
     justify-content: space-evenly;
-    background: rgba(0, 0, 0, 0.1) !important;
-    border: none !important;
-    color: black !important;
+    background: var(--color-surface) !important;
+    border: 1px solid var(--color-border) !important;
+    color: var(--color-text-primary) !important;
     padding: 5px !important;
+    transition: all 0.3s ease;
 }
     

@@ -8,7 +8,6 @@ package-lock.json
 # Build outputs
 dist
 build
-.turbo
 *.tsbuildinfo
 
 # IDE
