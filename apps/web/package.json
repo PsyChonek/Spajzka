@@ -1,6 +1,6 @@
 {
   "name": "web",
-  "version": "0.1.10 - 20250301",
+  "version": "0.1.10 - 20251010",
   "private": true,
   "dependencies": {
     "bootstrap": "^5.2.3",
@@ -39,9 +39,7 @@
   },
   "scripts": {
     "appendVersionWithDate": "node ./scripts/appendVersionWithDate.js",
-    "dev": "craco start",
-    "build": "npm run appendVersionWithDate && craco build",
-    "generateClient": "npx swagger-typescript-api -p http://127.0.0.1:3010/docs/json -o ./src --patch"
+    "build": "npm run appendVersionWithDate && craco build"
   },
   "browserslist": {
     "production": [
