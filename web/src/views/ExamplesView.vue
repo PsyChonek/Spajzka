@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useQuasar } from 'quasar'
+import PageWrapper from '@/components/PageWrapper.vue'
 
 const $q = useQuasar()
 
@@ -116,11 +117,12 @@ const handleDeleteRow = (row: any) => {
 </script>
 
 <template>
-  <div class="examples-page q-pa-md">
-    <header class="page-header q-mb-lg">
-      <h1 class="text-h3">Quasar Components Examples</h1>
-      <p class="text-subtitle1">Interactive showcase of Quasar component library</p>
-    </header>
+  <PageWrapper>
+    <div class="examples-page">
+      <header class="page-header q-mb-lg">
+        <h1 class="text-h3">Quasar Components Examples</h1>
+        <p class="text-subtitle1">Interactive showcase of Quasar component library</p>
+      </header>
 
     <!-- Buttons Section -->
     <section class="example-section q-mb-lg">
@@ -608,12 +610,9 @@ const handleDeleteRow = (row: any) => {
         </q-card-section>
       </q-card>
     </section>
-  </div>
+    </div>
+  </PageWrapper>
 </template>
 
 <style scoped>
-.examples-page {
-  max-width: 1200px;
-  margin: 0 auto;
-}
 </style>

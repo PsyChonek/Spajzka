@@ -1,16 +1,19 @@
 // Re-export generated API client services and types directly
-export { 
+export {
   OpenAPI,
-  PantryService, 
+  PantryService,
   ShoppingService,
+  ItemsService,
   ApiError
 } from '@/api-client'
 
-export type { 
+export type {
   PantryItem,
   ShoppingItem,
+  Item,
   CreatePantryItemRequest,
-  CreateShoppingItemRequest
+  CreateShoppingItemRequest,
+  CreateItemRequest
 } from '@/api-client'
 
 // Utility function

@@ -1,10 +1,18 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { usePantryStore } from '@/stores/pantryStore'
+import { useItemsStore } from '@/stores/itemsStore'
 import type { PantryItem } from '@/services/api'
+import PageWrapper from '@/components/PageWrapper.vue'
 
 const pantryStore = usePantryStore()
+const itemsStore = useItemsStore()
 const isOnline = () => navigator.onLine
+
+// Fetch items from master list on mount
+onMounted(() => {
+  itemsStore.fetchItems()
+})
 
 const searchQuery = ref('')
 const showAddDialog = ref(false)
@@ -68,11 +76,36 @@ const showAddButton = computed(() => {
   return searchQuery.value.length > 0 && filteredItems.value.length === 0
 })
 
+// Suggest items from master Items list
+const suggestedItems = computed(() => {
+  if (!searchQuery.value || filteredItems.value.length > 0) {
+    return []
+  }
+
+  const query = searchQuery.value.toLowerCase()
+  return itemsStore.sortedItems
+    .filter(item =>
+      item.name.toLowerCase().includes(query) ||
+      (item.category && item.category.toLowerCase().includes(query))
+    )
+    .slice(0, 5) // Limit to 5 suggestions
+})
+
 const openAddDialog = () => {
   newItemName.value = searchQuery.value
   newItemQuantity.value = 1
   newItemPrice.value = 0
   showAddDialog.value = true
+}
+
+const addFromSuggestion = async (item: any) => {
+  // Add item directly without showing modal
+  await pantryStore.addItem({
+    name: item.name,
+    quantity: 1,
+    price: item.price || 0
+  })
+  searchQuery.value = ''
 }
 
 const closeAddDialog = () => {
@@ -112,22 +145,23 @@ const deleteItem = (itemId: string) => {
 </script>
 
 <template>
-  <div class="items-view q-pa-md">
-    <!-- Sync Status Badge -->
-    <div class="sync-status">
-      <q-badge v-if="!isOnline()" color="orange" class="q-pa-sm">
-        <q-icon name="cloud_off" size="xs" class="q-mr-xs" />
-        Offline Mode
-      </q-badge>
-      <q-badge v-else-if="pantryStore.lastSynced" color="positive" class="q-pa-sm">
-        <q-icon name="cloud_done" size="xs" class="q-mr-xs" />
-        Synced
-      </q-badge>
-      <q-badge v-else color="grey-7" class="q-pa-sm">
-        <q-icon name="storage" size="xs" class="q-mr-xs" />
-        Local Storage
-      </q-badge>
-    </div>
+  <PageWrapper>
+    <div class="items-view">
+      <!-- Sync Status Badge -->
+      <div class="sync-status">
+        <q-badge v-if="!isOnline()" color="orange" class="q-pa-sm">
+          <q-icon name="cloud_off" size="xs" class="q-mr-xs" />
+          Offline Mode
+        </q-badge>
+        <q-badge v-else-if="pantryStore.lastSynced" color="positive" class="q-pa-sm">
+          <q-icon name="cloud_done" size="xs" class="q-mr-xs" />
+          Synced
+        </q-badge>
+        <q-badge v-else color="grey-7" class="q-pa-sm">
+          <q-icon name="storage" size="xs" class="q-mr-xs" />
+          Local Storage
+        </q-badge>
+      </div>
 
     <div class="search-container">
       <q-input
@@ -142,13 +176,39 @@ const deleteItem = (itemId: string) => {
         </template>
       </q-input>
 
+      <!-- Suggestions from Items list -->
+      <div v-if="suggestedItems.length > 0" class="suggestions-container q-mt-md">
+        <div class="text-subtitle2 text-grey-7 q-mb-sm">Suggested from Items:</div>
+        <div class="suggestions-list">
+          <q-card
+            v-for="item in suggestedItems"
+            :key="item._id"
+            class="suggestion-card cursor-pointer"
+            @click="addFromSuggestion(item)"
+          >
+            <q-card-section class="q-pa-md">
+              <div class="suggestion-content">
+                <div>
+                  <div class="text-weight-medium">{{ item.name }}</div>
+                  <div class="text-caption text-grey-7">
+                    {{ item.unit }}
+                    <span v-if="item.category"> • {{ item.category }}</span>
+                    <span v-if="item.price"> • ${{ item.price.toFixed(2) }}</span>
+                  </div>
+                </div>
+                <q-icon name="add_circle" color="primary" size="sm" />
+              </div>
+            </q-card-section>
+          </q-card>
+        </div>
+      </div>
+
       <div v-if="showAddButton" class="add-button-container q-mt-md">
         <q-btn
           color="primary"
           icon="add"
           label="Add Item"
           @click="openAddDialog"
-          size="lg"
         />
       </div>
     </div>
@@ -258,14 +318,12 @@ const deleteItem = (itemId: string) => {
         </q-card-actions>
       </q-card>
     </q-dialog>
-  </div>
+    </div>
+  </PageWrapper>
 </template>
 
 <style scoped>
 .items-view {
-  max-width: 1400px;
-  margin: 0 auto;
-  min-height: 100vh;
   position: relative;
 }
 
@@ -307,5 +365,32 @@ const deleteItem = (itemId: string) => {
   display: flex;
   gap: 4px;
   justify-content: center;
+}
+
+.suggestions-container {
+  width: 100%;
+  max-width: 800px;
+}
+
+.suggestions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.suggestion-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.suggestion-card:hover {
+  transform: translateX(4px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.suggestion-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
 }
 </style>

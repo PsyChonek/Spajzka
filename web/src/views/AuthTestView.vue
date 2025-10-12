@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
+import PageWrapper from '@/components/PageWrapper.vue'
 
 const authStore = useAuthStore()
 
@@ -126,8 +127,9 @@ authStore.initialize()
 </script>
 
 <template>
-  <div class="auth-view q-pa-md">
-    <div class="container">
+  <PageWrapper max-width="600px" centered>
+    <div class="auth-view">
+      <div class="container">
       <h2 class="text-h4 text-center q-mb-lg">User Authentication Test</h2>
 
       <!-- Not Authenticated - Show Login/Register -->
@@ -273,9 +275,6 @@ authStore.initialize()
             <div class="text-subtitle2 text-grey-7">
               <q-icon name="info" class="q-mr-sm" />
               API Status: Waiting for authentication...
-            </div>
-            <div class="text-caption text-grey-6 q-mt-sm">
-              Backend API: http://localhost:3000/api
             </div>
           </q-card-section>
         </q-card>
@@ -512,22 +511,18 @@ authStore.initialize()
           </q-card-actions>
         </q-card>
       </q-dialog>
+      </div>
     </div>
-  </div>
+  </PageWrapper>
 </template>
 
 <style scoped>
 .auth-view {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 100%;
 }
 
 .container {
-  max-width: 600px;
   width: 100%;
-  margin: 0 auto;
 }
 
 .form-card {
