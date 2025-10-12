@@ -1,89 +1,59 @@
+# Docker Compose configuration for Spajzka
+# This configuration is designed for use with standalone nginx on the host
+# Nginx handles SSL/TLS termination and proxies to these containers
+
 version: '3.8'
 
 services:
-  # MongoDB Database
-  mongo:
-    image: mongo:7
-    container_name: spajzka-mongo
-    restart: unless-stopped
+  mongodb:
+    build:
+      context: ./db
+      dockerfile: Dockerfile
+    container_name: spajzka-mongodb
     environment:
-      MONGO_INITDB_ROOT_USERNAME: spajzkaadmin
-      MONGO_INITDB_ROOT_PASSWORD: spajzkaadmin
-      MONGO_INITDB_DATABASE: spajzka
-    ports:
-      - '27017:27017'
+      - MONGO_INITDB_DATABASE=spajzka
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USERNAME:-admin}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD:-password}
     volumes:
-      - mongo-data:/data/db
-      - mongo-config:/data/configdb
-      # Optional: mount initialization scripts
-      - ./apps/db/sample:/docker-entrypoint-initdb.d:ro
+      - mongodb_data:/data/db
     networks:
       - spajzka-network
-    healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/spajzka --quiet
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 40s
+    restart: unless-stopped
 
-  # API Service
   api:
     build:
-      context: .
-      dockerfile: ./apps/api/Dockerfile
+      context: ./api
+      dockerfile: Dockerfile
     container_name: spajzka-api
-    restart: unless-stopped
-    environment:
-      PORT: 3010
-      MONGO_URI: mongodb://spajzkaadmin:spajzkaadmin@mongo:27017/spajzka?authSource=admin
-      DATABASE: spajzka
-      JWT_SECRET: your-secret-key-change-in-production
-      NODE_ENV: production
     ports:
-      - '3010:3010'
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - MONGO_URL=mongodb://${MONGO_USERNAME:-admin}:${MONGO_PASSWORD:-password}@mongodb:27017
+      - DB_NAME=spajzka
     depends_on:
-      mongo:
-        condition: service_healthy
+      - mongodb
     networks:
       - spajzka-network
-    healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3010/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
-      interval: 30s
-      timeout: 3s
-      retries: 3
-      start_period: 40s
+    restart: unless-stopped
 
-  # Web Application
   web:
     build:
-      context: .
-      dockerfile: ./apps/web/Dockerfile
-      args:
-        REACT_APP_SpajzkaAPI: http://localhost:3010
-    container_name: spajzka-web
-    restart: unless-stopped
-    environment:
-      REACT_APP_SpajzkaAPI: http://localhost:3010
+      context: ./web
+      dockerfile: Dockerfile
     ports:
-      - '3000:80'
+      - "8080:80"
+    container_name: spajzka-web
     depends_on:
-      api:
-        condition: service_healthy
+      - api
     networks:
       - spajzka-network
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80/"]
-      interval: 30s
-      timeout: 3s
-      retries: 3
-      start_period: 10s
+    restart: unless-stopped
+
+volumes:
+  mongodb_data:
 
 networks:
   spajzka-network:
     driver: bridge
-
-volumes:
-  mongo-data:
-    driver: local
-  mongo-config:
-    driver: local

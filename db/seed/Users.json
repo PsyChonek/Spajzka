@@ -1,0 +1,18 @@
+{
+	"users": [
+		{
+			"_id": {
+				"$oid": "68eb80b11d2eacda726c0b8c"
+			},
+			"name": "test",
+			"email": "test@example.com",
+			"password": "$2a$10$I00XZ51fjliukUnOuXkpN.cexULhJEaIPCx8sjabcxZHuWbNEcn2G",
+			"createdAt": {
+				"$date": "2025-10-12T10:19:29.105Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:19:29.105Z"
+			}
+		}
+	]
+}

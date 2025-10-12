@@ -1,0 +1,21 @@
+{
+	"pantry": [
+		{
+			"userId": {
+				"$oid": "68eb80b11d2eacda726c0b8c"
+			},
+			"itemId": {
+				"$oid": "68eb7ef1335fb9089bf861f4"
+			},
+			"quantity": 1,
+			"price": 0,
+			"expiryDate": null,
+			"createdAt": {
+				"$date": "2025-10-12T10:09:31.478Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:09:31.478Z"
+			}
+		}
+	]
+}

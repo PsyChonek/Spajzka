@@ -1,0 +1,29 @@
+# Development Dockerfile with hot-reload
+
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install dependencies for nodemon
+RUN apk add --no-cache tini
+
+# Copy package files
+COPY package*.json ./
+
+# Install all dependencies (including dev)
+RUN npm install
+
+# Copy TypeScript config
+COPY tsconfig.json ./
+
+# Copy source code
+COPY src ./src
+
+# Expose port
+EXPOSE 3000
+
+# Use tini to handle signals properly
+ENTRYPOINT ["/sbin/tini", "--"]
+
+# Start with nodemon for hot-reload
+CMD ["npm", "run", "dev"]

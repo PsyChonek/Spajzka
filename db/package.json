@@ -1,0 +1,12 @@
+{
+  "name": "spajzka-db-seed",
+  "version": "1.0.0",
+  "description": "MongoDB seeding script for Spajzka",
+  "main": "seed.js",
+  "scripts": {
+    "seed": "node seed.js"
+  },
+  "dependencies": {
+    "mongodb": "^6.10.0"
+  }
+}

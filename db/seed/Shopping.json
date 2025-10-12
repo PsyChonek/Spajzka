@@ -1,0 +1,19 @@
+{
+	"shopping": [
+		{
+			"userId": {
+				"$oid": "68eb80b11d2eacda726c0b8c"
+			},
+			"itemId": {
+				"$oid": "68eb7ef1335fb9089bf861f6"
+			},
+			"createdAt": {
+				"$date": "2025-10-12T10:10:23.868Z"
+			},
+			"completed": false,
+			"updatedAt": {
+				"$date": "2025-10-12T10:10:23.868Z"
+			}
+		}
+	]
+}

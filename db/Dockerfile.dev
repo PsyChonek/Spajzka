@@ -1,0 +1,16 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy seed script and data
+COPY seed.js ./
+COPY seed/ ./seed/
+
+# Wait for MongoDB to be ready and run seed script
+CMD ["npm", "run", "seed"]

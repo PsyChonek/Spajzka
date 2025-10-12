@@ -1,104 +1,94 @@
 version: '3.8'
 
 services:
-  # MongoDB Database (Development)
-  mongo:
-    image: mongo:7
-    container_name: spajzka-mongo-dev
-    restart: unless-stopped
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: spajzkaadmin
-      MONGO_INITDB_ROOT_PASSWORD: spajzkaadmin
-      MONGO_INITDB_DATABASE: spajzka
+  mongodb:
+    image: mongo:7.0
+    container_name: spajzka-mongodb-dev
     ports:
-      - '27017:27017'
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=spajzka
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USERNAME:-admin}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD:-password}
     volumes:
-      - mongo-data-dev:/data/db
-      - mongo-config-dev:/data/configdb
-      # Mount sample data for seeding
-      - ./apps/db/sample:/docker-entrypoint-initdb.d:ro
+      - mongodb_data_dev:/data/db
     networks:
       - spajzka-network-dev
-    healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/spajzka --quiet
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 40s
+    restart: unless-stopped
 
-  # API Service (Development with hot reload)
+  mongodb-seed:
+    build:
+      context: ./db
+      dockerfile: Dockerfile.dev
+    container_name: spajzka-mongodb-seed-dev
+    depends_on:
+      - mongodb
+    environment:
+      - MONGO_URL=mongodb://${MONGO_USERNAME:-admin}:${MONGO_PASSWORD:-password}@mongodb:27017
+      - DB_NAME=spajzka
+    volumes:
+      # Mount seed files for live updates
+      - ./db/seed:/app/seed
+      - ./db/seed.js:/app/seed.js
+    networks:
+      - spajzka-network-dev
+    restart: "no"
+
   api:
     build:
-      context: .
-      dockerfile: ./apps/api/Dockerfile.dev
-      target: development
+      context: ./api
+      dockerfile: Dockerfile.dev
     container_name: spajzka-api-dev
-    restart: unless-stopped
-    environment:
-      PORT: 3010
-      MONGO_URI: mongodb://spajzkaadmin:spajzkaadmin@mongo:27017/spajzka?authSource=admin
-      DATABASE: spajzka
-      JWT_SECRET: your-secret-key-change-in-production
-      NODE_ENV: development
     ports:
-      - '3010:3010'
-      - '9229:9229' # Debug port
-    volumes:
-      # Mount source code for hot reload
-      - ./apps/api/src:/app/src:ro
-      - ./apps/api/tsoa.json:/app/tsoa.json:ro
-      - ./apps/api/nodemon.json:/app/nodemon.json:ro
-      - ./apps/api/nodemon-tsoa.json:/app/nodemon-tsoa.json:ro
-      # Don't mount generated directories - let container manage them
-      - /app/src/routes
-      - /app/public
+      - "3000:3000"
     depends_on:
-      mongo:
-        condition: service_healthy
+      - mongodb
+    volumes:
+      # Mount source code for hot-reload
+      - ./api/src:/app/src
+      - ./api/tsconfig.json:/app/tsconfig.json
+      - ./api/.env:/app/.env
+      # Prevent overwriting node_modules
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - MONGO_URL=mongodb://${MONGO_USERNAME:-admin}:${MONGO_PASSWORD:-password}@mongodb:27017
+      - DB_NAME=spajzka
     networks:
       - spajzka-network-dev
-    command: npm run dev
+    restart: unless-stopped
 
-  # Web Application (Development with hot reload)
   web:
     build:
-      context: .
-      dockerfile: ./apps/web/Dockerfile.dev
-      target: development
-    container_name: spajzka-web-dev
-    restart: unless-stopped
-    environment:
-      REACT_APP_SpajzkaAPI: http://localhost:3010
-      # Enable file watching in Docker
-      CHOKIDAR_USEPOLLING: true
-      WATCHPACK_POLLING: true
-      # Prevent memory issues
-      NODE_OPTIONS: --max_old_space_size=4096
-      # Fast refresh
-      FAST_REFRESH: true
+      context: ./web
+      dockerfile: Dockerfile.dev
     ports:
-      - '3000:3000'
-    volumes:
-      # Mount source code for hot reload (remove :ro to allow webpack dev server to work properly)
-      - ./apps/web/src:/app/src
-      - ./apps/web/public:/app/public
-      - ./apps/web/craco.config.js:/app/craco.config.js:ro
-      # Anonymous volume for build artifacts
-      - /app/build
+      - "5173:5173"
+    container_name: spajzka-web-dev
     depends_on:
       - api
+    volumes:
+      # Mount source code for HMR
+      - ./web/src:/app/src
+      - ./web/public:/app/public
+      - ./web/index.html:/app/index.html
+      - ./web/vite.config.ts:/app/vite.config.ts
+      - ./web/tsconfig.json:/app/tsconfig.json
+      - ./web/tsconfig.app.json:/app/tsconfig.app.json
+      - ./web/tsconfig.node.json:/app/tsconfig.node.json
+      # Prevent overwriting node_modules
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://localhost:3000
     networks:
       - spajzka-network-dev
-    stdin_open: true
-    tty: true
-    command: npm run dev
+    restart: unless-stopped
+
+volumes:
+  mongodb_data_dev:
 
 networks:
   spajzka-network-dev:
     driver: bridge
-
-volumes:
-  mongo-data-dev:
-    driver: local
-  mongo-config-dev:
-    driver: local
