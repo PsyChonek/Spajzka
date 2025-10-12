@@ -14,7 +14,7 @@
       "description": "Development server"
     },
     {
-      "url": "http://localhost:8080",
+      "url": "http://spajzka.vazac.dev",
       "description": "Production server"
     }
   ],
@@ -138,6 +138,99 @@
           "newPassword"
         ]
       },
+      "Group": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "description": "Group ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "Group name"
+          },
+          "adminId": {
+            "type": "string",
+            "description": "Admin user ID"
+          },
+          "inviteCode": {
+            "type": "string",
+            "description": "Invite code for joining group"
+          },
+          "inviteEnabled": {
+            "type": "boolean",
+            "description": "Whether invite is enabled"
+          },
+          "memberIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Array of member user IDs"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "CreateGroupRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Group name"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateGroupRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Group name"
+          }
+        }
+      },
+      "JoinGroupRequest": {
+        "type": "object",
+        "properties": {
+          "inviteCode": {
+            "type": "string",
+            "description": "Invite code to join group"
+          }
+        },
+        "required": [
+          "inviteCode"
+        ]
+      },
+      "GroupMember": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "isAdmin": {
+            "type": "boolean"
+          }
+        }
+      },
       "Item": {
         "type": "object",
         "properties": {
@@ -219,9 +312,9 @@
             "type": "string",
             "description": "Item ID"
           },
-          "userId": {
+          "groupId": {
             "type": "string",
-            "description": "Owner user ID"
+            "description": "Group ID"
           },
           "itemId": {
             "type": "string",
@@ -301,9 +394,9 @@
             "type": "string",
             "description": "Item ID"
           },
-          "userId": {
+          "groupId": {
             "type": "string",
-            "description": "Owner user ID"
+            "description": "Group ID"
           },
           "itemId": {
             "type": "string",
@@ -558,6 +651,443 @@
           },
           "401": {
             "description": "Invalid old password"
+          }
+        }
+      }
+    },
+    "/api/groups": {
+      "post": {
+        "summary": "Create a new group",
+        "description": "Create a new group with the authenticated user as admin",
+        "tags": [
+          "Groups"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateGroupRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Group created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Group"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request"
+          }
+        }
+      }
+    },
+    "/api/groups/my": {
+      "get": {
+        "summary": "Get user's group",
+        "description": "Get the group that the authenticated user is a member of",
+        "tags": [
+          "Groups"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User's group",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Group"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User is not in any group"
+          }
+        }
+      }
+    },
+    "/api/groups/{id}": {
+      "get": {
+        "summary": "Get group by ID",
+        "description": "Get a specific group (user must be a member)",
+        "tags": [
+          "Groups"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Group details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Group"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "User is not a member of this group"
+          },
+          "404": {
+            "description": "Group not found"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update group",
+        "description": "Update group details (admin only)",
+        "tags": [
+          "Groups"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateGroupRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Group updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Group"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Only admin can update group"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete group",
+        "description": "Delete a group (admin only)",
+        "tags": [
+          "Groups"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Group deleted successfully"
+          },
+          "403": {
+            "description": "Only admin can delete group"
+          }
+        }
+      }
+    },
+    "/api/groups/join": {
+      "post": {
+        "summary": "Join a group",
+        "description": "Join a group using an invite code",
+        "tags": [
+          "Groups"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JoinGroupRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully joined group",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Group"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid invite code or user already in group"
+          }
+        }
+      }
+    },
+    "/api/groups/{id}/leave": {
+      "post": {
+        "summary": "Leave a group",
+        "description": "Leave a group (admin cannot leave if there are other members)",
+        "tags": [
+          "Groups"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully left group"
+          },
+          "400": {
+            "description": "Admin cannot leave group with other members"
+          }
+        }
+      }
+    },
+    "/api/groups/{id}/members": {
+      "get": {
+        "summary": "Get group members",
+        "description": "Get all members of a group with their details",
+        "tags": [
+          "Groups"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of group members",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GroupMember"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/groups/{id}/kick/{userId}": {
+      "delete": {
+        "summary": "Kick user from group",
+        "description": "Remove a user from the group (admin only, cannot kick admin)",
+        "tags": [
+          "Groups"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User kicked successfully"
+          },
+          "403": {
+            "description": "Only admin can kick users"
+          }
+        }
+      }
+    },
+    "/api/groups/{id}/regenerate-invite": {
+      "post": {
+        "summary": "Regenerate invite code",
+        "description": "Generate a new invite code for the group (admin only)",
+        "tags": [
+          "Groups"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Invite code regenerated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "inviteCode": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/groups/{id}/toggle-invite": {
+      "post": {
+        "summary": "Toggle invite enabled/disabled",
+        "description": "Enable or disable invites for the group (admin only)",
+        "tags": [
+          "Groups"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "enabled": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "enabled"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Invite status updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "inviteEnabled": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -848,7 +1378,7 @@
     "/api/pantry": {
       "get": {
         "summary": "Get all pantry items",
-        "description": "Retrieve all pantry items for the authenticated user",
+        "description": "Retrieve all pantry items for the authenticated user's group",
         "tags": [
           "Pantry"
         ],
@@ -1021,7 +1551,7 @@
     "/api/shopping": {
       "get": {
         "summary": "Get all shopping items",
-        "description": "Retrieve all shopping list items for the authenticated user",
+        "description": "Retrieve all shopping list items for the authenticated user's group",
         "tags": [
           "Shopping"
         ],

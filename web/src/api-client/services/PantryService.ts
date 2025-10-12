@@ -10,7 +10,7 @@ import { request as __request } from '../core/request';
 export class PantryService {
     /**
      * Get all pantry items
-     * Retrieve all pantry items for the authenticated user
+     * Retrieve all pantry items for the authenticated user's group
      * @returns PantryItem A list of pantry items
      * @throws ApiError
      */

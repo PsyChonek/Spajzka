@@ -2,11 +2,13 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { ItemsService, type Item, isOnline, ApiError } from '@/services/api'
 import { Notify } from 'quasar'
+import { useAuthStore } from './authStore'
 
 // Export ItemsService and Item type from api
 export { ItemsService, type Item } from '@/services/api'
 
 export const useItemsStore = defineStore('items', () => {
+  const authStore = useAuthStore()
   const items = ref<Item[]>([])
   const loading = ref(false)
   const lastSynced = ref<Date | null>(null)
@@ -38,7 +40,7 @@ export const useItemsStore = defineStore('items', () => {
     } catch (error: any) {
       console.error('Failed to fetch items:', error)
       const is404 = error instanceof ApiError && error.status === 404
-      if (!is404 && error.message !== 'offline') {
+      if (!is404 && error.message !== 'offline' && authStore.isAuthenticated) {
         Notify.create({
           type: 'warning',
           message: 'Using cached data. Will sync when online.',

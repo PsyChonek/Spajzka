@@ -16,8 +16,8 @@ const navLinks: NavLink[] = [
   { to: '/pantry-list', label: 'Pantry List', icon: 'kitchen' },
   { to: '/shopping-list', label: 'Shopping List', icon: 'shopping_cart' },
   { to: '/items', label: 'Items', icon: 'inventory' },
-  { to: '/auth-test', label: 'Auth Test', icon: 'lock' },
-  { to: '/examples', label: 'Examples', icon: 'code' }
+  { to: '/groups', label: 'Groups', icon: 'group' },
+  { to: '/profile', label: 'Profile', icon: 'lock' }
 ]
 
 const navigateTo = (path: string) => {

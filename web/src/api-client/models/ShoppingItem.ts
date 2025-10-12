@@ -8,9 +8,9 @@ export type ShoppingItem = {
      */
     _id?: string;
     /**
-     * Owner user ID
+     * Group ID
      */
-    userId?: string;
+    groupId?: string;
     /**
      * Reference to common item ID
      */

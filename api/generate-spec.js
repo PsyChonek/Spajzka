@@ -19,7 +19,7 @@ const options = {
         description: 'Development server',
       },
       {
-        url: 'http://localhost:8080',
+        url: 'http://spajzka.vazac.dev',
         description: 'Production server',
       },
     ],

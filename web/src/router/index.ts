@@ -22,14 +22,14 @@ const routes: RouteRecordRaw[] = [
     component: () => import('../views/ItemsManagementView.vue')
   },
   {
-    path: '/auth-test',
-    name: 'Auth Test',
-    component: () => import('../views/AuthTestView.vue')
+    path: '/groups',
+    name: 'Groups',
+    component: () => import('../views/GroupsView.vue')
   },
   {
-    path: '/examples',
-    name: 'Examples',
-    component: () => import('../views/ExamplesView.vue')
+    path: '/profile',
+    name: 'Profile',
+    component: () => import('../views/ProfileView.vue')
   }
 ]
 

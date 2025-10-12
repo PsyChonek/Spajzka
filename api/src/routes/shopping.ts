@@ -15,9 +15,9 @@ const router = Router();
  *         _id:
  *           type: string
  *           description: Item ID
- *         userId:
+ *         groupId:
  *           type: string
- *           description: Owner user ID
+ *           description: Group ID
  *         itemId:
  *           type: string
  *           description: Reference to common item ID
@@ -64,7 +64,7 @@ const router = Router();
  * /api/shopping:
  *   get:
  *     summary: Get all shopping items
- *     description: Retrieve all shopping list items for the authenticated user
+ *     description: Retrieve all shopping list items for the authenticated user's group
  *     tags:
  *       - Shopping
  *     security:
@@ -82,8 +82,21 @@ const router = Router();
 router.get('/shopping', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const db = getDatabase();
+
+    // Find user's group
+    const group = await db.collection('groups').findOne({
+      memberIds: new ObjectId(req.userId)
+    });
+
+    if (!group) {
+      return res.status(404).json({
+        message: 'User is not in any group',
+        code: 'NOT_IN_GROUP'
+      });
+    }
+
     const shoppingItems = await db.collection('shopping')
-      .find({ userId: new ObjectId(req.userId) })
+      .find({ groupId: group._id })
       .sort({ completed: 1, createdAt: -1 })
       .toArray();
 
@@ -140,9 +153,21 @@ router.get('/shopping/:id', authMiddleware, async (req: AuthRequest, res: Respon
       return res.status(400).json({ message: 'Invalid item ID', code: 'INVALID_ID' });
     }
 
+    // Find user's group
+    const group = await db.collection('groups').findOne({
+      memberIds: new ObjectId(req.userId)
+    });
+
+    if (!group) {
+      return res.status(404).json({
+        message: 'User is not in any group',
+        code: 'NOT_IN_GROUP'
+      });
+    }
+
     const shoppingItem = await db.collection('shopping').findOne({
       _id: new ObjectId(id),
-      userId: new ObjectId(req.userId)
+      groupId: group._id
     });
 
     if (!shoppingItem) {
@@ -201,6 +226,18 @@ router.post('/shopping', authMiddleware, async (req: AuthRequest, res: Response)
       });
     }
 
+    // Find user's group
+    const group = await db.collection('groups').findOne({
+      memberIds: new ObjectId(req.userId)
+    });
+
+    if (!group) {
+      return res.status(404).json({
+        message: 'User is not in any group',
+        code: 'NOT_IN_GROUP'
+      });
+    }
+
     // Check if common item exists, if not create it
     let commonItem = await db.collection('items').findOne({ name: name.trim() });
 
@@ -220,7 +257,7 @@ router.post('/shopping', authMiddleware, async (req: AuthRequest, res: Response)
     }
 
     const newItem = {
-      userId: new ObjectId(req.userId),
+      groupId: group._id,
       itemId: commonItem!._id,
       completed: false,
       createdAt: new Date(),
@@ -296,6 +333,18 @@ router.put('/shopping/:id', authMiddleware, async (req: AuthRequest, res: Respon
       return res.status(400).json({ message: 'Invalid item ID', code: 'INVALID_ID' });
     }
 
+    // Find user's group
+    const group = await db.collection('groups').findOne({
+      memberIds: new ObjectId(req.userId)
+    });
+
+    if (!group) {
+      return res.status(404).json({
+        message: 'User is not in any group',
+        code: 'NOT_IN_GROUP'
+      });
+    }
+
     const updateData: any = {
       updatedAt: new Date()
     };
@@ -303,7 +352,7 @@ router.put('/shopping/:id', authMiddleware, async (req: AuthRequest, res: Respon
     if (completed !== undefined) updateData.completed = completed;
 
     const shoppingItem = await db.collection('shopping').findOneAndUpdate(
-      { _id: new ObjectId(id), userId: new ObjectId(req.userId) },
+      { _id: new ObjectId(id), groupId: group._id },
       { $set: updateData },
       { returnDocument: 'after' }
     );
@@ -357,9 +406,21 @@ router.delete('/shopping/:id', authMiddleware, async (req: AuthRequest, res: Res
       return res.status(400).json({ message: 'Invalid item ID', code: 'INVALID_ID' });
     }
 
+    // Find user's group
+    const group = await db.collection('groups').findOne({
+      memberIds: new ObjectId(req.userId)
+    });
+
+    if (!group) {
+      return res.status(404).json({
+        message: 'User is not in any group',
+        code: 'NOT_IN_GROUP'
+      });
+    }
+
     const result = await db.collection('shopping').deleteOne({
       _id: new ObjectId(id),
-      userId: new ObjectId(req.userId)
+      groupId: group._id
     });
 
     if (result.deletedCount === 0) {

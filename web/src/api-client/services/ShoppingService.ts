@@ -10,7 +10,7 @@ import { request as __request } from '../core/request';
 export class ShoppingService {
     /**
      * Get all shopping items
-     * Retrieve all shopping list items for the authenticated user
+     * Retrieve all shopping list items for the authenticated user's group
      * @returns ShoppingItem A list of shopping items
      * @throws ApiError
      */

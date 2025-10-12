@@ -130,7 +130,7 @@ authStore.initialize()
   <PageWrapper max-width="600px" centered>
     <div class="auth-view">
       <div class="container">
-      <h2 class="text-h4 text-center q-mb-lg">User Authentication Test</h2>
+      <h2 class="text-h4 text-center q-mb-lg">User Authentication</h2>
 
       <!-- Not Authenticated - Show Login/Register -->
       <div v-if="!authStore.isAuthenticated" class="auth-forms">

@@ -4,10 +4,12 @@ import { useShoppingStore } from '@/stores/shoppingStore'
 import { useItemsStore } from '@/stores/itemsStore'
 import type { ShoppingItem } from '@/services/api'
 import PageWrapper from '@/components/PageWrapper.vue'
+import SyncStatusBadge from '@/components/SyncStatusBadge.vue'
+import { useAuthStore } from '@/stores/authStore'
 
 const shoppingStore = useShoppingStore()
 const itemsStore = useItemsStore()
-const isOnline = () => navigator.onLine
+const authStore = useAuthStore()
 
 // Fetch items from master list on mount
 onMounted(() => {
@@ -109,20 +111,10 @@ const deleteItem = (item: ShoppingItem, event: Event) => {
   <PageWrapper>
     <div class="shopping-list-view">
       <!-- Sync Status Badge -->
-      <div class="sync-status">
-        <q-badge v-if="!isOnline()" color="orange" class="q-pa-sm">
-          <q-icon name="cloud_off" size="xs" class="q-mr-xs" />
-          Offline Mode
-        </q-badge>
-        <q-badge v-else-if="shoppingStore.lastSynced" color="positive" class="q-pa-sm">
-          <q-icon name="cloud_done" size="xs" class="q-mr-xs" />
-          Synced
-        </q-badge>
-        <q-badge v-else color="grey-7" class="q-pa-sm">
-          <q-icon name="storage" size="xs" class="q-mr-xs" />
-          Local Storage
-        </q-badge>
-      </div>
+      <SyncStatusBadge
+        :last-synced="shoppingStore.lastSynced"
+        :is-authenticated="authStore.isAuthenticated"
+      />
 
     <div class="search-container">
       <q-input

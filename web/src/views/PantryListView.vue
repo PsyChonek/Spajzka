@@ -2,12 +2,14 @@
 import { ref, computed, onMounted } from 'vue'
 import { usePantryStore } from '@/stores/pantryStore'
 import { useItemsStore } from '@/stores/itemsStore'
+import { useAuthStore } from '@/stores/authStore'
 import type { PantryItem } from '@/services/api'
 import PageWrapper from '@/components/PageWrapper.vue'
+import SyncStatusBadge from '@/components/SyncStatusBadge.vue'
 
 const pantryStore = usePantryStore()
 const itemsStore = useItemsStore()
-const isOnline = () => navigator.onLine
+const authStore = useAuthStore()
 
 // Fetch items from master list on mount
 onMounted(() => {
@@ -148,20 +150,10 @@ const deleteItem = (itemId: string) => {
   <PageWrapper>
     <div class="items-view">
       <!-- Sync Status Badge -->
-      <div class="sync-status">
-        <q-badge v-if="!isOnline()" color="orange" class="q-pa-sm">
-          <q-icon name="cloud_off" size="xs" class="q-mr-xs" />
-          Offline Mode
-        </q-badge>
-        <q-badge v-else-if="pantryStore.lastSynced" color="positive" class="q-pa-sm">
-          <q-icon name="cloud_done" size="xs" class="q-mr-xs" />
-          Synced
-        </q-badge>
-        <q-badge v-else color="grey-7" class="q-pa-sm">
-          <q-icon name="storage" size="xs" class="q-mr-xs" />
-          Local Storage
-        </q-badge>
-      </div>
+      <SyncStatusBadge
+        :last-synced="pantryStore.lastSynced"
+        :is-authenticated="authStore.isAuthenticated"
+      />
 
     <div class="search-container">
       <q-input
@@ -328,6 +320,13 @@ const deleteItem = (itemId: string) => {
 }
 
 .sync-status {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 100;
+}
+
+:deep(.sync-status) {
   position: absolute;
   top: 16px;
   right: 16px;

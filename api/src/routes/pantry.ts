@@ -15,9 +15,9 @@ const router = Router();
  *         _id:
  *           type: string
  *           description: Item ID
- *         userId:
+ *         groupId:
  *           type: string
- *           description: Owner user ID
+ *           description: Group ID
  *         itemId:
  *           type: string
  *           description: Reference to common item ID
@@ -75,7 +75,7 @@ const router = Router();
  * /api/pantry:
  *   get:
  *     summary: Get all pantry items
- *     description: Retrieve all pantry items for the authenticated user
+ *     description: Retrieve all pantry items for the authenticated user's group
  *     tags:
  *       - Pantry
  *     security:
@@ -93,8 +93,21 @@ const router = Router();
 router.get('/pantry', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const db = getDatabase();
+
+    // Find user's group
+    const group = await db.collection('groups').findOne({
+      memberIds: new ObjectId(req.userId)
+    });
+
+    if (!group) {
+      return res.status(404).json({
+        message: 'User is not in any group',
+        code: 'NOT_IN_GROUP'
+      });
+    }
+
     const pantryItems = await db.collection('pantry')
-      .find({ userId: new ObjectId(req.userId) })
+      .find({ groupId: group._id })
       .sort({ createdAt: -1 })
       .toArray();
 
@@ -153,9 +166,21 @@ router.get('/pantry/:id', authMiddleware, async (req: AuthRequest, res: Response
       return res.status(400).json({ message: 'Invalid item ID', code: 'INVALID_ID' });
     }
 
+    // Find user's group
+    const group = await db.collection('groups').findOne({
+      memberIds: new ObjectId(req.userId)
+    });
+
+    if (!group) {
+      return res.status(404).json({
+        message: 'User is not in any group',
+        code: 'NOT_IN_GROUP'
+      });
+    }
+
     const pantryItem = await db.collection('pantry').findOne({
       _id: new ObjectId(id),
-      userId: new ObjectId(req.userId)
+      groupId: group._id
     });
 
     if (!pantryItem) {
@@ -214,6 +239,18 @@ router.post('/pantry', authMiddleware, async (req: AuthRequest, res: Response) =
       });
     }
 
+    // Find user's group
+    const group = await db.collection('groups').findOne({
+      memberIds: new ObjectId(req.userId)
+    });
+
+    if (!group) {
+      return res.status(404).json({
+        message: 'User is not in any group',
+        code: 'NOT_IN_GROUP'
+      });
+    }
+
     // Check if common item exists, if not create it
     let commonItem = await db.collection('items').findOne({ name: name.trim() });
 
@@ -233,7 +270,7 @@ router.post('/pantry', authMiddleware, async (req: AuthRequest, res: Response) =
     }
 
     const newItem = {
-      userId: new ObjectId(req.userId),
+      groupId: group._id,
       itemId: commonItem!._id,
       quantity,
       price: price || 0,
@@ -300,6 +337,18 @@ router.put('/pantry/:id', authMiddleware, async (req: AuthRequest, res: Response
       return res.status(400).json({ message: 'Invalid item ID', code: 'INVALID_ID' });
     }
 
+    // Find user's group
+    const group = await db.collection('groups').findOne({
+      memberIds: new ObjectId(req.userId)
+    });
+
+    if (!group) {
+      return res.status(404).json({
+        message: 'User is not in any group',
+        code: 'NOT_IN_GROUP'
+      });
+    }
+
     const updateData: any = {
       updatedAt: new Date()
     };
@@ -309,7 +358,7 @@ router.put('/pantry/:id', authMiddleware, async (req: AuthRequest, res: Response
     if (expiryDate !== undefined) updateData.expiryDate = expiryDate ? new Date(expiryDate) : null;
 
     const pantryItem = await db.collection('pantry').findOneAndUpdate(
-      { _id: new ObjectId(id), userId: new ObjectId(req.userId) },
+      { _id: new ObjectId(id), groupId: group._id },
       { $set: updateData },
       { returnDocument: 'after' }
     );
@@ -363,9 +412,21 @@ router.delete('/pantry/:id', authMiddleware, async (req: AuthRequest, res: Respo
       return res.status(400).json({ message: 'Invalid item ID', code: 'INVALID_ID' });
     }
 
+    // Find user's group
+    const group = await db.collection('groups').findOne({
+      memberIds: new ObjectId(req.userId)
+    });
+
+    if (!group) {
+      return res.status(404).json({
+        message: 'User is not in any group',
+        code: 'NOT_IN_GROUP'
+      });
+    }
+
     const result = await db.collection('pantry').deleteOne({
       _id: new ObjectId(id),
-      userId: new ObjectId(req.userId)
+      groupId: group._id
     });
 
     if (result.deletedCount === 0) {

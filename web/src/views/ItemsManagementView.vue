@@ -3,9 +3,11 @@ import { ref, computed } from 'vue'
 import { useItemsStore } from '@/stores/itemsStore'
 import type { Item } from '@/services/api'
 import PageWrapper from '@/components/PageWrapper.vue'
+import { useAuthStore } from '@/stores/authStore'
+import SyncStatusBadge from '@/components/SyncStatusBadge.vue'
 
 const itemsStore = useItemsStore()
-const isOnline = () => navigator.onLine
+const authStore = useAuthStore()
 
 const searchQuery = ref('')
 const showAddDialog = ref(false)
@@ -166,20 +168,10 @@ const deleteItem = (itemId: string) => {
   <PageWrapper>
     <div class="items-view">
       <!-- Sync Status Badge -->
-      <div class="sync-status">
-        <q-badge v-if="!isOnline()" color="orange" class="q-pa-sm">
-          <q-icon name="cloud_off" size="xs" class="q-mr-xs" />
-          Offline Mode
-        </q-badge>
-        <q-badge v-else-if="itemsStore.lastSynced" color="positive" class="q-pa-sm">
-          <q-icon name="cloud_done" size="xs" class="q-mr-xs" />
-          Synced
-        </q-badge>
-        <q-badge v-else color="grey-7" class="q-pa-sm">
-          <q-icon name="storage" size="xs" class="q-mr-xs" />
-          Local Storage
-        </q-badge>
-      </div>
+      <SyncStatusBadge
+        :last-synced="itemsStore.lastSynced"
+        :is-authenticated="authStore.isAuthenticated"
+      />
 
       <div class="search-container">
         <q-input
