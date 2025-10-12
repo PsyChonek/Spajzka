@@ -17,8 +17,8 @@ const options: swaggerJsdoc.Options = {
         description: 'Development server (API direct)',
       },
       {
-        url: 'http://localhost:8080',
-        description: 'Production server (via nginx proxy)',
+        url: 'https://spajzka.vazac.dev',
+        description: 'Public production server (HTTPS)',
       },
       {
         url: 'http://api:3000',
