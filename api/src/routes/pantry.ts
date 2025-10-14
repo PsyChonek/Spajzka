@@ -30,16 +30,9 @@ const router = Router();
  *         unit:
  *           type: string
  *           description: Unit of measurement
- *         price:
- *           type: number
- *           description: Price per unit
  *         category:
  *           type: string
  *           description: Item category
- *         expiryDate:
- *           type: string
- *           format: date
- *           description: Expiry date
  *         createdAt:
  *           type: string
  *           format: date-time
@@ -58,13 +51,8 @@ const router = Router();
  *           type: number
  *         unit:
  *           type: string
- *         price:
- *           type: number
  *         category:
  *           type: string
- *         expiryDate:
- *           type: string
- *           format: date
  *       required:
  *         - name
  *         - quantity
@@ -230,7 +218,7 @@ router.get('/pantry/:id', authMiddleware, async (req: AuthRequest, res: Response
 router.post('/pantry', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const db = getDatabase();
-    const { name, quantity, unit, price, category, expiryDate } = req.body;
+    const { name, quantity, unit, category } = req.body;
 
     if (!name || quantity === undefined) {
       return res.status(400).json({
@@ -260,8 +248,6 @@ router.post('/pantry', authMiddleware, async (req: AuthRequest, res: Response) =
         quantity: 0,
         unit: unit || 'pcs',
         category: category || null,
-        price: price || 0,
-        expiryDate: null,
         createdAt: new Date(),
         updatedAt: new Date()
       };
@@ -273,8 +259,6 @@ router.post('/pantry', authMiddleware, async (req: AuthRequest, res: Response) =
       groupId: group._id,
       itemId: commonItem!._id,
       quantity,
-      price: price || 0,
-      expiryDate: expiryDate ? new Date(expiryDate) : null,
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -331,7 +315,7 @@ router.put('/pantry/:id', authMiddleware, async (req: AuthRequest, res: Response
   try {
     const db = getDatabase();
     const { id } = req.params;
-    const { quantity, price, expiryDate } = req.body;
+    const { quantity } = req.body;
 
     if (!ObjectId.isValid(id)) {
       return res.status(400).json({ message: 'Invalid item ID', code: 'INVALID_ID' });
@@ -354,8 +338,6 @@ router.put('/pantry/:id', authMiddleware, async (req: AuthRequest, res: Response
     };
 
     if (quantity !== undefined) updateData.quantity = quantity;
-    if (price !== undefined) updateData.price = price;
-    if (expiryDate !== undefined) updateData.expiryDate = expiryDate ? new Date(expiryDate) : null;
 
     const pantryItem = await db.collection('pantry').findOneAndUpdate(
       { _id: new ObjectId(id), groupId: group._id },

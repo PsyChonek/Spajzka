@@ -28,17 +28,9 @@ export type PantryItem = {
      */
     unit?: string;
     /**
-     * Price per unit
-     */
-    price?: number;
-    /**
      * Item category
      */
     category?: string;
-    /**
-     * Expiry date
-     */
-    expiryDate?: string;
     createdAt?: string;
     updatedAt?: string;
 };

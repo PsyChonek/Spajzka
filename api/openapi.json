@@ -250,15 +250,6 @@
             "type": "string",
             "description": "Item category"
           },
-          "price": {
-            "type": "number",
-            "description": "Price per unit"
-          },
-          "expiryDate": {
-            "type": "string",
-            "format": "date",
-            "description": "Expiry date"
-          },
           "createdAt": {
             "type": "string",
             "format": "date-time",
@@ -289,15 +280,6 @@
           "category": {
             "type": "string",
             "description": "Item category"
-          },
-          "price": {
-            "type": "number",
-            "description": "Price per unit"
-          },
-          "expiryDate": {
-            "type": "string",
-            "format": "date",
-            "description": "Expiry date"
           }
         },
         "required": [
@@ -332,18 +314,9 @@
             "type": "string",
             "description": "Unit of measurement"
           },
-          "price": {
-            "type": "number",
-            "description": "Price per unit"
-          },
           "category": {
             "type": "string",
             "description": "Item category"
-          },
-          "expiryDate": {
-            "type": "string",
-            "format": "date",
-            "description": "Expiry date"
           },
           "createdAt": {
             "type": "string",
@@ -371,15 +344,8 @@
           "unit": {
             "type": "string"
           },
-          "price": {
-            "type": "number"
-          },
           "category": {
             "type": "string"
-          },
-          "expiryDate": {
-            "type": "string",
-            "format": "date"
           }
         },
         "required": [

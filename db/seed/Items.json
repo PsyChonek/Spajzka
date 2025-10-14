@@ -8,8 +8,6 @@
 			"quantity": 0,
 			"unit": "pcs",
 			"category": null,
-			"price": 0,
-			"expiryDate": null,
 			"createdAt": {
 				"$date": "2025-10-12T10:09:31.475Z"
 			},
@@ -25,8 +23,6 @@
 			"quantity": 0,
 			"unit": "pcs",
 			"category": null,
-			"price": 0,
-			"expiryDate": null,
 			"createdAt": {
 				"$date": "2025-10-12T10:10:23.867Z"
 			},

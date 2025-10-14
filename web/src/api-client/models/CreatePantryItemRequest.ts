@@ -6,8 +6,6 @@ export type CreatePantryItemRequest = {
     name: string;
     quantity: number;
     unit?: string;
-    price?: number;
     category?: string;
-    expiryDate?: string;
 };
 

@@ -15,13 +15,5 @@ export type CreateItemRequest = {
      * Item category
      */
     category?: string;
-    /**
-     * Price per unit
-     */
-    price?: number;
-    /**
-     * Expiry date
-     */
-    expiryDate?: string;
 };
 

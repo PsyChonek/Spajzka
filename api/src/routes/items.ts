@@ -23,13 +23,6 @@ const router = Router();
  *         category:
  *           type: string
  *           description: Item category
- *         price:
- *           type: number
- *           description: Price per unit
- *         expiryDate:
- *           type: string
- *           format: date
- *           description: Expiry date
  *         createdAt:
  *           type: string
  *           format: date-time
@@ -53,13 +46,6 @@ const router = Router();
  *         category:
  *           type: string
  *           description: Item category
- *         price:
- *           type: number
- *           description: Price per unit
- *         expiryDate:
- *           type: string
- *           format: date
- *           description: Expiry date
  *       required:
  *         - name
  *         - unit
@@ -194,14 +180,12 @@ router.get('/items/:id', async (req: Request, res: Response) => {
 router.post('/items', async (req: Request, res: Response) => {
   try {
     const db = getDatabase();
-    const { name, unit, category, price, expiryDate } = req.body;
+    const { name, unit, category } = req.body;
 
     const newItem = {
       name,
       unit,
       category: category || null,
-      price: price || 0,
-      expiryDate: expiryDate ? new Date(expiryDate) : null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -261,7 +245,7 @@ router.put('/items/:id', async (req: Request, res: Response) => {
   try {
     const db = getDatabase();
     const { id } = req.params;
-    const { name, unit, category, price, expiryDate } = req.body;
+    const { name, unit, category } = req.body;
 
     if (!ObjectId.isValid(id)) {
       return res.status(400).json({ message: 'Invalid item ID', code: 'INVALID_ID' });
@@ -274,8 +258,6 @@ router.put('/items/:id', async (req: Request, res: Response) => {
     if (name !== undefined) updateData.name = name;
     if (unit !== undefined) updateData.unit = unit;
     if (category !== undefined) updateData.category = category;
-    if (price !== undefined) updateData.price = price;
-    if (expiryDate !== undefined) updateData.expiryDate = new Date(expiryDate);
 
     const result = await db.collection('items').findOneAndUpdate(
       { _id: new ObjectId(id) },

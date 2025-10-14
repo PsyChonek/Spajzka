@@ -5,6 +5,7 @@ import type { Item } from '@/services/api'
 import PageWrapper from '@/components/PageWrapper.vue'
 import { useAuthStore } from '@/stores/authStore'
 import SyncStatusBadge from '@/components/SyncStatusBadge.vue'
+import AddItemDialog, { type ItemFormData } from '@/components/AddItemDialog.vue'
 
 const itemsStore = useItemsStore()
 const authStore = useAuthStore()
@@ -13,13 +14,7 @@ const searchQuery = ref('')
 const showAddDialog = ref(false)
 const showEditDialog = ref(false)
 const editingItem = ref<Item | null>(null)
-
-// Form fields
-const formName = ref('')
-const formUnit = ref('')
-const formCategory = ref('')
-const formPrice = ref<number | undefined>(undefined)
-const formExpiryDate = ref('')
+const initialFormData = ref<Partial<ItemFormData>>({})
 
 const columns = [
   {
@@ -42,22 +37,6 @@ const columns = [
     label: 'Category',
     align: 'center' as const,
     field: (row: Item) => row.category || '-',
-    sortable: true
-  },
-  {
-    name: 'price',
-    label: 'Price',
-    align: 'right' as const,
-    field: (row: Item) => row.price,
-    format: (val: number | undefined) => val ? `$${val.toFixed(2)}` : '-',
-    sortable: true
-  },
-  {
-    name: 'expiryDate',
-    label: 'Expiry Date',
-    align: 'center' as const,
-    field: (row: Item) => row.expiryDate,
-    format: (val: string | undefined) => val ? new Date(val).toLocaleDateString() : '-',
     sortable: true
   },
   {
@@ -95,67 +74,41 @@ const showAddButton = computed(() => {
 })
 
 const openAddDialog = () => {
-  formName.value = searchQuery.value
-  formUnit.value = 'pcs'
-  formCategory.value = ''
-  formPrice.value = undefined
-  formExpiryDate.value = ''
+  initialFormData.value = {
+    name: searchQuery.value,
+    unit: 'pcs',
+    category: ''
+  }
   showAddDialog.value = true
-}
-
-const closeAddDialog = () => {
-  showAddDialog.value = false
-  formName.value = ''
-  formUnit.value = ''
-  formCategory.value = ''
-  formPrice.value = undefined
-  formExpiryDate.value = ''
 }
 
 const openEditDialog = (item: Item) => {
   editingItem.value = item
-  formName.value = item.name
-  formUnit.value = item.unit
-  formCategory.value = item.category || ''
-  formPrice.value = item.price
-  formExpiryDate.value = item.expiryDate || ''
+  initialFormData.value = {
+    name: item.name,
+    unit: item.unit,
+    category: item.category || ''
+  }
   showEditDialog.value = true
 }
 
-const closeEditDialog = () => {
-  showEditDialog.value = false
-  editingItem.value = null
-  formName.value = ''
-  formUnit.value = ''
-  formCategory.value = ''
-  formPrice.value = undefined
-  formExpiryDate.value = ''
+const saveNewItem = async (data: ItemFormData) => {
+  await itemsStore.addItem({
+    name: data.name,
+    unit: data.unit!,
+    category: data.category
+  })
+  searchQuery.value = ''
 }
 
-const saveNewItem = async () => {
-  if (formName.value.trim() && formUnit.value.trim()) {
-    await itemsStore.addItem({
-      name: formName.value.trim(),
-      unit: formUnit.value.trim(),
-      category: formCategory.value.trim() || undefined,
-      price: formPrice.value,
-      expiryDate: formExpiryDate.value || undefined
-    })
-    closeAddDialog()
-    searchQuery.value = ''
-  }
-}
-
-const saveEditedItem = async () => {
-  if (editingItem.value && editingItem.value._id && formName.value.trim() && formUnit.value.trim()) {
+const saveEditedItem = async (data: ItemFormData) => {
+  if (editingItem.value && editingItem.value._id) {
     await itemsStore.updateItem(editingItem.value._id, {
-      name: formName.value.trim(),
-      unit: formUnit.value.trim(),
-      category: formCategory.value.trim() || undefined,
-      price: formPrice.value,
-      expiryDate: formExpiryDate.value || undefined
+      name: data.name,
+      unit: data.unit!,
+      category: data.category
     })
-    closeEditDialog()
+    editingItem.value = null
   }
 }
 
@@ -246,124 +199,30 @@ const deleteItem = (itemId: string) => {
       </div>
 
       <!-- Add Item Dialog -->
-      <q-dialog v-model="showAddDialog">
-        <q-card style="min-width: 400px">
-          <q-card-section>
-            <div class="text-h6">Add New Item</div>
-          </q-card-section>
-
-          <q-card-section class="q-pt-none">
-            <q-input
-              v-model="formName"
-              outlined
-              label="Item Name *"
-              autofocus
-              class="q-mb-md"
-              @keyup.enter="saveNewItem"
-            />
-            <q-input
-              v-model="formUnit"
-              outlined
-              label="Unit *"
-              placeholder="e.g., kg, pcs, liter"
-              class="q-mb-md"
-            />
-            <q-input
-              v-model="formCategory"
-              outlined
-              label="Category"
-              placeholder="e.g., Dairy, Vegetables"
-              class="q-mb-md"
-            />
-            <q-input
-              v-model.number="formPrice"
-              outlined
-              label="Price per Unit"
-              type="number"
-              min="0"
-              step="0.01"
-              prefix="$"
-              class="q-mb-md"
-            />
-            <q-input
-              v-model="formExpiryDate"
-              outlined
-              label="Expiry Date"
-              type="date"
-            />
-          </q-card-section>
-
-          <q-card-actions align="right">
-            <q-btn flat label="Cancel" color="primary" @click="closeAddDialog" />
-            <q-btn
-              label="Save"
-              color="primary"
-              @click="saveNewItem"
-              :disable="!formName.trim() || !formUnit.trim()"
-            />
-          </q-card-actions>
-        </q-card>
-      </q-dialog>
+      <AddItemDialog
+        v-model="showAddDialog"
+        title="Add New Item"
+        :initial-data="initialFormData"
+        :fields="{
+          name: true,
+          unit: true,
+          category: true
+        }"
+        @save="saveNewItem"
+      />
 
       <!-- Edit Item Dialog -->
-      <q-dialog v-model="showEditDialog">
-        <q-card style="min-width: 400px">
-          <q-card-section>
-            <div class="text-h6">Edit Item</div>
-          </q-card-section>
-
-          <q-card-section class="q-pt-none">
-            <q-input
-              v-model="formName"
-              outlined
-              label="Item Name *"
-              autofocus
-              class="q-mb-md"
-              @keyup.enter="saveEditedItem"
-            />
-            <q-input
-              v-model="formUnit"
-              outlined
-              label="Unit *"
-              placeholder="e.g., kg, pcs, liter"
-              class="q-mb-md"
-            />
-            <q-input
-              v-model="formCategory"
-              outlined
-              label="Category"
-              placeholder="e.g., Dairy, Vegetables"
-              class="q-mb-md"
-            />
-            <q-input
-              v-model.number="formPrice"
-              outlined
-              label="Price per Unit"
-              type="number"
-              min="0"
-              step="0.01"
-              prefix="$"
-              class="q-mb-md"
-            />
-            <q-input
-              v-model="formExpiryDate"
-              outlined
-              label="Expiry Date"
-              type="date"
-            />
-          </q-card-section>
-
-          <q-card-actions align="right">
-            <q-btn flat label="Cancel" color="primary" @click="closeEditDialog" />
-            <q-btn
-              label="Save"
-              color="primary"
-              @click="saveEditedItem"
-              :disable="!formName.trim() || !formUnit.trim()"
-            />
-          </q-card-actions>
-        </q-card>
-      </q-dialog>
+      <AddItemDialog
+        v-model="showEditDialog"
+        title="Edit Item"
+        :initial-data="initialFormData"
+        :fields="{
+          name: true,
+          unit: true,
+          category: true
+        }"
+        @save="saveEditedItem"
+      />
     </div>
   </PageWrapper>
 </template>

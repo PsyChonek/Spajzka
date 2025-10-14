@@ -247,8 +247,6 @@ router.post('/shopping', authMiddleware, async (req: AuthRequest, res: Response)
         quantity: 0,
         unit: unit || 'pcs',
         category: category || null,
-        price: 0,
-        expiryDate: null,
         createdAt: new Date(),
         updatedAt: new Date()
       };

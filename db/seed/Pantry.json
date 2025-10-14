@@ -8,8 +8,6 @@
 				"$oid": "68eb7ef1335fb9089bf861f4"
 			},
 			"quantity": 1,
-			"price": 0,
-			"expiryDate": null,
 			"createdAt": {
 				"$date": "2025-10-12T10:09:31.478Z"
 			},

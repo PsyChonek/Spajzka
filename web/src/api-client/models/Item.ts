@@ -20,14 +20,6 @@ export type Item = {
      */
     category?: string;
     /**
-     * Price per unit
-     */
-    price?: number;
-    /**
-     * Expiry date
-     */
-    expiryDate?: string;
-    /**
      * Creation timestamp
      */
     createdAt?: string;

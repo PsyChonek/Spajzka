@@ -6,6 +6,8 @@ import { useAuthStore } from '@/stores/authStore'
 import type { PantryItem } from '@/services/api'
 import PageWrapper from '@/components/PageWrapper.vue'
 import SyncStatusBadge from '@/components/SyncStatusBadge.vue'
+import ItemSuggestions from '@/components/ItemSuggestions.vue'
+import AddItemDialog, { type ItemFormData } from '@/components/AddItemDialog.vue'
 
 const pantryStore = usePantryStore()
 const itemsStore = useItemsStore()
@@ -18,9 +20,7 @@ onMounted(() => {
 
 const searchQuery = ref('')
 const showAddDialog = ref(false)
-const newItemName = ref('')
-const newItemQuantity = ref(1)
-const newItemPrice = ref(0)
+const initialFormData = ref<Partial<ItemFormData>>({})
 
 const columns = [
   {
@@ -36,14 +36,6 @@ const columns = [
     label: 'Quantity',
     align: 'center' as const,
     field: (row: PantryItem) => row.quantity,
-    sortable: true
-  },
-  {
-    name: 'price',
-    label: 'Price',
-    align: 'right' as const,
-    field: (row: PantryItem) => row.price,
-    format: (val: number) => `$${val.toFixed(2)}`,
     sortable: true
   },
   {
@@ -75,28 +67,46 @@ const filteredItems = computed(() => {
 })
 
 const showAddButton = computed(() => {
-  return searchQuery.value.length > 0 && filteredItems.value.length === 0
+  if (!searchQuery.value) return false
+
+  // Show button if no items match, or if no exact match exists
+  const query = searchQuery.value.toLowerCase().trim()
+  const hasExactMatch = filteredItems.value.some(item =>
+    item.name.toLowerCase().trim() === query
+  )
+
+  return !hasExactMatch
 })
 
 // Suggest items from master Items list
 const suggestedItems = computed(() => {
-  if (!searchQuery.value || filteredItems.value.length > 0) {
+  if (!searchQuery.value) {
     return []
   }
 
-  const query = searchQuery.value.toLowerCase()
+  const query = searchQuery.value.toLowerCase().trim()
+
+  // Get items from master list that aren't already in pantry (case-insensitive)
+  const pantryItemNames = pantryStore.sortedItems.map(item => item.name.toLowerCase().trim())
+
   return itemsStore.sortedItems
-    .filter(item =>
-      item.name.toLowerCase().includes(query) ||
-      (item.category && item.category.toLowerCase().includes(query))
-    )
+    .filter(item => {
+      const itemNameLower = item.name.toLowerCase().trim()
+      // Include if it matches the query and isn't already in pantry (exact match, case-insensitive)
+      return (
+        (itemNameLower.includes(query) ||
+         (item.category && item.category.toLowerCase().trim().includes(query))) &&
+        !pantryItemNames.includes(itemNameLower)
+      )
+    })
     .slice(0, 5) // Limit to 5 suggestions
 })
 
 const openAddDialog = () => {
-  newItemName.value = searchQuery.value
-  newItemQuantity.value = 1
-  newItemPrice.value = 0
+  initialFormData.value = {
+    name: searchQuery.value,
+    quantity: 1
+  }
   showAddDialog.value = true
 }
 
@@ -104,29 +114,17 @@ const addFromSuggestion = async (item: any) => {
   // Add item directly without showing modal
   await pantryStore.addItem({
     name: item.name,
-    quantity: 1,
-    price: item.price || 0
+    quantity: 1
   })
   searchQuery.value = ''
 }
 
-const closeAddDialog = () => {
-  showAddDialog.value = false
-  newItemName.value = ''
-  newItemQuantity.value = 1
-  newItemPrice.value = 0
-}
-
-const saveNewItem = async () => {
-  if (newItemName.value.trim()) {
-    await pantryStore.addItem({
-      name: newItemName.value.trim(),
-      quantity: newItemQuantity.value,
-      price: newItemPrice.value
-    })
-    closeAddDialog()
-    searchQuery.value = ''
-  }
+const saveNewItem = async (data: ItemFormData) => {
+  await pantryStore.addItem({
+    name: data.name,
+    quantity: data.quantity || 1
+  })
+  searchQuery.value = ''
 }
 
 const incrementQuantity = (item: PantryItem) => {
@@ -169,31 +167,11 @@ const deleteItem = (itemId: string) => {
       </q-input>
 
       <!-- Suggestions from Items list -->
-      <div v-if="suggestedItems.length > 0" class="suggestions-container q-mt-md">
-        <div class="text-subtitle2 text-grey-7 q-mb-sm">Suggested from Items:</div>
-        <div class="suggestions-list">
-          <q-card
-            v-for="item in suggestedItems"
-            :key="item._id"
-            class="suggestion-card cursor-pointer"
-            @click="addFromSuggestion(item)"
-          >
-            <q-card-section class="q-pa-md">
-              <div class="suggestion-content">
-                <div>
-                  <div class="text-weight-medium">{{ item.name }}</div>
-                  <div class="text-caption text-grey-7">
-                    {{ item.unit }}
-                    <span v-if="item.category"> • {{ item.category }}</span>
-                    <span v-if="item.price"> • ${{ item.price.toFixed(2) }}</span>
-                  </div>
-                </div>
-                <q-icon name="add_circle" color="primary" size="sm" />
-              </div>
-            </q-card-section>
-          </q-card>
-        </div>
-      </div>
+      <ItemSuggestions
+        :suggested-items="suggestedItems"
+        class="q-mt-md"
+        @add-item="addFromSuggestion"
+      />
 
       <div v-if="showAddButton" class="add-button-container q-mt-md">
         <q-btn
@@ -265,51 +243,16 @@ const deleteItem = (itemId: string) => {
     </div>
 
     <!-- Add Item Dialog -->
-    <q-dialog v-model="showAddDialog">
-      <q-card style="min-width: 400px">
-        <q-card-section>
-          <div class="text-h6">Add New Item</div>
-        </q-card-section>
-
-        <q-card-section class="q-pt-none">
-          <q-input
-            v-model="newItemName"
-            outlined
-            label="Item Name"
-            autofocus
-            class="q-mb-md"
-            @keyup.enter="saveNewItem"
-          />
-          <q-input
-            v-model.number="newItemQuantity"
-            outlined
-            label="Quantity"
-            type="number"
-            min="1"
-            class="q-mb-md"
-          />
-          <q-input
-            v-model.number="newItemPrice"
-            outlined
-            label="Price"
-            type="number"
-            min="0"
-            step="0.01"
-            prefix="$"
-          />
-        </q-card-section>
-
-        <q-card-actions align="right">
-          <q-btn flat label="Cancel" color="primary" @click="closeAddDialog" />
-          <q-btn 
-            label="Save" 
-            color="primary" 
-            @click="saveNewItem"
-            :disable="!newItemName.trim()"
-          />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
+    <AddItemDialog
+      v-model="showAddDialog"
+      title="Add New Item"
+      :initial-data="initialFormData"
+      :fields="{
+        name: true,
+        quantity: true
+      }"
+      @save="saveNewItem"
+    />
     </div>
   </PageWrapper>
 </template>
@@ -366,30 +309,4 @@ const deleteItem = (itemId: string) => {
   justify-content: center;
 }
 
-.suggestions-container {
-  width: 100%;
-  max-width: 800px;
-}
-
-.suggestions-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.suggestion-card {
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.suggestion-card:hover {
-  transform: translateX(4px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-}
-
-.suggestion-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-}
 </style>
