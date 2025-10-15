@@ -84,7 +84,9 @@ const suggestedItems = computed(() => {
 
 const openAddDialog = () => {
   initialFormData.value = {
-    name: searchQuery.value
+    name: searchQuery.value,
+    unit: 'pcs',
+    category: ''
   }
   showAddDialog.value = true
 }
@@ -213,9 +215,7 @@ const deleteItem = (item: ShoppingItem, event: Event) => {
       v-model="showAddDialog"
       title="Add New Item"
       :initial-data="initialFormData"
-      :fields="{
-        name: true
-      }"
+      :show-pantry-fields="false"
       @save="saveNewItem"
     />
     </div>

@@ -20,6 +20,8 @@ onMounted(() => {
 
 const searchQuery = ref('')
 const showAddDialog = ref(false)
+const showEditDialog = ref(false)
+const editingItem = ref<PantryItem | null>(null)
 const initialFormData = ref<Partial<ItemFormData>>({})
 
 const columns = [
@@ -105,9 +107,22 @@ const suggestedItems = computed(() => {
 const openAddDialog = () => {
   initialFormData.value = {
     name: searchQuery.value,
+    unit: 'pcs',
+    category: '',
     quantity: 1
   }
   showAddDialog.value = true
+}
+
+const openEditDialog = (item: PantryItem) => {
+  editingItem.value = item
+  initialFormData.value = {
+    name: item.name,
+    unit: 'pcs',
+    category: '',
+    quantity: item.quantity
+  }
+  showEditDialog.value = true
 }
 
 const addFromSuggestion = async (item: any) => {
@@ -125,6 +140,16 @@ const saveNewItem = async (data: ItemFormData) => {
     quantity: data.quantity || 1
   })
   searchQuery.value = ''
+}
+
+const saveEditedItem = async (data: ItemFormData) => {
+  if (editingItem.value && editingItem.value._id) {
+    await pantryStore.updateItem(editingItem.value._id, {
+      name: data.name,
+      quantity: data.quantity || 1
+    })
+    editingItem.value = null
+  }
 }
 
 const incrementQuantity = (item: PantryItem) => {
@@ -192,9 +217,21 @@ const deleteItem = (itemId: string) => {
         flat
         bordered
       >
-        <template v-slot:body-cell-actions="props">
+        <template v-slot:body-cell-quantity="props">
           <q-td :props="props">
-            <div class="action-buttons">
+            <div class="quantity-controls">
+              <q-btn
+                flat
+                dense
+                round
+                color="warning"
+                icon="remove"
+                size="sm"
+                @click="decrementQuantity(props.row)"
+              >
+                <q-tooltip>Decrease quantity</q-tooltip>
+              </q-btn>
+              <span class="quantity-value">{{ props.row.quantity }}</span>
               <q-btn
                 flat
                 dense
@@ -206,16 +243,22 @@ const deleteItem = (itemId: string) => {
               >
                 <q-tooltip>Increase quantity</q-tooltip>
               </q-btn>
+            </div>
+          </q-td>
+        </template>
+        <template v-slot:body-cell-actions="props">
+          <q-td :props="props">
+            <div class="action-buttons">
               <q-btn
                 flat
                 dense
                 round
-                color="warning"
-                icon="remove"
+                color="primary"
+                icon="edit"
                 size="sm"
-                @click="decrementQuantity(props.row)"
+                @click="openEditDialog(props.row)"
               >
-                <q-tooltip>Decrease quantity</q-tooltip>
+                <q-tooltip>Edit item</q-tooltip>
               </q-btn>
               <q-btn
                 flat
@@ -247,11 +290,17 @@ const deleteItem = (itemId: string) => {
       v-model="showAddDialog"
       title="Add New Item"
       :initial-data="initialFormData"
-      :fields="{
-        name: true,
-        quantity: true
-      }"
+      :show-pantry-fields="true"
       @save="saveNewItem"
+    />
+
+    <!-- Edit Item Dialog -->
+    <AddItemDialog
+      v-model="showEditDialog"
+      title="Edit Item"
+      :initial-data="initialFormData"
+      :show-pantry-fields="true"
+      @save="saveEditedItem"
     />
     </div>
   </PageWrapper>
@@ -307,6 +356,20 @@ const deleteItem = (itemId: string) => {
   display: flex;
   gap: 4px;
   justify-content: center;
+}
+
+.quantity-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+}
+
+.quantity-value {
+  min-width: 30px;
+  text-align: center;
+  font-weight: 500;
+  font-size: 1.1rem;
 }
 
 </style>

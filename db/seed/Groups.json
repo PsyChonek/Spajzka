@@ -1,0 +1,54 @@
+{
+	"groups": [
+		{
+			"_id": {
+				"$oid": "68eb80b11d2eacda726c0c01"
+			},
+			"name": "Rodina Nováků",
+			"adminId": {
+				"$oid": "68eb80b11d2eacda726c0b8c"
+			},
+			"inviteCode": "ABC123XY",
+			"inviteEnabled": true,
+			"memberIds": [
+				{
+					"$oid": "68eb80b11d2eacda726c0b8c"
+				},
+				{
+					"$oid": "68eb80b11d2eacda726c0b8d"
+				}
+			],
+			"createdAt": {
+				"$date": "2025-10-12T10:25:00.000Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:25:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb80b11d2eacda726c0c02"
+			},
+			"name": "Spolubydlící",
+			"adminId": {
+				"$oid": "68eb80b11d2eacda726c0b8e"
+			},
+			"inviteCode": "DEF456ZW",
+			"inviteEnabled": true,
+			"memberIds": [
+				{
+					"$oid": "68eb80b11d2eacda726c0b8e"
+				},
+				{
+					"$oid": "68eb80b11d2eacda726c0b8f"
+				}
+			],
+			"createdAt": {
+				"$date": "2025-10-12T10:26:00.000Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:26:00.000Z"
+			}
+		}
+	]
+}

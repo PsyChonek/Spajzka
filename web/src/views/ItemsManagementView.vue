@@ -145,7 +145,6 @@ const deleteItem = (itemId: string) => {
             icon="add"
             label="Add Item"
             @click="openAddDialog"
-            size="lg"
           />
         </div>
       </div>

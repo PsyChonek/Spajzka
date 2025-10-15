@@ -19,6 +19,7 @@ export class ItemsService {
             method: 'GET',
             url: '/api/items',
             errors: {
+                401: `Unauthorized`,
                 500: `Server error`,
             },
         });
@@ -40,6 +41,7 @@ export class ItemsService {
             mediaType: 'application/json',
             errors: {
                 400: `Bad request`,
+                401: `Unauthorized`,
                 500: `Server error`,
             },
         });
@@ -61,6 +63,7 @@ export class ItemsService {
                 'id': id,
             },
             errors: {
+                401: `Unauthorized`,
                 404: `Item not found`,
                 500: `Server error`,
             },
@@ -87,6 +90,7 @@ export class ItemsService {
             body: requestBody,
             mediaType: 'application/json',
             errors: {
+                401: `Unauthorized`,
                 404: `Item not found`,
                 500: `Server error`,
             },
@@ -109,6 +113,7 @@ export class ItemsService {
                 'id': id,
             },
             errors: {
+                401: `Unauthorized`,
                 404: `Item not found`,
                 500: `Server error`,
             },

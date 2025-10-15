@@ -4,7 +4,7 @@
 			"_id": {
 				"$oid": "68eb80b11d2eacda726c0b8c"
 			},
-			"name": "test",
+			"name": "Jan Novák",
 			"email": "test@example.com",
 			"password": "$2a$10$I00XZ51fjliukUnOuXkpN.cexULhJEaIPCx8sjabcxZHuWbNEcn2G",
 			"createdAt": {
@@ -12,6 +12,48 @@
 			},
 			"updatedAt": {
 				"$date": "2025-10-12T10:19:29.105Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb80b11d2eacda726c0b8d"
+			},
+			"name": "Marie Svobodová",
+			"email": "marie@example.com",
+			"password": "$2a$10$I00XZ51fjliukUnOuXkpN.cexULhJEaIPCx8sjabcxZHuWbNEcn2G",
+			"createdAt": {
+				"$date": "2025-10-12T10:20:29.105Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:20:29.105Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb80b11d2eacda726c0b8e"
+			},
+			"name": "Petr Dvořák",
+			"email": "petr@example.com",
+			"password": "$2a$10$I00XZ51fjliukUnOuXkpN.cexULhJEaIPCx8sjabcxZHuWbNEcn2G",
+			"createdAt": {
+				"$date": "2025-10-12T10:21:29.105Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:21:29.105Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb80b11d2eacda726c0b8f"
+			},
+			"name": "Eva Černá",
+			"email": "eva@example.com",
+			"password": "$2a$10$I00XZ51fjliukUnOuXkpN.cexULhJEaIPCx8sjabcxZHuWbNEcn2G",
+			"createdAt": {
+				"$date": "2025-10-12T10:22:29.105Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:22:29.105Z"
 			}
 		}
 	]

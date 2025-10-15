@@ -12,22 +12,13 @@ interface Props {
   modelValue: boolean
   title?: string
   initialData?: Partial<ItemFormData>
-  fields?: {
-    name?: boolean
-    quantity?: boolean
-    unit?: boolean
-    category?: boolean
-  }
+  // Show separator and extra fields for pantry-specific data
+  showPantryFields?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   title: 'Add New Item',
-  fields: () => ({
-    name: true,
-    quantity: false,
-    unit: false,
-    category: false
-  })
+  showPantryFields: false
 })
 
 const emit = defineEmits<{
@@ -60,19 +51,14 @@ const handleClose = () => {
 
 const handleSave = () => {
   const data: ItemFormData = {
-    name: formName.value.trim()
+    name: formName.value.trim(),
+    unit: formUnit.value.trim(),
+    category: formCategory.value.trim() || undefined
   }
 
-  if (props.fields?.quantity) {
+  // Include quantity only if pantry fields are shown
+  if (props.showPantryFields) {
     data.quantity = formQuantity.value
-  }
-
-  if (props.fields?.unit) {
-    data.unit = formUnit.value.trim()
-  }
-
-  if (props.fields?.category) {
-    data.category = formCategory.value.trim() || undefined
   }
 
   emit('save', data)
@@ -89,7 +75,7 @@ const resetForm = () => {
 
 const isFormValid = () => {
   if (!formName.value.trim()) return false
-  if (props.fields?.unit && !formUnit.value.trim()) return false
+  if (!formUnit.value.trim()) return false
   return true
 }
 </script>
@@ -102,19 +88,17 @@ const isFormValid = () => {
       </q-card-section>
 
       <q-card-section class="q-pt-none">
-        <!-- Name field (always shown) -->
+        <!-- Base fields (always shown) -->
         <q-input
           v-model="formName"
           outlined
-          :label="fields?.unit ? 'Item Name *' : 'Item Name'"
+          label="Item Name *"
           autofocus
           class="q-mb-md"
           @keyup.enter="handleSave"
         />
 
-        <!-- Unit field -->
         <q-input
-          v-if="fields?.unit"
           v-model="formUnit"
           outlined
           label="Unit *"
@@ -122,9 +106,7 @@ const isFormValid = () => {
           class="q-mb-md"
         />
 
-        <!-- Category field -->
         <q-input
-          v-if="fields?.category"
           v-model="formCategory"
           outlined
           label="Category"
@@ -132,15 +114,20 @@ const isFormValid = () => {
           class="q-mb-md"
         />
 
-        <!-- Quantity field -->
-        <q-input
-          v-if="fields?.quantity"
-          v-model.number="formQuantity"
-          outlined
-          label="Quantity"
-          type="number"
-          min="1"
-        />
+        <!-- Separator and pantry-specific fields -->
+        <template v-if="showPantryFields">
+          <q-separator class="q-my-md" />
+
+          <div class="text-subtitle2 text-grey-7 q-mb-sm">Pantry Information</div>
+
+          <q-input
+            v-model.number="formQuantity"
+            outlined
+            label="Quantity"
+            type="number"
+            min="1"
+          />
+        </template>
       </q-card-section>
 
       <q-card-actions align="right">

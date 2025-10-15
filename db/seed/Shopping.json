@@ -1,11 +1,11 @@
 {
 	"shopping": [
 		{
-			"userId": {
-				"$oid": "68eb80b11d2eacda726c0b8c"
+			"groupId": {
+				"$oid": "68eb80b11d2eacda726c0c01"
 			},
 			"itemId": {
-				"$oid": "68eb7ef1335fb9089bf861f6"
+				"$oid": "68eb7ef1335fb9089bf86102"
 			},
 			"createdAt": {
 				"$date": "2025-10-12T10:10:23.868Z"
@@ -13,6 +13,156 @@
 			"completed": false,
 			"updatedAt": {
 				"$date": "2025-10-12T10:10:23.868Z"
+			}
+		},
+		{
+			"groupId": {
+				"$oid": "68eb80b11d2eacda726c0c01"
+			},
+			"itemId": {
+				"$oid": "68eb7ef1335fb9089bf86103"
+			},
+			"createdAt": {
+				"$date": "2025-10-12T10:10:23.868Z"
+			},
+			"completed": false,
+			"updatedAt": {
+				"$date": "2025-10-12T10:10:23.868Z"
+			}
+		},
+		{
+			"groupId": {
+				"$oid": "68eb80b11d2eacda726c0c01"
+			},
+			"itemId": {
+				"$oid": "68eb7ef1335fb9089bf86109"
+			},
+			"createdAt": {
+				"$date": "2025-10-12T10:10:23.868Z"
+			},
+			"completed": false,
+			"updatedAt": {
+				"$date": "2025-10-12T10:10:23.868Z"
+			}
+		},
+		{
+			"groupId": {
+				"$oid": "68eb80b11d2eacda726c0c01"
+			},
+			"itemId": {
+				"$oid": "68eb7ef1335fb9089bf86113"
+			},
+			"createdAt": {
+				"$date": "2025-10-12T10:10:23.868Z"
+			},
+			"completed": false,
+			"updatedAt": {
+				"$date": "2025-10-12T10:10:23.868Z"
+			}
+		},
+		{
+			"groupId": {
+				"$oid": "68eb80b11d2eacda726c0c01"
+			},
+			"itemId": {
+				"$oid": "68eb7ef1335fb9089bf86119"
+			},
+			"createdAt": {
+				"$date": "2025-10-12T10:10:23.868Z"
+			},
+			"completed": false,
+			"updatedAt": {
+				"$date": "2025-10-12T10:10:23.868Z"
+			}
+		},
+		{
+			"groupId": {
+				"$oid": "68eb80b11d2eacda726c0c01"
+			},
+			"itemId": {
+				"$oid": "68eb7ef1335fb9089bf86130"
+			},
+			"createdAt": {
+				"$date": "2025-10-12T10:10:23.868Z"
+			},
+			"completed": false,
+			"updatedAt": {
+				"$date": "2025-10-12T10:10:23.868Z"
+			}
+		},
+		{
+			"groupId": {
+				"$oid": "68eb80b11d2eacda726c0c01"
+			},
+			"itemId": {
+				"$oid": "68eb7ef1335fb9089bf86131"
+			},
+			"createdAt": {
+				"$date": "2025-10-12T10:10:23.868Z"
+			},
+			"completed": true,
+			"updatedAt": {
+				"$date": "2025-10-12T10:11:23.868Z"
+			}
+		},
+		{
+			"groupId": {
+				"$oid": "68eb80b11d2eacda726c0c02"
+			},
+			"itemId": {
+				"$oid": "68eb7ef1335fb9089bf86107"
+			},
+			"createdAt": {
+				"$date": "2025-10-12T10:10:23.868Z"
+			},
+			"completed": false,
+			"updatedAt": {
+				"$date": "2025-10-12T10:10:23.868Z"
+			}
+		},
+		{
+			"groupId": {
+				"$oid": "68eb80b11d2eacda726c0c02"
+			},
+			"itemId": {
+				"$oid": "68eb7ef1335fb9089bf86108"
+			},
+			"createdAt": {
+				"$date": "2025-10-12T10:10:23.868Z"
+			},
+			"completed": false,
+			"updatedAt": {
+				"$date": "2025-10-12T10:10:23.868Z"
+			}
+		},
+		{
+			"groupId": {
+				"$oid": "68eb80b11d2eacda726c0c02"
+			},
+			"itemId": {
+				"$oid": "68eb7ef1335fb9089bf86116"
+			},
+			"createdAt": {
+				"$date": "2025-10-12T10:10:23.868Z"
+			},
+			"completed": false,
+			"updatedAt": {
+				"$date": "2025-10-12T10:10:23.868Z"
+			}
+		},
+		{
+			"groupId": {
+				"$oid": "68eb80b11d2eacda726c0c02"
+			},
+			"itemId": {
+				"$oid": "68eb7ef1335fb9089bf86118"
+			},
+			"createdAt": {
+				"$date": "2025-10-12T10:10:23.868Z"
+			},
+			"completed": true,
+			"updatedAt": {
+				"$date": "2025-10-12T10:11:23.868Z"
 			}
 		}
 	]

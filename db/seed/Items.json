@@ -2,12 +2,11 @@
 	"items": [
 		{
 			"_id": {
-				"$oid": "68eb7ef1335fb9089bf861f4"
+				"$oid": "68eb7ef1335fb9089bf86101"
 			},
 			"name": "Mrkev",
-			"quantity": 0,
 			"unit": "pcs",
-			"category": null,
+			"category": "Zelenina",
 			"createdAt": {
 				"$date": "2025-10-12T10:09:31.475Z"
 			},
@@ -17,12 +16,487 @@
 		},
 		{
 			"_id": {
-				"$oid": "68eb7ef1335fb9089bf861f6"
+				"$oid": "68eb7ef1335fb9089bf86102"
 			},
 			"name": "Okurka",
-			"quantity": 0,
 			"unit": "pcs",
-			"category": null,
+			"category": "Zelenina",
+			"createdAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb7ef1335fb9089bf86103"
+			},
+			"name": "Rajčata",
+			"unit": "pcs",
+			"category": "Zelenina",
+			"createdAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb7ef1335fb9089bf86104"
+			},
+			"name": "Brambory",
+			"unit": "kg",
+			"category": "Zelenina",
+			"createdAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb7ef1335fb9089bf86105"
+			},
+			"name": "Cibule",
+			"unit": "pcs",
+			"category": "Zelenina",
+			"createdAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb7ef1335fb9089bf86106"
+			},
+			"name": "Česnek",
+			"unit": "pcs",
+			"category": "Zelenina",
+			"createdAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb7ef1335fb9089bf86107"
+			},
+			"name": "Paprika",
+			"unit": "pcs",
+			"category": "Zelenina",
+			"createdAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb7ef1335fb9089bf86108"
+			},
+			"name": "Mléko",
+			"unit": "l",
+			"category": "Mléčné výrobky",
+			"createdAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb7ef1335fb9089bf86109"
+			},
+			"name": "Jogurt",
+			"unit": "pcs",
+			"category": "Mléčné výrobky",
+			"createdAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb7ef1335fb9089bf86110"
+			},
+			"name": "Sýr",
+			"unit": "g",
+			"category": "Mléčné výrobky",
+			"createdAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb7ef1335fb9089bf86111"
+			},
+			"name": "Máslo",
+			"unit": "g",
+			"category": "Mléčné výrobky",
+			"createdAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb7ef1335fb9089bf86112"
+			},
+			"name": "Vejce",
+			"unit": "pcs",
+			"category": "Mléčné výrobky",
+			"createdAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb7ef1335fb9089bf86113"
+			},
+			"name": "Kuřecí prsa",
+			"unit": "kg",
+			"category": "Maso",
+			"createdAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb7ef1335fb9089bf86114"
+			},
+			"name": "Vepřové maso",
+			"unit": "kg",
+			"category": "Maso",
+			"createdAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb7ef1335fb9089bf86115"
+			},
+			"name": "Hovězí maso",
+			"unit": "kg",
+			"category": "Maso",
+			"createdAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb7ef1335fb9089bf86116"
+			},
+			"name": "Šunka",
+			"unit": "g",
+			"category": "Maso",
+			"createdAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb7ef1335fb9089bf86117"
+			},
+			"name": "Salám",
+			"unit": "g",
+			"category": "Maso",
+			"createdAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb7ef1335fb9089bf86118"
+			},
+			"name": "Chléb",
+			"unit": "pcs",
+			"category": "Pečivo",
+			"createdAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb7ef1335fb9089bf86119"
+			},
+			"name": "Rohlíky",
+			"unit": "pcs",
+			"category": "Pečivo",
+			"createdAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb7ef1335fb9089bf86120"
+			},
+			"name": "Housky",
+			"unit": "pcs",
+			"category": "Pečivo",
+			"createdAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb7ef1335fb9089bf86121"
+			},
+			"name": "Rýže",
+			"unit": "kg",
+			"category": "Trvanlivé potraviny",
+			"createdAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb7ef1335fb9089bf86122"
+			},
+			"name": "Těstoviny",
+			"unit": "g",
+			"category": "Trvanlivé potraviny",
+			"createdAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb7ef1335fb9089bf86123"
+			},
+			"name": "Mouka",
+			"unit": "kg",
+			"category": "Trvanlivé potraviny",
+			"createdAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb7ef1335fb9089bf86124"
+			},
+			"name": "Cukr",
+			"unit": "kg",
+			"category": "Trvanlivé potraviny",
+			"createdAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb7ef1335fb9089bf86125"
+			},
+			"name": "Sůl",
+			"unit": "kg",
+			"category": "Koření",
+			"createdAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb7ef1335fb9089bf86126"
+			},
+			"name": "Pepř",
+			"unit": "g",
+			"category": "Koření",
+			"createdAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb7ef1335fb9089bf86127"
+			},
+			"name": "Olej",
+			"unit": "l",
+			"category": "Koření",
+			"createdAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb7ef1335fb9089bf86128"
+			},
+			"name": "Ocet",
+			"unit": "ml",
+			"category": "Koření",
+			"createdAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb7ef1335fb9089bf86129"
+			},
+			"name": "Jablka",
+			"unit": "pcs",
+			"category": "Ovoce",
+			"createdAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb7ef1335fb9089bf86130"
+			},
+			"name": "Banány",
+			"unit": "pcs",
+			"category": "Ovoce",
+			"createdAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb7ef1335fb9089bf86131"
+			},
+			"name": "Pomeranče",
+			"unit": "pcs",
+			"category": "Ovoce",
+			"createdAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb7ef1335fb9089bf86132"
+			},
+			"name": "Hroznové víno",
+			"unit": "kg",
+			"category": "Ovoce",
+			"createdAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb7ef1335fb9089bf86133"
+			},
+			"name": "Káva",
+			"unit": "g",
+			"category": "Nápoje",
+			"createdAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb7ef1335fb9089bf86134"
+			},
+			"name": "Čaj",
+			"unit": "pcs",
+			"category": "Nápoje",
+			"createdAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb7ef1335fb9089bf86135"
+			},
+			"name": "Džus",
+			"unit": "l",
+			"category": "Nápoje",
+			"createdAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:10:23.867Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb7ef1335fb9089bf86136"
+			},
+			"name": "Voda",
+			"unit": "l",
+			"category": "Nápoje",
 			"createdAt": {
 				"$date": "2025-10-12T10:10:23.867Z"
 			},

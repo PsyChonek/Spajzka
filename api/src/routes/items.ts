@@ -1,6 +1,7 @@
-import { Router, Request, Response } from 'express';
+import { Router, Response } from 'express';
 import { getDatabase } from '../config/database';
 import { ObjectId } from 'mongodb';
+import { authMiddleware, AuthRequest } from '../middleware/auth';
 
 const router = Router();
 
@@ -59,6 +60,8 @@ const router = Router();
  *     description: Retrieve a list of all items in the pantry
  *     tags:
  *       - Items
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: A list of items
@@ -68,6 +71,12 @@ const router = Router();
  *               type: array
  *               items:
  *                 $ref: '#/components/schemas/Item'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  *       500:
  *         description: Server error
  *         content:
@@ -75,7 +84,7 @@ const router = Router();
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/items', async (req: Request, res: Response) => {
+router.get('/items', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const db = getDatabase();
     const items = await db.collection('items').find().toArray();
@@ -94,6 +103,8 @@ router.get('/items', async (req: Request, res: Response) => {
  *     description: Retrieve a specific item by its ID
  *     tags:
  *       - Items
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -108,6 +119,12 @@ router.get('/items', async (req: Request, res: Response) => {
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Item'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  *       404:
  *         description: Item not found
  *         content:
@@ -121,7 +138,7 @@ router.get('/items', async (req: Request, res: Response) => {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/items/:id', async (req: Request, res: Response) => {
+router.get('/items/:id', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const db = getDatabase();
     const { id } = req.params;
@@ -151,6 +168,8 @@ router.get('/items/:id', async (req: Request, res: Response) => {
  *     description: Add a new item to the pantry
  *     tags:
  *       - Items
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -170,6 +189,12 @@ router.get('/items/:id', async (req: Request, res: Response) => {
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  *       500:
  *         description: Server error
  *         content:
@@ -177,7 +202,7 @@ router.get('/items/:id', async (req: Request, res: Response) => {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post('/items', async (req: Request, res: Response) => {
+router.post('/items', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const db = getDatabase();
     const { name, unit, category } = req.body;
@@ -208,6 +233,8 @@ router.post('/items', async (req: Request, res: Response) => {
  *     description: Update an existing item by its ID
  *     tags:
  *       - Items
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -228,6 +255,12 @@ router.post('/items', async (req: Request, res: Response) => {
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Item'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  *       404:
  *         description: Item not found
  *         content:
@@ -241,7 +274,7 @@ router.post('/items', async (req: Request, res: Response) => {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.put('/items/:id', async (req: Request, res: Response) => {
+router.put('/items/:id', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const db = getDatabase();
     const { id } = req.params;
@@ -284,6 +317,8 @@ router.put('/items/:id', async (req: Request, res: Response) => {
  *     description: Delete an item by its ID
  *     tags:
  *       - Items
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -294,6 +329,12 @@ router.put('/items/:id', async (req: Request, res: Response) => {
  *     responses:
  *       204:
  *         description: Item deleted successfully
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  *       404:
  *         description: Item not found
  *         content:
@@ -307,7 +348,7 @@ router.put('/items/:id', async (req: Request, res: Response) => {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.delete('/items/:id', async (req: Request, res: Response) => {
+router.delete('/items/:id', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const db = getDatabase();
     const { id } = req.params;
