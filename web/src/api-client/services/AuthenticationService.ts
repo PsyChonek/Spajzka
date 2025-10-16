@@ -13,6 +13,18 @@ import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class AuthenticationService {
     /**
+     * Create anonymous user
+     * Create a temporary anonymous user for using the app without registration
+     * @returns AuthResponse Anonymous user created successfully
+     * @throws ApiError
+     */
+    public static postApiAuthAnonymous(): CancelablePromise<AuthResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/auth/anonymous',
+        });
+    }
+    /**
      * Register a new user
      * Create a new user account
      * @param requestBody
@@ -117,6 +129,28 @@ export class AuthenticationService {
             mediaType: 'application/json',
             errors: {
                 401: `Invalid old password`,
+            },
+        });
+    }
+    /**
+     * Set active group
+     * Set the user's active group for viewing pantry/shopping lists
+     * @param requestBody
+     * @returns any Active group updated
+     * @throws ApiError
+     */
+    public static postApiAuthActiveGroup(
+        requestBody: {
+            groupId: string;
+        },
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/auth/active-group',
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                403: `User is not a member of this group`,
             },
         });
     }

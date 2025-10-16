@@ -1,12 +1,12 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { 
-  AuthenticationService, 
-  type User, 
-  type RegisterRequest, 
+import {
+  AuthenticationService,
+  type User,
+  type RegisterRequest,
   type LoginRequest,
-  ApiError 
-} from '@/services/auth'
+  ApiError
+} from '@/api-client'
 import { Notify } from 'quasar'
 
 export const useAuthStore = defineStore('auth', () => {
@@ -15,8 +15,14 @@ export const useAuthStore = defineStore('auth', () => {
   const loading = ref(false)
 
   const isAuthenticated = computed(() => !!token.value && !!user.value)
+  const isAnonymous = computed(() => user.value?.isAnonymous === true)
   const userEmail = computed(() => user.value?.email || '')
   const userName = computed(() => user.value?.name || user.value?.email || 'User')
+
+  // Helper function to check if user has a specific global permission
+  const hasGlobalPermission = (permission: string) => {
+    return user.value?.globalPermissions?.includes(permission) || false
+  }
 
   // Register new user
   async function register(data: RegisterRequest) {
@@ -198,10 +204,47 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  // Initialize - fetch user if token exists
+  // Create anonymous user
+  async function createAnonymous() {
+    loading.value = true
+    try {
+      const response = await AuthenticationService.postApiAuthAnonymous()
+
+      // Store token and user
+      token.value = response.token!
+      user.value = response.user!
+      localStorage.setItem('auth_token', response.token!)
+
+      Notify.create({
+        type: 'info',
+        message: 'Welcome! You can use the app without an account.',
+        timeout: 3000
+      })
+
+      return true
+    } catch (error: any) {
+      console.error('Failed to create anonymous user:', error)
+
+      const message = error instanceof ApiError ? error.body?.message : 'Failed to start anonymous session'
+      Notify.create({
+        type: 'negative',
+        message,
+        timeout: 3000
+      })
+
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // Initialize - fetch user if token exists, or create anonymous user
   async function initialize() {
     if (token.value) {
       await fetchUser()
+    } else {
+      // Auto-create anonymous user if no token exists
+      await createAnonymous()
     }
   }
 
@@ -210,14 +253,17 @@ export const useAuthStore = defineStore('auth', () => {
     token,
     loading,
     isAuthenticated,
+    isAnonymous,
     userEmail,
     userName,
+    hasGlobalPermission,
     register,
     login,
     logout,
     fetchUser,
     updateProfile,
     changePassword,
+    createAnonymous,
     initialize
   }
 }, {

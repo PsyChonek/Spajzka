@@ -1,13 +1,24 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import { ShoppingService, type ShoppingItem, isOnline, ApiError } from '@/services/api'
+import { ref, computed, watch } from 'vue'
+import { ShoppingService, type ShoppingItem, type CreateShoppingItemRequest, ApiError } from '@/api-client'
+import { isOnline } from '@/utils/network'
 import { Notify } from 'quasar'
+import { useGroupsStore } from './groupsStore'
+import { useItemsStore } from './itemsStore'
 
 export const useShoppingStore = defineStore('shopping', () => {
   const items = ref<ShoppingItem[]>([])
   const loading = ref(false)
   const lastSynced = ref<Date | null>(null)
   const pendingChanges = ref<Map<string, 'create' | 'update' | 'delete'>>(new Map())
+
+  // Watch for group changes and refetch items
+  const groupsStore = useGroupsStore()
+  watch(() => groupsStore.currentGroupId, (newGroupId, oldGroupId) => {
+    if (newGroupId && newGroupId !== oldGroupId) {
+      fetchItems()
+    }
+  }, { immediate: false })
 
   // Computed
   const sortedItems = computed(() => {
@@ -32,7 +43,6 @@ export const useShoppingStore = defineStore('shopping', () => {
 
   async function fetchItems() {
     if (!isOnline()) {
-      console.log('Offline: Using cached shopping items')
       return
     }
 
@@ -43,7 +53,6 @@ export const useShoppingStore = defineStore('shopping', () => {
       lastSynced.value = new Date()
       pendingChanges.value.clear()
     } catch (error: any) {
-      console.error('Failed to fetch shopping items:', error)
       const is404 = error instanceof ApiError && error.status === 404
       if (!is404 && error.message !== 'offline') {
         Notify.create({
@@ -59,12 +68,24 @@ export const useShoppingStore = defineStore('shopping', () => {
     }
   }
 
-  async function addItem(itemData: Omit<ShoppingItem, '_id' | 'createdAt' | 'updatedAt'>) {
+  async function addItem(itemData: CreateShoppingItemRequest) {
     const tempId = `temp_${Date.now()}`
+
+    // Get item details from the items store to populate the temporary item
+    const itemsStore = useItemsStore()
+    const itemDetails = itemsStore.getItem(itemData.itemId, itemData.itemType as 'global' | 'group')
+
+    // Create a temporary shopping item with populated details
     const tempItem: ShoppingItem = {
       _id: tempId,
-      ...itemData,
-      completed: itemData.completed ?? false,
+      itemId: itemData.itemId,
+      itemType: itemData.itemType as ShoppingItem.itemType,
+      quantity: itemData.quantity ?? 1,
+      completed: false,
+      name: itemDetails?.name || 'Loading...',
+      category: itemDetails?.category,
+      icon: itemDetails?.icon,
+      defaultUnit: itemDetails?.defaultUnit,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
@@ -167,14 +188,19 @@ export const useShoppingStore = defineStore('shopping', () => {
     }
 
     const changes = Array.from(pendingChanges.value.entries())
-    
+
     for (const [id, action] of changes) {
       try {
         const item = items.value.find((i: ShoppingItem) => i._id === id)
-        
+
         if (action === 'create' && item) {
-          const { _id, ...itemData } = item
-          const savedItem = await ShoppingService.postApiShopping(itemData)
+          // For create, send only the required fields
+          const createData: CreateShoppingItemRequest = {
+            itemId: item.itemId!,
+            itemType: item.itemType as CreateShoppingItemRequest.itemType,
+            quantity: item.quantity
+          }
+          const savedItem = await ShoppingService.postApiShopping(createData)
           const index = items.value.findIndex((i: ShoppingItem) => i._id === id)
           if (index !== -1) {
             items.value[index] = savedItem
@@ -185,7 +211,7 @@ export const useShoppingStore = defineStore('shopping', () => {
         } else if (action === 'delete' && !id.startsWith('temp_')) {
           await ShoppingService.deleteApiShopping(id)
         }
-        
+
         pendingChanges.value.delete(id)
       } catch (error: any) {
         const is404 = error instanceof ApiError && error.status === 404

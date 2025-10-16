@@ -49,6 +49,13 @@
             "format": "email",
             "description": "User's email address"
           },
+          "globalPermissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Array of global permissions the user has"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time",
@@ -149,9 +156,29 @@
             "type": "string",
             "description": "Group name"
           },
-          "adminId": {
-            "type": "string",
-            "description": "Admin user ID"
+          "isPersonal": {
+            "type": "boolean",
+            "description": "Whether this is a personal group"
+          },
+          "members": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "userId": {
+                  "type": "string"
+                },
+                "role": {
+                  "type": "string",
+                  "enum": [
+                    "admin",
+                    "moderator",
+                    "member"
+                  ]
+                }
+              }
+            },
+            "description": "Array of members with their roles"
           },
           "inviteCode": {
             "type": "string",
@@ -160,13 +187,6 @@
           "inviteEnabled": {
             "type": "boolean",
             "description": "Whether invite is enabled"
-          },
-          "memberIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "Array of member user IDs"
           },
           "createdAt": {
             "type": "string",
@@ -226,12 +246,33 @@
           "email": {
             "type": "string"
           },
-          "isAdmin": {
-            "type": "boolean"
+          "role": {
+            "type": "string",
+            "enum": [
+              "admin",
+              "moderator",
+              "member"
+            ]
           }
         }
       },
-      "Item": {
+      "AssignRoleRequest": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "admin",
+              "moderator",
+              "member"
+            ]
+          }
+        },
+        "required": [
+          "role"
+        ]
+      },
+      "GlobalItem": {
         "type": "object",
         "properties": {
           "_id": {
@@ -242,52 +283,37 @@
             "type": "string",
             "description": "Item name"
           },
-          "unit": {
-            "type": "string",
-            "description": "Unit of measurement"
-          },
           "category": {
             "type": "string",
             "description": "Item category"
+          },
+          "icon": {
+            "type": "string",
+            "description": "Emoji icon"
+          },
+          "defaultUnit": {
+            "type": "string",
+            "description": "Default unit of measurement"
+          },
+          "barcode": {
+            "type": "string",
+            "description": "Barcode"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether item is active"
           },
           "createdAt": {
             "type": "string",
-            "format": "date-time",
-            "description": "Creation timestamp"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Last update timestamp"
+            "format": "date-time"
           }
         },
         "required": [
           "name",
-          "unit"
+          "category"
         ]
       },
-      "CreateItemRequest": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "Item name"
-          },
-          "unit": {
-            "type": "string",
-            "description": "Unit of measurement"
-          },
-          "category": {
-            "type": "string",
-            "description": "Item category"
-          }
-        },
-        "required": [
-          "name",
-          "unit"
-        ]
-      },
-      "PantryItem": {
+      "GroupItem": {
         "type": "object",
         "properties": {
           "_id": {
@@ -296,27 +322,127 @@
           },
           "groupId": {
             "type": "string",
-            "description": "Group ID"
-          },
-          "itemId": {
-            "type": "string",
-            "description": "Reference to common item ID"
+            "description": "Group ID this item belongs to"
           },
           "name": {
             "type": "string",
             "description": "Item name"
           },
-          "quantity": {
-            "type": "number",
-            "description": "Item quantity"
-          },
-          "unit": {
-            "type": "string",
-            "description": "Unit of measurement"
-          },
           "category": {
             "type": "string",
             "description": "Item category"
+          },
+          "icon": {
+            "type": "string",
+            "description": "Emoji icon"
+          },
+          "defaultUnit": {
+            "type": "string",
+            "description": "Default unit of measurement"
+          },
+          "barcode": {
+            "type": "string",
+            "description": "Barcode"
+          },
+          "createdBy": {
+            "type": "string",
+            "description": "User ID who created this item"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "name",
+          "category",
+          "groupId"
+        ]
+      },
+      "CreateGlobalItemRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          },
+          "defaultUnit": {
+            "type": "string"
+          },
+          "barcode": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "category"
+        ]
+      },
+      "CreateGroupItemRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          },
+          "defaultUnit": {
+            "type": "string"
+          },
+          "barcode": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "category"
+        ]
+      },
+      "PantryItem": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string"
+          },
+          "groupId": {
+            "type": "string"
+          },
+          "itemId": {
+            "type": "string"
+          },
+          "itemType": {
+            "type": "string",
+            "enum": [
+              "global",
+              "group"
+            ]
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          },
+          "defaultUnit": {
+            "type": "string"
+          },
+          "barcode": {
+            "type": "string"
           },
           "createdAt": {
             "type": "string",
@@ -326,30 +452,28 @@
             "type": "string",
             "format": "date-time"
           }
-        },
-        "required": [
-          "name",
-          "quantity"
-        ]
+        }
       },
       "CreatePantryItemRequest": {
         "type": "object",
         "properties": {
-          "name": {
+          "itemId": {
             "type": "string"
+          },
+          "itemType": {
+            "type": "string",
+            "enum": [
+              "global",
+              "group"
+            ]
           },
           "quantity": {
             "type": "number"
-          },
-          "unit": {
-            "type": "string"
-          },
-          "category": {
-            "type": "string"
           }
         },
         "required": [
-          "name",
+          "itemId",
+          "itemType",
           "quantity"
         ]
       },
@@ -357,36 +481,38 @@
         "type": "object",
         "properties": {
           "_id": {
-            "type": "string",
-            "description": "Item ID"
+            "type": "string"
           },
           "groupId": {
-            "type": "string",
-            "description": "Group ID"
+            "type": "string"
           },
           "itemId": {
-            "type": "string",
-            "description": "Reference to common item ID"
+            "type": "string"
           },
-          "name": {
+          "itemType": {
             "type": "string",
-            "description": "Item name"
+            "enum": [
+              "global",
+              "group"
+            ]
           },
           "quantity": {
-            "type": "number",
-            "description": "Item quantity"
-          },
-          "unit": {
-            "type": "string",
-            "description": "Unit of measurement"
+            "type": "number"
           },
           "completed": {
-            "type": "boolean",
-            "description": "Whether item is completed"
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
           },
           "category": {
-            "type": "string",
-            "description": "Item category"
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          },
+          "defaultUnit": {
+            "type": "string"
           },
           "createdAt": {
             "type": "string",
@@ -396,29 +522,28 @@
             "type": "string",
             "format": "date-time"
           }
-        },
-        "required": [
-          "name"
-        ]
+        }
       },
       "CreateShoppingItemRequest": {
         "type": "object",
         "properties": {
-          "name": {
+          "itemId": {
             "type": "string"
+          },
+          "itemType": {
+            "type": "string",
+            "enum": [
+              "global",
+              "group"
+            ]
           },
           "quantity": {
             "type": "number"
-          },
-          "unit": {
-            "type": "string"
-          },
-          "category": {
-            "type": "string"
           }
         },
         "required": [
-          "name"
+          "itemId",
+          "itemType"
         ]
       }
     },
@@ -431,6 +556,27 @@
     }
   },
   "paths": {
+    "/api/auth/anonymous": {
+      "post": {
+        "summary": "Create anonymous user",
+        "description": "Create a temporary anonymous user for using the app without registration",
+        "tags": [
+          "Authentication"
+        ],
+        "responses": {
+          "201": {
+            "description": "Anonymous user created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/auth/register": {
       "post": {
         "summary": "Register a new user",
@@ -621,10 +767,50 @@
         }
       }
     },
+    "/api/auth/active-group": {
+      "post": {
+        "summary": "Set active group",
+        "description": "Set the user's active group for viewing pantry/shopping lists",
+        "tags": [
+          "Authentication"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "groupId": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "groupId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Active group updated"
+          },
+          "403": {
+            "description": "User is not a member of this group"
+          }
+        }
+      }
+    },
     "/api/groups": {
       "post": {
         "summary": "Create a new group",
-        "description": "Create a new group with the authenticated user as admin",
+        "description": "Create a new shared group with the authenticated user as admin",
         "tags": [
           "Groups"
         ],
@@ -662,8 +848,8 @@
     },
     "/api/groups/my": {
       "get": {
-        "summary": "Get user's group",
-        "description": "Get the group that the authenticated user is a member of",
+        "summary": "Get user's groups",
+        "description": "Get all groups that the authenticated user is a member of",
         "tags": [
           "Groups"
         ],
@@ -674,17 +860,17 @@
         ],
         "responses": {
           "200": {
-            "description": "User's group",
+            "description": "User's groups",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Group"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Group"
+                  }
                 }
               }
             }
-          },
-          "404": {
-            "description": "User is not in any group"
           }
         }
       }
@@ -732,7 +918,7 @@
       },
       "put": {
         "summary": "Update group",
-        "description": "Update group details (admin only)",
+        "description": "Update group details (requires group:update permission)",
         "tags": [
           "Groups"
         ],
@@ -773,13 +959,13 @@
             }
           },
           "403": {
-            "description": "Only admin can update group"
+            "description": "Insufficient permissions"
           }
         }
       },
       "delete": {
         "summary": "Delete group",
-        "description": "Delete a group (admin only)",
+        "description": "Delete a group (requires group:delete permission)",
         "tags": [
           "Groups"
         ],
@@ -803,7 +989,7 @@
             "description": "Group deleted successfully"
           },
           "403": {
-            "description": "Only admin can delete group"
+            "description": "Insufficient permissions"
           }
         }
       }
@@ -921,7 +1107,7 @@
     "/api/groups/{id}/kick/{userId}": {
       "delete": {
         "summary": "Kick user from group",
-        "description": "Remove a user from the group (admin only, cannot kick admin)",
+        "description": "Remove a user from the group (requires group:manage_members permission)",
         "tags": [
           "Groups"
         ],
@@ -953,7 +1139,57 @@
             "description": "User kicked successfully"
           },
           "403": {
-            "description": "Only admin can kick users"
+            "description": "Insufficient permissions"
+          }
+        }
+      }
+    },
+    "/api/groups/{id}/members/{userId}/role": {
+      "put": {
+        "summary": "Assign role to member",
+        "description": "Change a member's role (requires group:manage_roles permission)",
+        "tags": [
+          "Groups"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignRoleRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Role assigned successfully"
+          },
+          "403": {
+            "description": "Insufficient permissions"
           }
         }
       }
@@ -961,7 +1197,7 @@
     "/api/groups/{id}/regenerate-invite": {
       "post": {
         "summary": "Regenerate invite code",
-        "description": "Generate a new invite code for the group (admin only)",
+        "description": "Generate a new invite code for the group (requires group:update permission)",
         "tags": [
           "Groups"
         ],
@@ -1002,7 +1238,7 @@
     "/api/groups/{id}/toggle-invite": {
       "post": {
         "summary": "Toggle invite enabled/disabled",
-        "description": "Enable or disable invites for the group (admin only)",
+        "description": "Enable or disable invites for the group (requires group:update permission)",
         "tags": [
           "Groups"
         ],
@@ -1106,7 +1342,7 @@
     "/api/items": {
       "get": {
         "summary": "Get all items",
-        "description": "Retrieve a list of all items in the pantry",
+        "description": "Get both global items and group items for user's group",
         "tags": [
           "Items"
         ],
@@ -1117,98 +1353,25 @@
         ],
         "responses": {
           "200": {
-            "description": "A list of items",
+            "description": "Combined list of items",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Item"
+                  "type": "object",
+                  "properties": {
+                    "globalItems": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/GlobalItem"
+                      }
+                    },
+                    "groupItems": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/GroupItem"
+                      }
+                    }
                   }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "summary": "Create a new item",
-        "description": "Add a new item to the pantry",
-        "tags": [
-          "Items"
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateItemRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Item created successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Item"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
@@ -1216,10 +1379,10 @@
         }
       }
     },
-    "/api/items/{id}": {
+    "/api/items/global": {
       "get": {
-        "summary": "Get item by ID",
-        "description": "Retrieve a specific item by its ID",
+        "summary": "Get all global items",
+        "description": "Get all active global items",
         "tags": [
           "Items"
         ],
@@ -1228,80 +1391,31 @@
             "bearerAuth": []
           }
         ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Item ID"
-          }
-        ],
         "responses": {
           "200": {
-            "description": "Item found",
+            "description": "List of global items",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Item"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Item not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GlobalItem"
+                  }
                 }
               }
             }
           }
         }
       },
-      "put": {
-        "summary": "Update an item",
-        "description": "Update an existing item by its ID",
+      "post": {
+        "summary": "Create global item",
+        "description": "Create a new global item (requires global_items:create permission)",
         "tags": [
           "Items"
         ],
         "security": [
           {
             "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Item ID"
           }
         ],
         "requestBody": {
@@ -1309,57 +1423,32 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateItemRequest"
+                "$ref": "#/components/schemas/CreateGlobalItemRequest"
               }
             }
           }
         },
         "responses": {
-          "200": {
-            "description": "Item updated successfully",
+          "201": {
+            "description": "Global item created",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Item"
+                  "$ref": "#/components/schemas/GlobalItem"
                 }
               }
             }
           },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Item not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
+          "403": {
+            "description": "Insufficient permissions"
           }
         }
-      },
-      "delete": {
-        "summary": "Delete an item",
-        "description": "Delete an item by its ID",
+      }
+    },
+    "/api/items/global/{id}": {
+      "put": {
+        "summary": "Update global item",
+        "description": "Update a global item (requires global_items:update permission)",
         "tags": [
           "Items"
         ],
@@ -1375,43 +1464,193 @@
             "required": true,
             "schema": {
               "type": "string"
-            },
-            "description": "Item ID"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateGlobalItemRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Global item updated"
+          },
+          "403": {
+            "description": "Insufficient permissions"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete global item",
+        "description": "Deactivate a global item (requires global_items:delete permission)",
+        "tags": [
+          "Items"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
           "204": {
-            "description": "Item deleted successfully"
+            "description": "Global item deleted"
           },
-          "401": {
-            "description": "Unauthorized",
+          "403": {
+            "description": "Insufficient permissions"
+          }
+        }
+      }
+    },
+    "/api/items/group": {
+      "get": {
+        "summary": "Get group items",
+        "description": "Get all items for user's group",
+        "tags": [
+          "Items"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of group items",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Error"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GroupItem"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create group item",
+        "description": "Create a new group-specific item (requires group_items:create permission)",
+        "tags": [
+          "Items"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateGroupItemRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Group item created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GroupItem"
                 }
               }
             }
           },
-          "404": {
-            "description": "Item not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
+          "403": {
+            "description": "Insufficient permissions"
+          }
+        }
+      }
+    },
+    "/api/items/group/{id}": {
+      "put": {
+        "summary": "Update group item",
+        "description": "Update a group item (requires group_items:update permission)",
+        "tags": [
+          "Items"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateGroupItemRequest"
               }
             }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Group item updated"
           },
-          "500": {
-            "description": "Server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
+          "403": {
+            "description": "Insufficient permissions"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete group item",
+        "description": "Delete a group item (requires group_items:delete permission)",
+        "tags": [
+          "Items"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
             }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Group item deleted"
+          },
+          "403": {
+            "description": "Insufficient permissions"
           }
         }
       }
@@ -1446,7 +1685,7 @@
       },
       "post": {
         "summary": "Create pantry item",
-        "description": "Add a new item to the pantry",
+        "description": "Add a new item to the pantry (requires pantry:create permission)",
         "tags": [
           "Pantry"
         ],
@@ -1467,59 +1706,15 @@
         },
         "responses": {
           "201": {
-            "description": "Item created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PantryItem"
-                }
-              }
-            }
+            "description": "Item created"
           }
         }
       }
     },
     "/api/pantry/{id}": {
-      "get": {
-        "summary": "Get pantry item by ID",
-        "description": "Retrieve a specific pantry item",
-        "tags": [
-          "Pantry"
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Pantry item found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PantryItem"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Item not found"
-          }
-        }
-      },
       "put": {
         "summary": "Update pantry item",
-        "description": "Update an existing pantry item",
+        "description": "Update an existing pantry item (requires pantry:update permission)",
         "tags": [
           "Pantry"
         ],
@@ -1543,27 +1738,25 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreatePantryItemRequest"
+                "type": "object",
+                "properties": {
+                  "quantity": {
+                    "type": "number"
+                  }
+                }
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Item updated",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PantryItem"
-                }
-              }
-            }
+            "description": "Item updated"
           }
         }
       },
       "delete": {
         "summary": "Delete pantry item",
-        "description": "Delete a pantry item",
+        "description": "Delete a pantry item (requires pantry:delete permission)",
         "tags": [
           "Pantry"
         ],
@@ -1619,7 +1812,7 @@
       },
       "post": {
         "summary": "Create shopping item",
-        "description": "Add a new item to the shopping list",
+        "description": "Add a new item to the shopping list (requires shopping:create permission)",
         "tags": [
           "Shopping"
         ],
@@ -1640,56 +1833,15 @@
         },
         "responses": {
           "201": {
-            "description": "Item created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ShoppingItem"
-                }
-              }
-            }
+            "description": "Item created"
           }
         }
       }
     },
     "/api/shopping/{id}": {
-      "get": {
-        "summary": "Get shopping item by ID",
-        "description": "Retrieve a specific shopping item",
-        "tags": [
-          "Shopping"
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Shopping item found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ShoppingItem"
-                }
-              }
-            }
-          }
-        }
-      },
       "put": {
         "summary": "Update shopping item",
-        "description": "Update an existing shopping item",
+        "description": "Update an existing shopping item (requires shopping:update permission)",
         "tags": [
           "Shopping"
         ],
@@ -1715,20 +1867,11 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "name": {
-                    "type": "string"
-                  },
                   "quantity": {
                     "type": "number"
                   },
-                  "unit": {
-                    "type": "string"
-                  },
                   "completed": {
                     "type": "boolean"
-                  },
-                  "category": {
-                    "type": "string"
                   }
                 }
               }
@@ -1737,20 +1880,13 @@
         },
         "responses": {
           "200": {
-            "description": "Item updated",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ShoppingItem"
-                }
-              }
-            }
+            "description": "Item updated"
           }
         }
       },
       "delete": {
         "summary": "Delete shopping item",
-        "description": "Delete a shopping item",
+        "description": "Delete a shopping item (requires shopping:delete permission)",
         "tags": [
           "Shopping"
         ],

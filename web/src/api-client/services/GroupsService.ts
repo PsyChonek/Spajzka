@@ -2,6 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { AssignRoleRequest } from '../models/AssignRoleRequest';
 import type { CreateGroupRequest } from '../models/CreateGroupRequest';
 import type { Group } from '../models/Group';
 import type { GroupMember } from '../models/GroupMember';
@@ -13,7 +14,7 @@ import { request as __request } from '../core/request';
 export class GroupsService {
     /**
      * Create a new group
-     * Create a new group with the authenticated user as admin
+     * Create a new shared group with the authenticated user as admin
      * @param requestBody
      * @returns Group Group created successfully
      * @throws ApiError
@@ -32,18 +33,15 @@ export class GroupsService {
         });
     }
     /**
-     * Get user's group
-     * Get the group that the authenticated user is a member of
-     * @returns Group User's group
+     * Get user's groups
+     * Get all groups that the authenticated user is a member of
+     * @returns Group User's groups
      * @throws ApiError
      */
-    public static getApiGroupsMy(): CancelablePromise<Group> {
+    public static getApiGroupsMy(): CancelablePromise<Array<Group>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/groups/my',
-            errors: {
-                404: `User is not in any group`,
-            },
         });
     }
     /**
@@ -70,7 +68,7 @@ export class GroupsService {
     }
     /**
      * Update group
-     * Update group details (admin only)
+     * Update group details (requires group:update permission)
      * @param id
      * @param requestBody
      * @returns Group Group updated successfully
@@ -89,13 +87,13 @@ export class GroupsService {
             body: requestBody,
             mediaType: 'application/json',
             errors: {
-                403: `Only admin can update group`,
+                403: `Insufficient permissions`,
             },
         });
     }
     /**
      * Delete group
-     * Delete a group (admin only)
+     * Delete a group (requires group:delete permission)
      * @param id
      * @returns void
      * @throws ApiError
@@ -110,7 +108,7 @@ export class GroupsService {
                 'id': id,
             },
             errors: {
-                403: `Only admin can delete group`,
+                403: `Insufficient permissions`,
             },
         });
     }
@@ -175,7 +173,7 @@ export class GroupsService {
     }
     /**
      * Kick user from group
-     * Remove a user from the group (admin only, cannot kick admin)
+     * Remove a user from the group (requires group:manage_members permission)
      * @param id
      * @param userId
      * @returns any User kicked successfully
@@ -193,13 +191,41 @@ export class GroupsService {
                 'userId': userId,
             },
             errors: {
-                403: `Only admin can kick users`,
+                403: `Insufficient permissions`,
+            },
+        });
+    }
+    /**
+     * Assign role to member
+     * Change a member's role (requires group:manage_roles permission)
+     * @param id
+     * @param userId
+     * @param requestBody
+     * @returns any Role assigned successfully
+     * @throws ApiError
+     */
+    public static putApiGroupsMembersRole(
+        id: string,
+        userId: string,
+        requestBody: AssignRoleRequest,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/api/groups/{id}/members/{userId}/role',
+            path: {
+                'id': id,
+                'userId': userId,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                403: `Insufficient permissions`,
             },
         });
     }
     /**
      * Regenerate invite code
-     * Generate a new invite code for the group (admin only)
+     * Generate a new invite code for the group (requires group:update permission)
      * @param id
      * @returns any Invite code regenerated
      * @throws ApiError
@@ -219,7 +245,7 @@ export class GroupsService {
     }
     /**
      * Toggle invite enabled/disabled
-     * Enable or disable invites for the group (admin only)
+     * Enable or disable invites for the group (requires group:update permission)
      * @param id
      * @param requestBody
      * @returns any Invite status updated

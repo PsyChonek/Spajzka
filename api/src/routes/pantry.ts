@@ -2,6 +2,7 @@ import { Router, Response } from 'express';
 import { getDatabase } from '../config/database';
 import { ObjectId } from 'mongodb';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
+import { requirePermission } from '../rbac/middleware';
 
 const router = Router();
 
@@ -14,47 +15,44 @@ const router = Router();
  *       properties:
  *         _id:
  *           type: string
- *           description: Item ID
  *         groupId:
  *           type: string
- *           description: Group ID
  *         itemId:
  *           type: string
- *           description: Reference to common item ID
- *         name:
+ *         itemType:
  *           type: string
- *           description: Item name
+ *           enum: [global, group]
  *         quantity:
  *           type: number
- *           description: Item quantity
- *         unit:
+ *         name:
  *           type: string
- *           description: Unit of measurement
  *         category:
  *           type: string
- *           description: Item category
+ *         icon:
+ *           type: string
+ *         defaultUnit:
+ *           type: string
+ *         barcode:
+ *           type: string
  *         createdAt:
  *           type: string
  *           format: date-time
  *         updatedAt:
  *           type: string
  *           format: date-time
- *       required:
- *         - name
- *         - quantity
  *     CreatePantryItemRequest:
  *       type: object
  *       properties:
- *         name:
+ *         itemId:
  *           type: string
+ *         itemType:
+ *           type: string
+ *           enum: [global, group]
  *         quantity:
  *           type: number
- *         unit:
- *           type: string
- *         category:
- *           type: string
  *       required:
- *         - name
+ *         - itemId
+ *         - itemType
  *         - quantity
  */
 
@@ -82,37 +80,107 @@ router.get('/pantry', authMiddleware, async (req: AuthRequest, res: Response) =>
   try {
     const db = getDatabase();
 
-    // Find user's group
-    const group = await db.collection('groups').findOne({
-      memberIds: new ObjectId(req.userId)
-    });
-
-    if (!group) {
+    // Get user to find their active group
+    const user = await db.collection('users').findOne({ _id: new ObjectId(req.userId) });
+    
+    if (!user) {
       return res.status(404).json({
-        message: 'User is not in any group',
-        code: 'NOT_IN_GROUP'
+        message: 'User not found',
+        code: 'NOT_FOUND'
       });
     }
 
-    const pantryItems = await db.collection('pantry')
-      .find({ groupId: group._id })
-      .sort({ createdAt: -1 })
-      .toArray();
+    // Determine which group to use
+    let groupId = user.activeGroupId;
 
-    // Populate item details from items collection
-    const enrichedItems = await Promise.all(
-      pantryItems.map(async (pantryItem) => {
-        const item = await db.collection('items').findOne({ _id: pantryItem.itemId });
-        return {
-          ...pantryItem,
-          name: item?.name || 'Unknown',
-          unit: item?.unit || 'pcs',
-          category: item?.category || null
-        };
-      })
-    );
+    // If no active group set, find user's first NON-PERSONAL group
+    if (!groupId) {
+      // First try to find a non-personal group
+      const nonPersonalGroup = await db.collection('groups').findOne({
+        'members.userId': new ObjectId(req.userId),
+        isPersonal: { $ne: true }
+      });
 
-    res.json(enrichedItems);
+      if (nonPersonalGroup) {
+        groupId = nonPersonalGroup._id;
+      } else {
+        // Fall back to personal group if no other group exists
+        const personalGroup = await db.collection('groups').findOne({
+          'members.userId': new ObjectId(req.userId),
+          isPersonal: true
+        });
+
+        if (!personalGroup) {
+          return res.status(404).json({
+            message: 'User is not in any group',
+            code: 'NOT_IN_GROUP'
+          });
+        }
+
+        groupId = personalGroup._id;
+      }
+
+      // Set this as the active group for future requests
+      await db.collection('users').updateOne(
+        { _id: new ObjectId(req.userId) },
+        { $set: { activeGroupId: groupId } }
+      );
+    }
+
+    // Fetch pantry items and populate item details using aggregation
+    const pantryItems = await db.collection('pantry').aggregate([
+      { $match: { groupId: groupId } },
+      { $sort: { updatedAt: -1 } },
+      {
+        $lookup: {
+          from: 'globalItems',
+          localField: 'itemId',
+          foreignField: '_id',
+          as: 'globalItemData'
+        }
+      },
+      {
+        $lookup: {
+          from: 'groupItems',
+          localField: 'itemId',
+          foreignField: '_id',
+          as: 'groupItemData'
+        }
+      },
+      {
+        $addFields: {
+          item: {
+            $cond: {
+              if: { $eq: ['$itemType', 'global'] },
+              then: { $arrayElemAt: ['$globalItemData', 0] },
+              else: { $arrayElemAt: ['$groupItemData', 0] }
+            }
+          }
+        }
+      },
+      {
+        $project: {
+          globalItemData: 0,
+          groupItemData: 0
+        }
+      }
+    ]).toArray();
+
+    res.json(pantryItems.map(pantryItem => ({
+      _id: pantryItem._id.toString(),
+      groupId: pantryItem.groupId.toString(),
+      itemId: pantryItem.itemId.toString(),
+      itemType: pantryItem.itemType,
+      quantity: pantryItem.quantity,
+      createdAt: pantryItem.createdAt,
+      updatedAt: pantryItem.updatedAt,
+      // Include item details if found
+      name: pantryItem.item?.name || 'Unknown Item',
+      category: pantryItem.item?.category || '',
+      icon: pantryItem.item?.icon || '',
+      defaultUnit: pantryItem.item?.defaultUnit || 'pcs',
+      barcode: pantryItem.item?.barcode || ''
+    })));
   } catch (error) {
     console.error('Error fetching pantry items:', error);
     res.status(500).json({ message: 'Failed to fetch pantry items', code: 'FETCH_ERROR' });
@@ -121,82 +189,10 @@ router.get('/pantry', authMiddleware, async (req: AuthRequest, res: Response) =>
 
 /**
  * @openapi
- * /api/pantry/{id}:
- *   get:
- *     summary: Get pantry item by ID
- *     description: Retrieve a specific pantry item
- *     tags:
- *       - Pantry
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Pantry item found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/PantryItem'
- *       404:
- *         description: Item not found
- */
-router.get('/pantry/:id', authMiddleware, async (req: AuthRequest, res: Response) => {
-  try {
-    const db = getDatabase();
-    const { id } = req.params;
-
-    if (!ObjectId.isValid(id)) {
-      return res.status(400).json({ message: 'Invalid item ID', code: 'INVALID_ID' });
-    }
-
-    // Find user's group
-    const group = await db.collection('groups').findOne({
-      memberIds: new ObjectId(req.userId)
-    });
-
-    if (!group) {
-      return res.status(404).json({
-        message: 'User is not in any group',
-        code: 'NOT_IN_GROUP'
-      });
-    }
-
-    const pantryItem = await db.collection('pantry').findOne({
-      _id: new ObjectId(id),
-      groupId: group._id
-    });
-
-    if (!pantryItem) {
-      return res.status(404).json({ message: 'Item not found', code: 'NOT_FOUND' });
-    }
-
-    // Populate item details from items collection
-    const item = await db.collection('items').findOne({ _id: pantryItem.itemId });
-    const enrichedItem = {
-      ...pantryItem,
-      name: item?.name || 'Unknown',
-      unit: item?.unit || 'pcs',
-      category: item?.category || null
-    };
-
-    res.json(enrichedItem);
-  } catch (error) {
-    console.error('Error fetching pantry item:', error);
-    res.status(500).json({ message: 'Failed to fetch item', code: 'FETCH_ERROR' });
-  }
-});
-
-/**
- * @openapi
  * /api/pantry:
  *   post:
  *     summary: Create pantry item
- *     description: Add a new item to the pantry
+ *     description: Add a new item to the pantry (requires pantry:create permission)
  *     tags:
  *       - Pantry
  *     security:
@@ -210,71 +206,105 @@ router.get('/pantry/:id', authMiddleware, async (req: AuthRequest, res: Response
  *     responses:
  *       201:
  *         description: Item created
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/PantryItem'
  */
-router.post('/pantry', authMiddleware, async (req: AuthRequest, res: Response) => {
+router.post('/pantry', authMiddleware, requirePermission('pantry:create'), async (req: AuthRequest, res: Response) => {
   try {
     const db = getDatabase();
-    const { name, quantity, unit, category } = req.body;
+    const { itemId, itemType, quantity } = req.body;
 
-    if (!name || quantity === undefined) {
+    if (!itemId || !itemType || quantity === undefined) {
       return res.status(400).json({
-        message: 'Missing required fields: name, quantity',
+        message: 'Missing required fields: itemId, itemType, quantity',
         code: 'VALIDATION_ERROR'
       });
     }
 
-    // Find user's group
-    const group = await db.collection('groups').findOne({
-      memberIds: new ObjectId(req.userId)
-    });
-
-    if (!group) {
-      return res.status(404).json({
-        message: 'User is not in any group',
-        code: 'NOT_IN_GROUP'
+    if (!['global', 'group'].includes(itemType)) {
+      return res.status(400).json({
+        message: 'itemType must be "global" or "group"',
+        code: 'VALIDATION_ERROR'
       });
     }
 
-    // Check if common item exists, if not create it
-    let commonItem = await db.collection('items').findOne({ name: name.trim() });
+    // Get user to find their active group
+    const user = await db.collection('users').findOne({ _id: new ObjectId(req.userId) });
+    if (!user || !user.activeGroupId) {
+      return res.status(400).json({
+        message: 'No active group set. Please set an active group first.',
+        code: 'NO_ACTIVE_GROUP'
+      });
+    }
 
-    if (!commonItem) {
-      const newCommonItem = {
-        name: name.trim(),
-        quantity: 0,
-        unit: unit || 'pcs',
-        category: category || null,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
-      const commonResult = await db.collection('items').insertOne(newCommonItem);
-      commonItem = await db.collection('items').findOne({ _id: commonResult.insertedId });
+    // Verify item exists
+    const collection = itemType === 'global' ? 'globalItems' : 'groupItems';
+    const item = await db.collection(collection).findOne({ _id: new ObjectId(itemId) });
+
+    if (!item) {
+      return res.status(404).json({
+        message: `${itemType} item not found`,
+        code: 'ITEM_NOT_FOUND'
+      });
     }
 
     const newItem = {
-      groupId: group._id,
-      itemId: commonItem!._id,
+      groupId: user.activeGroupId,
+      itemId: new ObjectId(itemId),
+      itemType,
       quantity,
       createdAt: new Date(),
       updatedAt: new Date()
     };
 
     const result = await db.collection('pantry').insertOne(newItem);
-    const createdPantryItem = await db.collection('pantry').findOne({ _id: result.insertedId });
 
-    // Return enriched item with details from items collection
-    const enrichedItem = {
-      ...createdPantryItem,
-      name: commonItem!.name,
-      unit: commonItem!.unit,
-      category: commonItem!.category
-    };
+    // Fetch the created item with populated details
+    const createdItems = await db.collection('pantry').aggregate([
+      { $match: { _id: result.insertedId } },
+      {
+        $lookup: {
+          from: 'globalItems',
+          localField: 'itemId',
+          foreignField: '_id',
+          as: 'globalItemData'
+        }
+      },
+      {
+        $lookup: {
+          from: 'groupItems',
+          localField: 'itemId',
+          foreignField: '_id',
+          as: 'groupItemData'
+        }
+      },
+      {
+        $addFields: {
+          item: {
+            $cond: {
+              if: { $eq: ['$itemType', 'global'] },
+              then: { $arrayElemAt: ['$globalItemData', 0] },
+              else: { $arrayElemAt: ['$groupItemData', 0] }
+            }
+          }
+        }
+      }
+    ]).toArray();
 
-    res.status(201).json(enrichedItem);
+    const createdItem = createdItems[0];
+
+    res.status(201).json({
+      _id: createdItem._id.toString(),
+      groupId: createdItem.groupId.toString(),
+      itemId: createdItem.itemId.toString(),
+      itemType: createdItem.itemType,
+      quantity: createdItem.quantity,
+      createdAt: createdItem.createdAt,
+      updatedAt: createdItem.updatedAt,
+      name: createdItem.item?.name || 'Unknown Item',
+      category: createdItem.item?.category || '',
+      icon: createdItem.item?.icon || '',
+      defaultUnit: createdItem.item?.defaultUnit || 'pcs',
+      barcode: createdItem.item?.barcode || ''
+    });
   } catch (error) {
     console.error('Error creating pantry item:', error);
     res.status(500).json({ message: 'Failed to create item', code: 'CREATE_ERROR' });
@@ -286,7 +316,7 @@ router.post('/pantry', authMiddleware, async (req: AuthRequest, res: Response) =
  * /api/pantry/{id}:
  *   put:
  *     summary: Update pantry item
- *     description: Update an existing pantry item
+ *     description: Update an existing pantry item (requires pantry:update permission)
  *     tags:
  *       - Pantry
  *     security:
@@ -302,16 +332,15 @@ router.post('/pantry', authMiddleware, async (req: AuthRequest, res: Response) =
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/CreatePantryItemRequest'
+ *             type: object
+ *             properties:
+ *               quantity:
+ *                 type: number
  *     responses:
  *       200:
  *         description: Item updated
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/PantryItem'
  */
-router.put('/pantry/:id', authMiddleware, async (req: AuthRequest, res: Response) => {
+router.put('/pantry/:id', authMiddleware, requirePermission('pantry:update'), async (req: AuthRequest, res: Response) => {
   try {
     const db = getDatabase();
     const { id } = req.params;
@@ -321,15 +350,12 @@ router.put('/pantry/:id', authMiddleware, async (req: AuthRequest, res: Response
       return res.status(400).json({ message: 'Invalid item ID', code: 'INVALID_ID' });
     }
 
-    // Find user's group
-    const group = await db.collection('groups').findOne({
-      memberIds: new ObjectId(req.userId)
-    });
-
-    if (!group) {
-      return res.status(404).json({
-        message: 'User is not in any group',
-        code: 'NOT_IN_GROUP'
+    // Get user to find their active group
+    const user = await db.collection('users').findOne({ _id: new ObjectId(req.userId) });
+    if (!user || !user.activeGroupId) {
+      return res.status(400).json({
+        message: 'No active group set',
+        code: 'NO_ACTIVE_GROUP'
       });
     }
 
@@ -340,7 +366,7 @@ router.put('/pantry/:id', authMiddleware, async (req: AuthRequest, res: Response
     if (quantity !== undefined) updateData.quantity = quantity;
 
     const pantryItem = await db.collection('pantry').findOneAndUpdate(
-      { _id: new ObjectId(id), groupId: group._id },
+      { _id: new ObjectId(id), groupId: user.activeGroupId },
       { $set: updateData },
       { returnDocument: 'after' }
     );
@@ -349,16 +375,12 @@ router.put('/pantry/:id', authMiddleware, async (req: AuthRequest, res: Response
       return res.status(404).json({ message: 'Item not found', code: 'NOT_FOUND' });
     }
 
-    // Populate item details from items collection
-    const item = await db.collection('items').findOne({ _id: pantryItem.itemId });
-    const enrichedItem = {
+    res.json({
       ...pantryItem,
-      name: item?.name || 'Unknown',
-      unit: item?.unit || 'pcs',
-      category: item?.category || null
-    };
-
-    res.json(enrichedItem);
+      _id: pantryItem._id.toString(),
+      groupId: pantryItem.groupId.toString(),
+      itemId: pantryItem.itemId.toString()
+    });
   } catch (error) {
     console.error('Error updating pantry item:', error);
     res.status(500).json({ message: 'Failed to update item', code: 'UPDATE_ERROR' });
@@ -370,7 +392,7 @@ router.put('/pantry/:id', authMiddleware, async (req: AuthRequest, res: Response
  * /api/pantry/{id}:
  *   delete:
  *     summary: Delete pantry item
- *     description: Delete a pantry item
+ *     description: Delete a pantry item (requires pantry:delete permission)
  *     tags:
  *       - Pantry
  *     security:
@@ -385,7 +407,7 @@ router.put('/pantry/:id', authMiddleware, async (req: AuthRequest, res: Response
  *       204:
  *         description: Item deleted
  */
-router.delete('/pantry/:id', authMiddleware, async (req: AuthRequest, res: Response) => {
+router.delete('/pantry/:id', authMiddleware, requirePermission('pantry:delete'), async (req: AuthRequest, res: Response) => {
   try {
     const db = getDatabase();
     const { id } = req.params;
@@ -394,21 +416,18 @@ router.delete('/pantry/:id', authMiddleware, async (req: AuthRequest, res: Respo
       return res.status(400).json({ message: 'Invalid item ID', code: 'INVALID_ID' });
     }
 
-    // Find user's group
-    const group = await db.collection('groups').findOne({
-      memberIds: new ObjectId(req.userId)
-    });
-
-    if (!group) {
-      return res.status(404).json({
-        message: 'User is not in any group',
-        code: 'NOT_IN_GROUP'
+    // Get user to find their active group
+    const user = await db.collection('users').findOne({ _id: new ObjectId(req.userId) });
+    if (!user || !user.activeGroupId) {
+      return res.status(400).json({
+        message: 'No active group set',
+        code: 'NO_ACTIVE_GROUP'
       });
     }
 
     const result = await db.collection('pantry').deleteOne({
       _id: new ObjectId(id),
-      groupId: group._id
+      groupId: user.activeGroupId
     });
 
     if (result.deletedCount === 0) {

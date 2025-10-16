@@ -13,6 +13,9 @@ COPY package*.json ./
 # Install all dependencies (including dev)
 RUN npm install
 
+# Copy nodemon config
+COPY nodemon.json ./
+
 # Copy TypeScript config
 COPY tsconfig.json ./
 

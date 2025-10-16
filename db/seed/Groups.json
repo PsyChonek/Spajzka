@@ -2,22 +2,48 @@
 	"groups": [
 		{
 			"_id": {
+				"$oid": "68eb80b11d2eacda726c0d01"
+			},
+			"name": "Jan Novák's Personal Group",
+			"isPersonal": true,
+			"members": [
+				{
+					"userId": {
+						"$oid": "68eb80b11d2eacda726c0b8c"
+					},
+					"role": "admin"
+				}
+			],
+			"inviteEnabled": false,
+			"createdAt": {
+				"$date": "2025-10-12T10:25:00.000Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:25:00.000Z"
+			}
+		},
+		{
+			"_id": {
 				"$oid": "68eb80b11d2eacda726c0c01"
 			},
 			"name": "Rodina Nováků",
-			"adminId": {
-				"$oid": "68eb80b11d2eacda726c0b8c"
-			},
-			"inviteCode": "ABC123XY",
-			"inviteEnabled": true,
-			"memberIds": [
+			"isPersonal": false,
+			"members": [
 				{
-					"$oid": "68eb80b11d2eacda726c0b8c"
+					"userId": {
+						"$oid": "68eb80b11d2eacda726c0b8c"
+					},
+					"role": "admin"
 				},
 				{
-					"$oid": "68eb80b11d2eacda726c0b8d"
+					"userId": {
+						"$oid": "68eb80b11d2eacda726c0b8d"
+					},
+					"role": "member"
 				}
 			],
+			"inviteCode": "ABC123XY",
+			"inviteEnabled": true,
 			"createdAt": {
 				"$date": "2025-10-12T10:25:00.000Z"
 			},
@@ -30,19 +56,23 @@
 				"$oid": "68eb80b11d2eacda726c0c02"
 			},
 			"name": "Spolubydlící",
-			"adminId": {
-				"$oid": "68eb80b11d2eacda726c0b8e"
-			},
-			"inviteCode": "DEF456ZW",
-			"inviteEnabled": true,
-			"memberIds": [
+			"isPersonal": false,
+			"members": [
 				{
-					"$oid": "68eb80b11d2eacda726c0b8e"
+					"userId": {
+						"$oid": "68eb80b11d2eacda726c0b8e"
+					},
+					"role": "admin"
 				},
 				{
-					"$oid": "68eb80b11d2eacda726c0b8f"
+					"userId": {
+						"$oid": "68eb80b11d2eacda726c0b8f"
+					},
+					"role": "moderator"
 				}
 			],
+			"inviteCode": "DEF456ZW",
+			"inviteEnabled": true,
 			"createdAt": {
 				"$date": "2025-10-12T10:26:00.000Z"
 			},

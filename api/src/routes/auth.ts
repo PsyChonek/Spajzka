@@ -23,6 +23,11 @@ const router = Router();
  *           type: string
  *           format: email
  *           description: User's email address
+ *         globalPermissions:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: Array of global permissions the user has
  *         createdAt:
  *           type: string
  *           format: date-time
@@ -94,6 +99,83 @@ const router = Router();
 
 /**
  * @openapi
+ * /api/auth/anonymous:
+ *   post:
+ *     summary: Create anonymous user
+ *     description: Create a temporary anonymous user for using the app without registration
+ *     tags:
+ *       - Authentication
+ *     responses:
+ *       201:
+ *         description: Anonymous user created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AuthResponse'
+ */
+router.post('/auth/anonymous', async (req: AuthRequest, res: Response) => {
+  try {
+    const db = getDatabase();
+
+    // Create anonymous user - data will be stored only in localStorage on client
+    // We create a minimal DB record for authentication purposes
+    const newUser = {
+      name: 'Anonymous User',
+      isAnonymous: true,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    const result = await db.collection('users').insertOne(newUser);
+    const userId = result.insertedId.toString();
+
+    // Create personal group for this user
+    const personalGroup = {
+      name: `Anonymous User's Personal Group`,
+      isPersonal: true,
+      members: [{
+        userId: result.insertedId,
+        role: 'admin'
+      }],
+      inviteEnabled: false,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    const groupResult = await db.collection('groups').insertOne(personalGroup);
+
+    // Update user with personal group ID
+    await db.collection('users').updateOne(
+      { _id: result.insertedId },
+      { $set: { personalGroupId: groupResult.insertedId } }
+    );
+
+    // Generate token (no email for anonymous)
+    const token = generateToken(userId, `anonymous-${userId}@temp.local`);
+
+    // Return user info
+    const userResponse = {
+      _id: userId,
+      name: newUser.name,
+      isAnonymous: true,
+      createdAt: newUser.createdAt
+    };
+
+    res.status(201).json({
+      token,
+      user: userResponse
+    });
+  } catch (error) {
+    console.error('Error creating anonymous user:', error);
+    res.status(500).json({
+      message: 'Failed to create anonymous user',
+      code: 'ANONYMOUS_CREATE_ERROR'
+    });
+  }
+});
+
+/**
+ * @openapi
  * /api/auth/register:
  *   post:
  *     summary: Register a new user
@@ -155,12 +237,34 @@ router.post('/auth/register', async (req: AuthRequest, res: Response) => {
       name,
       email: email.toLowerCase(),
       password: hashedPassword,
+      isAnonymous: false,
       createdAt: new Date(),
       updatedAt: new Date()
     };
 
     const result = await db.collection('users').insertOne(newUser);
     const userId = result.insertedId.toString();
+
+    // Create personal group for this user
+    const personalGroup = {
+      name: `${name}'s Personal Group`,
+      isPersonal: true,
+      members: [{
+        userId: result.insertedId,
+        role: 'admin'
+      }],
+      inviteEnabled: false,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    const groupResult = await db.collection('groups').insertOne(personalGroup);
+
+    // Update user with personal group ID
+    await db.collection('users').updateOne(
+      { _id: result.insertedId },
+      { $set: { personalGroupId: groupResult.insertedId } }
+    );
 
     // Generate token
     const token = generateToken(userId, email);
@@ -299,10 +403,42 @@ router.get('/auth/me', authMiddleware, async (req: AuthRequest, res: Response) =
       });
     }
 
+    // Get user's groups
+    const groups = await db.collection('groups').find({
+      'members.userId': new ObjectId(req.userId)
+    }).toArray();
+
+    // Determine active group
+    let activeGroupId = user.activeGroupId;
+
+    // If no active group set, prefer non-personal group over personal group
+    if (!activeGroupId && groups.length > 0) {
+      // Try to find first non-personal group
+      const nonPersonalGroup = groups.find(g => !g.isPersonal);
+      if (nonPersonalGroup) {
+        activeGroupId = nonPersonalGroup._id;
+      } else {
+        // Fall back to personal group
+        activeGroupId = user.personalGroupId || groups[0]._id;
+      }
+    }
+
+    // Get user's global permissions
+    let globalPermissions: string[] = [];
+    if (user.globalRoles && user.globalRoles.length > 0) {
+      const roles = await db.collection('roles')
+        .find({ _id: { $in: user.globalRoles }, isGlobal: true })
+        .toArray();
+      globalPermissions = roles.flatMap((r: any) => r.permissions);
+    }
+
     res.json({
       _id: user._id.toString(),
       name: user.name,
       email: user.email,
+      globalPermissions,
+      activeGroupId: activeGroupId?.toString(),
+      personalGroupId: user.personalGroupId?.toString(),
       createdAt: user.createdAt
     });
   } catch (error) {
@@ -497,6 +633,76 @@ router.post('/auth/change-password', authMiddleware, async (req: AuthRequest, re
     console.error('Error changing password:', error);
     res.status(500).json({
       message: 'Failed to change password',
+      code: 'UPDATE_ERROR'
+    });
+  }
+});
+
+/**
+ * @openapi
+ * /api/auth/active-group:
+ *   post:
+ *     summary: Set active group
+ *     description: Set the user's active group for viewing pantry/shopping lists
+ *     tags:
+ *       - Authentication
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               groupId:
+ *                 type: string
+ *             required:
+ *               - groupId
+ *     responses:
+ *       200:
+ *         description: Active group updated
+ *       403:
+ *         description: User is not a member of this group
+ */
+router.post('/auth/active-group', authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const db = getDatabase();
+    const { groupId } = req.body;
+
+
+    if (!groupId) {
+      return res.status(400).json({
+        message: 'Missing required field: groupId',
+        code: 'VALIDATION_ERROR'
+      });
+    }
+
+    // Verify user is a member of this group
+    const group = await db.collection('groups').findOne({
+      _id: new ObjectId(groupId),
+      'members.userId': new ObjectId(req.userId)
+    });
+
+    // Update user's active group
+    const updateResult = await db.collection('users').updateOne(
+      { _id: new ObjectId(req.userId) },
+      {
+        $set: {
+          activeGroupId: new ObjectId(groupId),
+          updatedAt: new Date()
+        }
+      }
+    );
+
+    res.json({
+      message: 'Active group updated',
+      activeGroupId: groupId
+    });
+  } catch (error) {
+    console.error('Error setting active group:', error);
+    res.status(500).json({
+      message: 'Failed to set active group',
       code: 'UPDATE_ERROR'
     });
   }

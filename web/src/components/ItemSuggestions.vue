@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Item } from '@/services/api'
+import type { Item } from '@/stores/itemsStore'
 
 interface Props {
   suggestedItems: Item[]
@@ -28,11 +28,14 @@ const handleAddItem = (item: Item) => {
       >
         <q-card-section class="q-pa-md">
           <div class="suggestion-content">
-            <div>
-              <div class="text-weight-medium">{{ item.name }}</div>
-              <div class="text-caption text-grey-7">
-                {{ item.unit }}
-                <span v-if="item.category"> • {{ item.category }}</span>
+            <div class="suggestion-text">
+              <div class="suggestion-icon">{{ item.icon || '📦' }}</div>
+              <div>
+                <div class="text-weight-medium">{{ item.name }}</div>
+                <div class="text-caption text-grey-7">
+                  {{ item.defaultUnit || '-' }}
+                  <span v-if="item.category"> • {{ item.category }}</span>
+                </div>
               </div>
             </div>
             <q-icon name="add_circle" color="primary" size="sm" />
@@ -69,5 +72,15 @@ const handleAddItem = (item: Item) => {
   justify-content: space-between;
   align-items: center;
   gap: 16px;
+}
+
+.suggestion-text {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.suggestion-icon {
+  font-size: 2rem;
 }
 </style>

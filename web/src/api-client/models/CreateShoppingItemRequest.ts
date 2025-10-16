@@ -3,9 +3,14 @@
 /* tslint:disable */
 /* eslint-disable */
 export type CreateShoppingItemRequest = {
-    name: string;
+    itemId: string;
+    itemType: CreateShoppingItemRequest.itemType;
     quantity?: number;
-    unit?: string;
-    category?: string;
 };
+export namespace CreateShoppingItemRequest {
+    export enum itemType {
+        GLOBAL = 'global',
+        GROUP = 'group',
+    }
+}
 

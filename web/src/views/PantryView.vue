@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { usePantryStore } from '@/stores/pantryStore'
 import { useItemsStore } from '@/stores/itemsStore'
 import { useAuthStore } from '@/stores/authStore'
-import type { PantryItem } from '@/services/api'
+import type { PantryItem } from '@/api-client'
 import PageWrapper from '@/components/PageWrapper.vue'
 import SyncStatusBadge from '@/components/SyncStatusBadge.vue'
 import ItemSuggestions from '@/components/ItemSuggestions.vue'
@@ -13,9 +13,10 @@ const pantryStore = usePantryStore()
 const itemsStore = useItemsStore()
 const authStore = useAuthStore()
 
-// Fetch items from master list on mount
+// Fetch items from master list and pantry items on mount
 onMounted(() => {
   itemsStore.fetchItems()
+  pantryStore.fetchItems()
 })
 
 const searchQuery = ref('')
@@ -26,19 +27,29 @@ const initialFormData = ref<Partial<ItemFormData>>({})
 
 const columns = [
   {
+    name: 'icon',
+    label: '',
+    align: 'center' as const,
+    field: (row: PantryItem) => row.icon || '',
+    sortable: false,
+    style: 'width: 80px'
+  },
+  {
     name: 'name',
     required: true,
     label: 'Name',
     align: 'left' as const,
-    field: (row: PantryItem) => row.name,
-    sortable: true
+    field: (row: PantryItem) => row.name || 'Unknown Item',
+    sortable: true,
+    style: 'min-width: 200px'
   },
   {
     name: 'quantity',
     label: 'Quantity',
     align: 'center' as const,
-    field: (row: PantryItem) => row.quantity,
-    sortable: true
+    field: (row: PantryItem) => row.quantity || 0,
+    sortable: true,
+    style: 'width: 180px'
   },
   {
     name: 'createdAt',
@@ -46,14 +57,16 @@ const columns = [
     align: 'left' as const,
     field: (row: PantryItem) => row.createdAt,
     format: (val: string) => new Date(val).toLocaleDateString(),
-    sortable: true
+    sortable: true,
+    style: 'width: 140px'
   },
   {
     name: 'actions',
     label: 'Actions',
     align: 'center' as const,
     field: '',
-    sortable: false
+    sortable: false,
+    style: 'width: 120px'
   }
 ]
 
@@ -61,10 +74,10 @@ const filteredItems = computed(() => {
   if (!searchQuery.value) {
     return pantryStore.sortedItems
   }
-  
+
   const query = searchQuery.value.toLowerCase()
-  return pantryStore.sortedItems.filter(item => 
-    item.name.toLowerCase().includes(query)
+  return pantryStore.sortedItems.filter(item =>
+    (item.name || '').toLowerCase().includes(query)
   )
 })
 
@@ -74,7 +87,7 @@ const showAddButton = computed(() => {
   // Show button if no items match, or if no exact match exists
   const query = searchQuery.value.toLowerCase().trim()
   const hasExactMatch = filteredItems.value.some(item =>
-    item.name.toLowerCase().trim() === query
+    (item.name || '').toLowerCase().trim() === query
   )
 
   return !hasExactMatch
@@ -89,7 +102,7 @@ const suggestedItems = computed(() => {
   const query = searchQuery.value.toLowerCase().trim()
 
   // Get items from master list that aren't already in pantry (case-insensitive)
-  const pantryItemNames = pantryStore.sortedItems.map(item => item.name.toLowerCase().trim())
+  const pantryItemNames = pantryStore.sortedItems.map(item => (item.name || '').toLowerCase().trim())
 
   return itemsStore.sortedItems
     .filter(item => {
@@ -107,7 +120,7 @@ const suggestedItems = computed(() => {
 const openAddDialog = () => {
   initialFormData.value = {
     name: searchQuery.value,
-    unit: 'pcs',
+    defaultUnit: 'pcs',
     category: '',
     quantity: 1
   }
@@ -117,35 +130,72 @@ const openAddDialog = () => {
 const openEditDialog = (item: PantryItem) => {
   editingItem.value = item
   initialFormData.value = {
-    name: item.name,
-    unit: 'pcs',
-    category: '',
-    quantity: item.quantity
+    name: item.name || 'Unknown Item',
+    defaultUnit: item.defaultUnit || 'pcs',
+    category: item.category || '',
+    icon: item.icon || '',
+    quantity: item.quantity || 0
   }
   showEditDialog.value = true
 }
 
 const addFromSuggestion = async (item: any) => {
   // Add item directly without showing modal
+  // Determine itemType based on the type property
+  const itemType = item.type || 'global'
+
   await pantryStore.addItem({
-    name: item.name,
+    itemId: item._id,
+    itemType: itemType as any,
     quantity: 1
   })
   searchQuery.value = ''
 }
 
 const saveNewItem = async (data: ItemFormData) => {
-  await pantryStore.addItem({
-    name: data.name,
-    quantity: data.quantity || 1
-  })
+  // First, find if this item exists in the items store
+  const existingItem = itemsStore.sortedItems.find(item =>
+    item.name.toLowerCase().trim() === data.name.toLowerCase().trim()
+  )
+
+  if (existingItem && existingItem._id) {
+    // Item exists, add reference to pantry
+    const itemType = existingItem.type
+    await pantryStore.addItem({
+      itemId: existingItem._id,
+      itemType: itemType as any,
+      quantity: data.quantity || 1
+    })
+  } else {
+    // Item doesn't exist, create it first as a group item
+    await itemsStore.addGroupItem({
+      name: data.name,
+      category: data.category || 'Other',
+      icon: data.icon || '📦',
+      defaultUnit: data.defaultUnit || 'pcs'
+    })
+
+    // Find the newly created item (it will have a temp ID or real ID)
+    const newItem = itemsStore.sortedItems.find(item =>
+      item.name === data.name && item.type === 'group'
+    )
+
+    if (newItem) {
+      // Add it to the pantry
+      await pantryStore.addItem({
+        itemId: newItem._id!,
+        itemType: 'group' as any,
+        quantity: data.quantity || 1
+      })
+    }
+  }
   searchQuery.value = ''
 }
 
 const saveEditedItem = async (data: ItemFormData) => {
   if (editingItem.value && editingItem.value._id) {
+    // For pantry items, we can only update the quantity, not the item reference
     await pantryStore.updateItem(editingItem.value._id, {
-      name: data.name,
       quantity: data.quantity || 1
     })
     editingItem.value = null
@@ -217,6 +267,11 @@ const deleteItem = (itemId: string) => {
         flat
         bordered
       >
+        <template v-slot:body-cell-icon="props">
+          <q-td :props="props">
+            <div class="item-icon">{{ props.row.icon || '📦' }}</div>
+          </q-td>
+        </template>
         <template v-slot:body-cell-quantity="props">
           <q-td :props="props">
             <div class="quantity-controls">
@@ -372,4 +427,8 @@ const deleteItem = (itemId: string) => {
   font-size: 1.1rem;
 }
 
+.item-icon {
+  font-size: 2rem;
+  text-align: center;
+}
 </style>

@@ -7,6 +7,11 @@
 			"name": "Jan Novák",
 			"email": "test@example.com",
 			"password": "$2a$10$I00XZ51fjliukUnOuXkpN.cexULhJEaIPCx8sjabcxZHuWbNEcn2G",
+			"isAnonymous": false,
+			"personalGroupId": {
+				"$oid": "68eb80b11d2eacda726c0d01"
+			},
+			"globalRoles": ["system_moderator"],
 			"createdAt": {
 				"$date": "2025-10-12T10:19:29.105Z"
 			},
@@ -21,6 +26,7 @@
 			"name": "Marie Svobodová",
 			"email": "marie@example.com",
 			"password": "$2a$10$I00XZ51fjliukUnOuXkpN.cexULhJEaIPCx8sjabcxZHuWbNEcn2G",
+			"isAnonymous": false,
 			"createdAt": {
 				"$date": "2025-10-12T10:20:29.105Z"
 			},
@@ -35,6 +41,7 @@
 			"name": "Petr Dvořák",
 			"email": "petr@example.com",
 			"password": "$2a$10$I00XZ51fjliukUnOuXkpN.cexULhJEaIPCx8sjabcxZHuWbNEcn2G",
+			"isAnonymous": false,
 			"createdAt": {
 				"$date": "2025-10-12T10:21:29.105Z"
 			},
@@ -49,6 +56,7 @@
 			"name": "Eva Černá",
 			"email": "eva@example.com",
 			"password": "$2a$10$I00XZ51fjliukUnOuXkpN.cexULhJEaIPCx8sjabcxZHuWbNEcn2G",
+			"isAnonymous": false,
 			"createdAt": {
 				"$date": "2025-10-12T10:22:29.105Z"
 			},

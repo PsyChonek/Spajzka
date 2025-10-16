@@ -2,6 +2,7 @@ import { Router, Response } from 'express';
 import { getDatabase } from '../config/database';
 import { ObjectId } from 'mongodb';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
+import { requirePermission } from '../rbac/middleware';
 import crypto from 'crypto';
 
 const router = Router();
@@ -19,20 +20,26 @@ const router = Router();
  *         name:
  *           type: string
  *           description: Group name
- *         adminId:
- *           type: string
- *           description: Admin user ID
+ *         isPersonal:
+ *           type: boolean
+ *           description: Whether this is a personal group
+ *         members:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               userId:
+ *                 type: string
+ *               role:
+ *                 type: string
+ *                 enum: [admin, moderator, member]
+ *           description: Array of members with their roles
  *         inviteCode:
  *           type: string
  *           description: Invite code for joining group
  *         inviteEnabled:
  *           type: boolean
  *           description: Whether invite is enabled
- *         memberIds:
- *           type: array
- *           items:
- *             type: string
- *           description: Array of member user IDs
  *         createdAt:
  *           type: string
  *           format: date-time
@@ -72,8 +79,17 @@ const router = Router();
  *           type: string
  *         email:
  *           type: string
- *         isAdmin:
- *           type: boolean
+ *         role:
+ *           type: string
+ *           enum: [admin, moderator, member]
+ *     AssignRoleRequest:
+ *       type: object
+ *       properties:
+ *         role:
+ *           type: string
+ *           enum: [admin, moderator, member]
+ *       required:
+ *         - role
  */
 
 // Helper function to generate invite code
@@ -86,7 +102,7 @@ function generateInviteCode(): string {
  * /api/groups:
  *   post:
  *     summary: Create a new group
- *     description: Create a new group with the authenticated user as admin
+ *     description: Create a new shared group with the authenticated user as admin
  *     tags:
  *       - Groups
  *     security:
@@ -119,14 +135,15 @@ router.post('/groups', authMiddleware, async (req: AuthRequest, res: Response) =
       });
     }
 
-    // Check if user is already in a group
+    // Check if user is already in a shared group (personal groups don't count)
     const existingMembership = await db.collection('groups').findOne({
-      memberIds: new ObjectId(req.userId)
+      'members.userId': new ObjectId(req.userId),
+      isPersonal: false
     });
 
     if (existingMembership) {
       return res.status(400).json({
-        message: 'User is already a member of a group',
+        message: 'User is already a member of a shared group',
         code: 'ALREADY_IN_GROUP'
       });
     }
@@ -135,10 +152,13 @@ router.post('/groups', authMiddleware, async (req: AuthRequest, res: Response) =
 
     const newGroup = {
       name: name.trim(),
-      adminId: new ObjectId(req.userId),
+      isPersonal: false,
+      members: [{
+        userId: new ObjectId(req.userId),
+        role: 'admin'
+      }],
       inviteCode,
       inviteEnabled: true,
-      memberIds: [new ObjectId(req.userId)],
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -149,8 +169,10 @@ router.post('/groups', authMiddleware, async (req: AuthRequest, res: Response) =
     res.status(201).json({
       ...createdGroup,
       _id: createdGroup!._id.toString(),
-      adminId: createdGroup!.adminId.toString(),
-      memberIds: createdGroup!.memberIds.map((id: ObjectId) => id.toString())
+      members: createdGroup!.members.map((m: any) => ({
+        userId: m.userId.toString(),
+        role: m.role
+      }))
     });
   } catch (error) {
     console.error('Error creating group:', error);
@@ -165,47 +187,44 @@ router.post('/groups', authMiddleware, async (req: AuthRequest, res: Response) =
  * @openapi
  * /api/groups/my:
  *   get:
- *     summary: Get user's group
- *     description: Get the group that the authenticated user is a member of
+ *     summary: Get user's groups
+ *     description: Get all groups that the authenticated user is a member of
  *     tags:
  *       - Groups
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: User's group
+ *         description: User's groups
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Group'
- *       404:
- *         description: User is not in any group
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Group'
  */
 router.get('/groups/my', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const db = getDatabase();
 
-    const group = await db.collection('groups').findOne({
-      memberIds: new ObjectId(req.userId)
-    });
+    const groups = await db.collection('groups').find({
+      'members.userId': new ObjectId(req.userId)
+    }).toArray();
 
-    if (!group) {
-      return res.status(404).json({
-        message: 'User is not in any group',
-        code: 'NOT_FOUND'
-      });
-    }
-
-    res.json({
+    const formattedGroups = groups.map(group => ({
       ...group,
       _id: group._id.toString(),
-      adminId: group.adminId.toString(),
-      memberIds: group.memberIds.map((id: ObjectId) => id.toString())
-    });
+      members: group.members.map((m: any) => ({
+        userId: m.userId.toString(),
+        role: m.role
+      }))
+    }));
+
+    res.json(formattedGroups);
   } catch (error) {
-    console.error('Error fetching group:', error);
+    console.error('Error fetching groups:', error);
     res.status(500).json({
-      message: 'Failed to fetch group',
+      message: 'Failed to fetch groups',
       code: 'FETCH_ERROR'
     });
   }
@@ -261,8 +280,8 @@ router.get('/groups/:id', authMiddleware, async (req: AuthRequest, res: Response
     }
 
     // Check if user is a member
-    const isMember = group.memberIds.some((memberId: ObjectId) =>
-      memberId.toString() === req.userId
+    const isMember = group.members.some((member: any) =>
+      member.userId.toString() === req.userId
     );
 
     if (!isMember) {
@@ -275,8 +294,10 @@ router.get('/groups/:id', authMiddleware, async (req: AuthRequest, res: Response
     res.json({
       ...group,
       _id: group._id.toString(),
-      adminId: group.adminId.toString(),
-      memberIds: group.memberIds.map((id: ObjectId) => id.toString())
+      members: group.members.map((m: any) => ({
+        userId: m.userId.toString(),
+        role: m.role
+      }))
     });
   } catch (error) {
     console.error('Error fetching group:', error);
@@ -292,7 +313,7 @@ router.get('/groups/:id', authMiddleware, async (req: AuthRequest, res: Response
  * /api/groups/{id}:
  *   put:
  *     summary: Update group
- *     description: Update group details (admin only)
+ *     description: Update group details (requires group:update permission)
  *     tags:
  *       - Groups
  *     security:
@@ -317,9 +338,9 @@ router.get('/groups/:id', authMiddleware, async (req: AuthRequest, res: Response
  *             schema:
  *               $ref: '#/components/schemas/Group'
  *       403:
- *         description: Only admin can update group
+ *         description: Insufficient permissions
  */
-router.put('/groups/:id', authMiddleware, async (req: AuthRequest, res: Response) => {
+router.put('/groups/:id', authMiddleware, requirePermission('group:update'), async (req: AuthRequest, res: Response) => {
   try {
     const db = getDatabase();
     const { id } = req.params;
@@ -329,23 +350,6 @@ router.put('/groups/:id', authMiddleware, async (req: AuthRequest, res: Response
       return res.status(400).json({
         message: 'Invalid group ID',
         code: 'INVALID_ID'
-      });
-    }
-
-    const group = await db.collection('groups').findOne({ _id: new ObjectId(id) });
-
-    if (!group) {
-      return res.status(404).json({
-        message: 'Group not found',
-        code: 'NOT_FOUND'
-      });
-    }
-
-    // Check if user is admin
-    if (group.adminId.toString() !== req.userId) {
-      return res.status(403).json({
-        message: 'Only admin can update group',
-        code: 'FORBIDDEN'
       });
     }
 
@@ -363,11 +367,20 @@ router.put('/groups/:id', authMiddleware, async (req: AuthRequest, res: Response
       { returnDocument: 'after' }
     );
 
+    if (!updatedGroup) {
+      return res.status(404).json({
+        message: 'Group not found',
+        code: 'NOT_FOUND'
+      });
+    }
+
     res.json({
       ...updatedGroup,
-      _id: updatedGroup!._id.toString(),
-      adminId: updatedGroup!.adminId.toString(),
-      memberIds: updatedGroup!.memberIds.map((id: ObjectId) => id.toString())
+      _id: updatedGroup._id.toString(),
+      members: updatedGroup.members.map((m: any) => ({
+        userId: m.userId.toString(),
+        role: m.role
+      }))
     });
   } catch (error) {
     console.error('Error updating group:', error);
@@ -383,7 +396,7 @@ router.put('/groups/:id', authMiddleware, async (req: AuthRequest, res: Response
  * /api/groups/{id}:
  *   delete:
  *     summary: Delete group
- *     description: Delete a group (admin only)
+ *     description: Delete a group (requires group:delete permission)
  *     tags:
  *       - Groups
  *     security:
@@ -398,9 +411,9 @@ router.put('/groups/:id', authMiddleware, async (req: AuthRequest, res: Response
  *       204:
  *         description: Group deleted successfully
  *       403:
- *         description: Only admin can delete group
+ *         description: Insufficient permissions
  */
-router.delete('/groups/:id', authMiddleware, async (req: AuthRequest, res: Response) => {
+router.delete('/groups/:id', authMiddleware, requirePermission('group:delete'), async (req: AuthRequest, res: Response) => {
   try {
     const db = getDatabase();
     const { id } = req.params;
@@ -421,11 +434,11 @@ router.delete('/groups/:id', authMiddleware, async (req: AuthRequest, res: Respo
       });
     }
 
-    // Check if user is admin
-    if (group.adminId.toString() !== req.userId) {
-      return res.status(403).json({
-        message: 'Only admin can delete group',
-        code: 'FORBIDDEN'
+    // Cannot delete personal groups
+    if (group.isPersonal) {
+      return res.status(400).json({
+        message: 'Cannot delete personal group',
+        code: 'CANNOT_DELETE_PERSONAL_GROUP'
       });
     }
 
@@ -479,21 +492,23 @@ router.post('/groups/join', authMiddleware, async (req: AuthRequest, res: Respon
       });
     }
 
-    // Check if user is already in a group
+    // Check if user is already in a shared group
     const existingMembership = await db.collection('groups').findOne({
-      memberIds: new ObjectId(req.userId)
+      'members.userId': new ObjectId(req.userId),
+      isPersonal: false
     });
 
     if (existingMembership) {
       return res.status(400).json({
-        message: 'User is already a member of a group',
+        message: 'User is already a member of a shared group',
         code: 'ALREADY_IN_GROUP'
       });
     }
 
     // Find group by invite code
     const group = await db.collection('groups').findOne({
-      inviteCode: inviteCode.trim().toUpperCase()
+      inviteCode: inviteCode.trim().toUpperCase(),
+      isPersonal: false
     });
 
     if (!group) {
@@ -510,11 +525,16 @@ router.post('/groups/join', authMiddleware, async (req: AuthRequest, res: Respon
       });
     }
 
-    // Add user to group
+    // Add user to group with 'member' role
     const updatedGroup = await db.collection('groups').findOneAndUpdate(
       { _id: group._id },
       {
-        $addToSet: { memberIds: new ObjectId(req.userId) },
+        $push: {
+          members: {
+            userId: new ObjectId(req.userId),
+            role: 'member'
+          }
+        } as any,
         $set: { updatedAt: new Date() }
       },
       { returnDocument: 'after' }
@@ -523,8 +543,10 @@ router.post('/groups/join', authMiddleware, async (req: AuthRequest, res: Respon
     res.json({
       ...updatedGroup,
       _id: updatedGroup!._id.toString(),
-      adminId: updatedGroup!.adminId.toString(),
-      memberIds: updatedGroup!.memberIds.map((id: ObjectId) => id.toString())
+      members: updatedGroup!.members.map((m: any) => ({
+        userId: m.userId.toString(),
+        role: m.role
+      }))
     });
   } catch (error) {
     console.error('Error joining group:', error);
@@ -578,12 +600,20 @@ router.post('/groups/:id/leave', authMiddleware, async (req: AuthRequest, res: R
       });
     }
 
+    // Cannot leave personal group
+    if (group.isPersonal) {
+      return res.status(400).json({
+        message: 'Cannot leave personal group',
+        code: 'CANNOT_LEAVE_PERSONAL_GROUP'
+      });
+    }
+
     // Check if user is a member
-    const isMember = group.memberIds.some((memberId: ObjectId) =>
-      memberId.toString() === req.userId
+    const member = group.members.find((m: any) =>
+      m.userId.toString() === req.userId
     );
 
-    if (!isMember) {
+    if (!member) {
       return res.status(403).json({
         message: 'User is not a member of this group',
         code: 'FORBIDDEN'
@@ -591,7 +621,7 @@ router.post('/groups/:id/leave', authMiddleware, async (req: AuthRequest, res: R
     }
 
     // Check if user is admin and there are other members
-    if (group.adminId.toString() === req.userId && group.memberIds.length > 1) {
+    if (member.role === 'admin' && group.members.length > 1) {
       return res.status(400).json({
         message: 'Admin cannot leave group with other members. Transfer admin or remove all members first.',
         code: 'ADMIN_CANNOT_LEAVE'
@@ -599,7 +629,7 @@ router.post('/groups/:id/leave', authMiddleware, async (req: AuthRequest, res: R
     }
 
     // If admin is the only member, delete the group
-    if (group.adminId.toString() === req.userId && group.memberIds.length === 1) {
+    if (member.role === 'admin' && group.members.length === 1) {
       await db.collection('groups').deleteOne({ _id: new ObjectId(id) });
       return res.json({ message: 'Group deleted successfully' });
     }
@@ -608,7 +638,7 @@ router.post('/groups/:id/leave', authMiddleware, async (req: AuthRequest, res: R
     await db.collection('groups').updateOne(
       { _id: new ObjectId(id) },
       {
-        $pull: { memberIds: new ObjectId(req.userId) } as any,
+        $pull: { members: { userId: new ObjectId(req.userId) } } as any,
         $set: { updatedAt: new Date() }
       }
     );
@@ -671,8 +701,8 @@ router.get('/groups/:id/members', authMiddleware, async (req: AuthRequest, res: 
     }
 
     // Check if user is a member
-    const isMember = group.memberIds.some((memberId: ObjectId) =>
-      memberId.toString() === req.userId
+    const isMember = group.members.some((member: any) =>
+      member.userId.toString() === req.userId
     );
 
     if (!isMember) {
@@ -683,19 +713,23 @@ router.get('/groups/:id/members', authMiddleware, async (req: AuthRequest, res: 
     }
 
     // Get member details
-    const members = await db.collection('users')
+    const memberIds = group.members.map((m: any) => m.userId);
+    const users = await db.collection('users')
       .find(
-        { _id: { $in: group.memberIds } },
+        { _id: { $in: memberIds } },
         { projection: { password: 0 } }
       )
       .toArray();
 
-    const membersWithRole = members.map(member => ({
-      _id: member._id.toString(),
-      name: member.name,
-      email: member.email,
-      isAdmin: member._id.toString() === group.adminId.toString()
-    }));
+    const membersWithRole = users.map(user => {
+      const memberInfo = group.members.find((m: any) => m.userId.toString() === user._id.toString());
+      return {
+        _id: user._id.toString(),
+        name: user.name,
+        email: user.email,
+        role: memberInfo?.role || 'member'
+      };
+    });
 
     res.json(membersWithRole);
   } catch (error) {
@@ -712,7 +746,7 @@ router.get('/groups/:id/members', authMiddleware, async (req: AuthRequest, res: 
  * /api/groups/{id}/kick/{userId}:
  *   delete:
  *     summary: Kick user from group
- *     description: Remove a user from the group (admin only, cannot kick admin)
+ *     description: Remove a user from the group (requires group:manage_members permission)
  *     tags:
  *       - Groups
  *     security:
@@ -732,9 +766,9 @@ router.get('/groups/:id/members', authMiddleware, async (req: AuthRequest, res: 
  *       200:
  *         description: User kicked successfully
  *       403:
- *         description: Only admin can kick users
+ *         description: Insufficient permissions
  */
-router.delete('/groups/:id/kick/:userId', authMiddleware, async (req: AuthRequest, res: Response) => {
+router.delete('/groups/:id/kick/:userId', authMiddleware, requirePermission('group:manage_members'), async (req: AuthRequest, res: Response) => {
   try {
     const db = getDatabase();
     const { id, userId } = req.params;
@@ -755,31 +789,21 @@ router.delete('/groups/:id/kick/:userId', authMiddleware, async (req: AuthReques
       });
     }
 
-    // Check if requester is admin
-    if (group.adminId.toString() !== req.userId) {
-      return res.status(403).json({
-        message: 'Only admin can kick users',
-        code: 'FORBIDDEN'
+    // Find the member to be kicked
+    const memberToKick = group.members.find((m: any) => m.userId.toString() === userId);
+
+    if (!memberToKick) {
+      return res.status(404).json({
+        message: 'User is not a member of this group',
+        code: 'NOT_FOUND'
       });
     }
 
     // Cannot kick admin
-    if (group.adminId.toString() === userId) {
+    if (memberToKick.role === 'admin') {
       return res.status(400).json({
         message: 'Cannot kick admin',
         code: 'CANNOT_KICK_ADMIN'
-      });
-    }
-
-    // Check if user is a member
-    const isMember = group.memberIds.some((memberId: ObjectId) =>
-      memberId.toString() === userId
-    );
-
-    if (!isMember) {
-      return res.status(404).json({
-        message: 'User is not a member of this group',
-        code: 'NOT_FOUND'
       });
     }
 
@@ -787,7 +811,7 @@ router.delete('/groups/:id/kick/:userId', authMiddleware, async (req: AuthReques
     await db.collection('groups').updateOne(
       { _id: new ObjectId(id) },
       {
-        $pull: { memberIds: new ObjectId(userId) } as any,
+        $pull: { members: { userId: new ObjectId(userId) } } as any,
         $set: { updatedAt: new Date() }
       }
     );
@@ -804,10 +828,103 @@ router.delete('/groups/:id/kick/:userId', authMiddleware, async (req: AuthReques
 
 /**
  * @openapi
+ * /api/groups/{id}/members/{userId}/role:
+ *   put:
+ *     summary: Assign role to member
+ *     description: Change a member's role (requires group:manage_roles permission)
+ *     tags:
+ *       - Groups
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/AssignRoleRequest'
+ *     responses:
+ *       200:
+ *         description: Role assigned successfully
+ *       403:
+ *         description: Insufficient permissions
+ */
+router.put('/groups/:id/members/:userId/role', authMiddleware, requirePermission('group:manage_roles'), async (req: AuthRequest, res: Response) => {
+  try {
+    const db = getDatabase();
+    const { id, userId } = req.params;
+    const { role } = req.body;
+
+    if (!ObjectId.isValid(id) || !ObjectId.isValid(userId)) {
+      return res.status(400).json({
+        message: 'Invalid group ID or user ID',
+        code: 'INVALID_ID'
+      });
+    }
+
+    if (!['admin', 'moderator', 'member'].includes(role)) {
+      return res.status(400).json({
+        message: 'Invalid role. Must be admin, moderator, or member',
+        code: 'INVALID_ROLE'
+      });
+    }
+
+    const group = await db.collection('groups').findOne({ _id: new ObjectId(id) });
+
+    if (!group) {
+      return res.status(404).json({
+        message: 'Group not found',
+        code: 'NOT_FOUND'
+      });
+    }
+
+    // Find the member
+    const memberIndex = group.members.findIndex((m: any) => m.userId.toString() === userId);
+
+    if (memberIndex === -1) {
+      return res.status(404).json({
+        message: 'User is not a member of this group',
+        code: 'NOT_FOUND'
+      });
+    }
+
+    // Update the member's role
+    await db.collection('groups').updateOne(
+      { _id: new ObjectId(id), 'members.userId': new ObjectId(userId) },
+      {
+        $set: {
+          'members.$.role': role,
+          updatedAt: new Date()
+        }
+      }
+    );
+
+    res.json({ message: 'Role assigned successfully', role });
+  } catch (error) {
+    console.error('Error assigning role:', error);
+    res.status(500).json({
+      message: 'Failed to assign role',
+      code: 'ASSIGN_ROLE_ERROR'
+    });
+  }
+});
+
+/**
+ * @openapi
  * /api/groups/{id}/regenerate-invite:
  *   post:
  *     summary: Regenerate invite code
- *     description: Generate a new invite code for the group (admin only)
+ *     description: Generate a new invite code for the group (requires group:update permission)
  *     tags:
  *       - Groups
  *     security:
@@ -829,7 +946,7 @@ router.delete('/groups/:id/kick/:userId', authMiddleware, async (req: AuthReques
  *                 inviteCode:
  *                   type: string
  */
-router.post('/groups/:id/regenerate-invite', authMiddleware, async (req: AuthRequest, res: Response) => {
+router.post('/groups/:id/regenerate-invite', authMiddleware, requirePermission('group:update'), async (req: AuthRequest, res: Response) => {
   try {
     const db = getDatabase();
     const { id } = req.params;
@@ -847,14 +964,6 @@ router.post('/groups/:id/regenerate-invite', authMiddleware, async (req: AuthReq
       return res.status(404).json({
         message: 'Group not found',
         code: 'NOT_FOUND'
-      });
-    }
-
-    // Check if user is admin
-    if (group.adminId.toString() !== req.userId) {
-      return res.status(403).json({
-        message: 'Only admin can regenerate invite code',
-        code: 'FORBIDDEN'
       });
     }
 
@@ -885,7 +994,7 @@ router.post('/groups/:id/regenerate-invite', authMiddleware, async (req: AuthReq
  * /api/groups/{id}/toggle-invite:
  *   post:
  *     summary: Toggle invite enabled/disabled
- *     description: Enable or disable invites for the group (admin only)
+ *     description: Enable or disable invites for the group (requires group:update permission)
  *     tags:
  *       - Groups
  *     security:
@@ -918,7 +1027,7 @@ router.post('/groups/:id/regenerate-invite', authMiddleware, async (req: AuthReq
  *                 inviteEnabled:
  *                   type: boolean
  */
-router.post('/groups/:id/toggle-invite', authMiddleware, async (req: AuthRequest, res: Response) => {
+router.post('/groups/:id/toggle-invite', authMiddleware, requirePermission('group:update'), async (req: AuthRequest, res: Response) => {
   try {
     const db = getDatabase();
     const { id } = req.params;
@@ -944,14 +1053,6 @@ router.post('/groups/:id/toggle-invite', authMiddleware, async (req: AuthRequest
       return res.status(404).json({
         message: 'Group not found',
         code: 'NOT_FOUND'
-      });
-    }
-
-    // Check if user is admin
-    if (group.adminId.toString() !== req.userId) {
-      return res.status(403).json({
-        message: 'Only admin can toggle invite status',
-        code: 'FORBIDDEN'
       });
     }
 

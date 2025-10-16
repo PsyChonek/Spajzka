@@ -2,7 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useShoppingStore } from '@/stores/shoppingStore'
 import { useItemsStore } from '@/stores/itemsStore'
-import type { ShoppingItem } from '@/services/api'
+import { CreateShoppingItemRequest, type ShoppingItem } from '@/api-client'
 import PageWrapper from '@/components/PageWrapper.vue'
 import SyncStatusBadge from '@/components/SyncStatusBadge.vue'
 import ItemSuggestions from '@/components/ItemSuggestions.vue'
@@ -13,9 +13,10 @@ const shoppingStore = useShoppingStore()
 const itemsStore = useItemsStore()
 const authStore = useAuthStore()
 
-// Fetch items from master list on mount
+// Fetch items from master list and shopping items on mount
 onMounted(() => {
   itemsStore.fetchItems()
+  shoppingStore.fetchItems()
 })
 
 const searchQuery = ref('')
@@ -24,25 +25,34 @@ const initialFormData = ref<Partial<ItemFormData>>({})
 
 const columns = [
   {
+    name: 'icon',
+    label: '',
+    align: 'center' as const,
+    field: (row: ShoppingItem) => row.icon || '',
+    sortable: false,
+    style: 'width: 80px'
+  },
+  {
     name: 'name',
     required: true,
     label: 'Item',
     align: 'left' as const,
-    field: (row: ShoppingItem) => row.name,
-    sortable: false
+    field: (row: ShoppingItem) => row.name || 'Loading...',
+    sortable: false,
+    style: 'min-width: 200px'
   }
 ]
 
 const filteredItems = computed(() => {
   let filtered = shoppingStore.sortedItems
-  
+
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(item => 
-      item.name.toLowerCase().includes(query)
+    filtered = filtered.filter(item =>
+      item.name?.toLowerCase().includes(query) ?? false
     )
   }
-  
+
   return filtered
 })
 
@@ -52,7 +62,7 @@ const showAddButton = computed(() => {
   // Show button if no items match, or if no exact match exists
   const query = searchQuery.value.toLowerCase().trim()
   const hasExactMatch = filteredItems.value.some(item =>
-    item.name.toLowerCase().trim() === query
+    item.name?.toLowerCase().trim() === query
   )
 
   return !hasExactMatch
@@ -67,7 +77,9 @@ const suggestedItems = computed(() => {
   const query = searchQuery.value.toLowerCase().trim()
 
   // Get items from master list that aren't already in shopping list (case-insensitive)
-  const shoppingItemNames = shoppingStore.sortedItems.map(item => item.name.toLowerCase().trim())
+  const shoppingItemNames = shoppingStore.sortedItems
+    .map(item => item.name?.toLowerCase().trim())
+    .filter(name => name !== undefined) as string[]
 
   return itemsStore.sortedItems
     .filter(item => {
@@ -85,7 +97,7 @@ const suggestedItems = computed(() => {
 const openAddDialog = () => {
   initialFormData.value = {
     name: searchQuery.value,
-    unit: 'pcs',
+    defaultUnit: 'pcs',
     category: ''
   }
   showAddDialog.value = true
@@ -93,18 +105,38 @@ const openAddDialog = () => {
 
 const addFromSuggestion = async (item: any) => {
   // Add item directly without showing modal
+  // item has _id and type from itemsStore
   await shoppingStore.addItem({
-    name: item.name,
-    completed: false
+    itemId: item._id,
+    itemType: item.type as CreateShoppingItemRequest.itemType,
+    quantity: 1
   })
   searchQuery.value = ''
 }
 
 const saveNewItem = async (data: ItemFormData) => {
-  await shoppingStore.addItem({
+  // First, create the item in the items store (as a group item)
+  await itemsStore.addGroupItem({
     name: data.name,
-    completed: false
+    category: data.category || 'Other',
+    icon: data.icon || '🛒',
+    defaultUnit: data.defaultUnit || 'pcs'
   })
+
+  // Find the newly created item (it will have a temp ID or real ID)
+  const newItem = itemsStore.sortedItems.find(item =>
+    item.name === data.name && item.type === 'group'
+  )
+
+  if (newItem) {
+    // Add it to the shopping list
+    await shoppingStore.addItem({
+      itemId: newItem._id!,
+      itemType: CreateShoppingItemRequest.itemType.GROUP,
+      quantity: 1
+    })
+  }
+
   searchQuery.value = ''
 }
 
@@ -171,6 +203,15 @@ const deleteItem = (item: ShoppingItem, event: Event) => {
         bordered
         hide-header
       >
+        <template v-slot:body-cell-icon="props">
+          <q-td
+            :props="props"
+            class="icon-cell"
+            @click="toggleItem(props.row)"
+          >
+            <div class="item-icon">{{ props.row.icon || '🛒' }}</div>
+          </q-td>
+        </template>
         <template v-slot:body-cell-name="props">
           <q-td
             :props="props"
@@ -184,18 +225,17 @@ const deleteItem = (item: ShoppingItem, event: Event) => {
               >
                 {{ props.value }}
               </span>
-              <q-btn
-                flat
-                round
-                dense
-                icon="delete"
-                color="negative"
-                size="sm"
-                class="delete-btn"
-                @click="deleteItem(props.row, $event)"
-              >
-                <q-tooltip>Delete item</q-tooltip>
-              </q-btn>
+                <q-btn
+                  flat
+                  dense
+                  round
+                  color="negative"
+                  icon="delete"
+                  size="sm"
+                  @click="deleteItem(props.row, $event)"
+                >
+                  <q-tooltip>Delete item</q-tooltip>
+                </q-btn>
             </div>
           </q-td>
         </template>
@@ -262,8 +302,6 @@ const deleteItem = (item: ShoppingItem, event: Event) => {
 }
 
 .item-name-cell {
-  font-size: 1.1rem;
-  padding: 16px 24px;
   cursor: pointer;
   transition: background-color 0.2s;
 }
@@ -298,6 +336,15 @@ const deleteItem = (item: ShoppingItem, event: Event) => {
 
 .delete-btn:hover {
   opacity: 1;
+}
+
+.item-icon {
+  font-size: 2rem;
+  text-align: center;
+}
+
+.icon-cell {
+  cursor: pointer;
 }
 
 </style>

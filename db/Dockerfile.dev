@@ -8,9 +8,25 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install
 
-# Copy seed script and data
+# Copy all scripts and data
+COPY install.js ./
 COPY seed.js ./
+COPY migrate.js ./
+COPY install/ ./install/
 COPY seed/ ./seed/
 
-# Wait for MongoDB to be ready and run seed script
-CMD ["npm", "run", "seed"]
+# Create startup script
+RUN echo '#!/bin/sh' > /app/start.sh && \
+    echo 'set -e' >> /app/start.sh && \
+    echo 'echo "=== Running database initialization ==="' >> /app/start.sh && \
+    echo 'echo "1. Installing system data..."' >> /app/start.sh && \
+    echo 'node install.js' >> /app/start.sh && \
+    echo 'echo "2. Seeding development data..."' >> /app/start.sh && \
+    echo 'node seed.js' >> /app/start.sh && \
+    echo 'echo "3. Running migrations..."' >> /app/start.sh && \
+    echo 'node migrate.js' >> /app/start.sh && \
+    echo 'echo "=== Database initialization complete! ==="' >> /app/start.sh && \
+    chmod +x /app/start.sh
+
+# Run the startup script
+CMD ["/app/start.sh"]

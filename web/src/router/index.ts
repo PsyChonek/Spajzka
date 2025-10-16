@@ -7,19 +7,19 @@ const routes: RouteRecordRaw[] = [
     component: () => import('../views/HomeView.vue')
   },
   {
-    path: '/pantry-list',
-    name: 'Pantry List',
-    component: () => import('../views/PantryListView.vue')
+    path: '/pantry',
+    name: 'Pantry',
+    component: () => import('../views/PantryView.vue')
   },
   {
-    path: '/shopping-list',
-    name: 'Shopping List',
-    component: () => import('../views/ShoppingListView.vue')
+    path: '/shopping',
+    name: 'Shopping',
+    component: () => import('../views/ShoppingView.vue')
   },
   {
     path: '/items',
     name: 'Items',
-    component: () => import('../views/ItemsManagementView.vue')
+    component: () => import('../views/ItemsView.vue')
   },
   {
     path: '/groups',

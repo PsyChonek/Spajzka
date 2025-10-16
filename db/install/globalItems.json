@@ -1,0 +1,199 @@
+{
+	"globalItems": [
+		{
+			"_id": {
+				"$oid": "000000000000000000000001"
+			},
+			"name": "Milk",
+			"category": "Dairy",
+			"defaultUnit": "L",
+			"icon": "🥛",
+			"isActive": true,
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "000000000000000000000002"
+			},
+			"name": "Bread",
+			"category": "Bakery",
+			"defaultUnit": "pcs",
+			"icon": "🍞",
+			"isActive": true,
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "000000000000000000000003"
+			},
+			"name": "Eggs",
+			"category": "Dairy",
+			"defaultUnit": "pcs",
+			"icon": "🥚",
+			"isActive": true,
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "000000000000000000000004"
+			},
+			"name": "Butter",
+			"category": "Dairy",
+			"defaultUnit": "g",
+			"icon": "🧈",
+			"isActive": true,
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "000000000000000000000005"
+			},
+			"name": "Cheese",
+			"category": "Dairy",
+			"defaultUnit": "g",
+			"icon": "🧀",
+			"isActive": true,
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "000000000000000000000006"
+			},
+			"name": "Tomatoes",
+			"category": "Vegetables",
+			"defaultUnit": "kg",
+			"icon": "🍅",
+			"isActive": true,
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "000000000000000000000007"
+			},
+			"name": "Potatoes",
+			"category": "Vegetables",
+			"defaultUnit": "kg",
+			"icon": "🥔",
+			"isActive": true,
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "000000000000000000000008"
+			},
+			"name": "Onions",
+			"category": "Vegetables",
+			"defaultUnit": "kg",
+			"icon": "🧅",
+			"isActive": true,
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "000000000000000000000009"
+			},
+			"name": "Apples",
+			"category": "Fruits",
+			"defaultUnit": "kg",
+			"icon": "🍎",
+			"isActive": true,
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "00000000000000000000000a"
+			},
+			"name": "Bananas",
+			"category": "Fruits",
+			"defaultUnit": "kg",
+			"icon": "🍌",
+			"isActive": true,
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "00000000000000000000000b"
+			},
+			"name": "Rice",
+			"category": "Grains",
+			"defaultUnit": "kg",
+			"icon": "🍚",
+			"isActive": true,
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "00000000000000000000000c"
+			},
+			"name": "Pasta",
+			"category": "Grains",
+			"defaultUnit": "g",
+			"icon": "🍝",
+			"isActive": true,
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "00000000000000000000000d"
+			},
+			"name": "Chicken",
+			"category": "Meat",
+			"defaultUnit": "kg",
+			"icon": "🍗",
+			"isActive": true,
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "00000000000000000000000e"
+			},
+			"name": "Beef",
+			"category": "Meat",
+			"defaultUnit": "kg",
+			"icon": "🥩",
+			"isActive": true,
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "00000000000000000000000f"
+			},
+			"name": "Fish",
+			"category": "Seafood",
+			"defaultUnit": "kg",
+			"icon": "🐟",
+			"isActive": true,
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		}
+	]
+}

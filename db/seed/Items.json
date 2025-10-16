@@ -1,12 +1,14 @@
 {
-	"items": [
+	"globalItems": [
 		{
 			"_id": {
 				"$oid": "68eb7ef1335fb9089bf86101"
 			},
 			"name": "Mrkev",
-			"unit": "pcs",
+			"defaultUnit": "pcs",
 			"category": "Zelenina",
+			"icon": "🥕",
+			"isActive": true,
 			"createdAt": {
 				"$date": "2025-10-12T10:09:31.475Z"
 			},
@@ -19,8 +21,10 @@
 				"$oid": "68eb7ef1335fb9089bf86102"
 			},
 			"name": "Okurka",
-			"unit": "pcs",
+			"defaultUnit": "pcs",
 			"category": "Zelenina",
+			"icon": "🥒",
+			"isActive": true,
 			"createdAt": {
 				"$date": "2025-10-12T10:10:23.867Z"
 			},
@@ -33,8 +37,10 @@
 				"$oid": "68eb7ef1335fb9089bf86103"
 			},
 			"name": "Rajčata",
-			"unit": "pcs",
+			"defaultUnit": "pcs",
 			"category": "Zelenina",
+			"icon": "🍅",
+			"isActive": true,
 			"createdAt": {
 				"$date": "2025-10-12T10:10:23.867Z"
 			},
@@ -47,8 +53,10 @@
 				"$oid": "68eb7ef1335fb9089bf86104"
 			},
 			"name": "Brambory",
-			"unit": "kg",
+			"defaultUnit": "kg",
 			"category": "Zelenina",
+			"icon": "🥔",
+			"isActive": true,
 			"createdAt": {
 				"$date": "2025-10-12T10:10:23.867Z"
 			},
@@ -61,8 +69,10 @@
 				"$oid": "68eb7ef1335fb9089bf86105"
 			},
 			"name": "Cibule",
-			"unit": "pcs",
+			"defaultUnit": "pcs",
 			"category": "Zelenina",
+			"icon": "🧅",
+			"isActive": true,
 			"createdAt": {
 				"$date": "2025-10-12T10:10:23.867Z"
 			},
@@ -75,8 +85,10 @@
 				"$oid": "68eb7ef1335fb9089bf86106"
 			},
 			"name": "Česnek",
-			"unit": "pcs",
+			"defaultUnit": "pcs",
 			"category": "Zelenina",
+			"icon": "🧄",
+			"isActive": true,
 			"createdAt": {
 				"$date": "2025-10-12T10:10:23.867Z"
 			},
@@ -89,8 +101,10 @@
 				"$oid": "68eb7ef1335fb9089bf86107"
 			},
 			"name": "Paprika",
-			"unit": "pcs",
+			"defaultUnit": "pcs",
 			"category": "Zelenina",
+			"icon": "🫑",
+			"isActive": true,
 			"createdAt": {
 				"$date": "2025-10-12T10:10:23.867Z"
 			},
@@ -103,8 +117,10 @@
 				"$oid": "68eb7ef1335fb9089bf86108"
 			},
 			"name": "Mléko",
-			"unit": "l",
+			"defaultUnit": "l",
 			"category": "Mléčné výrobky",
+			"icon": "🥛",
+			"isActive": true,
 			"createdAt": {
 				"$date": "2025-10-12T10:10:23.867Z"
 			},
@@ -117,8 +133,10 @@
 				"$oid": "68eb7ef1335fb9089bf86109"
 			},
 			"name": "Jogurt",
-			"unit": "pcs",
+			"defaultUnit": "pcs",
 			"category": "Mléčné výrobky",
+			"icon": "🍶",
+			"isActive": true,
 			"createdAt": {
 				"$date": "2025-10-12T10:10:23.867Z"
 			},
@@ -131,8 +149,10 @@
 				"$oid": "68eb7ef1335fb9089bf86110"
 			},
 			"name": "Sýr",
-			"unit": "g",
+			"defaultUnit": "g",
 			"category": "Mléčné výrobky",
+			"icon": "🧀",
+			"isActive": true,
 			"createdAt": {
 				"$date": "2025-10-12T10:10:23.867Z"
 			},
@@ -145,8 +165,10 @@
 				"$oid": "68eb7ef1335fb9089bf86111"
 			},
 			"name": "Máslo",
-			"unit": "g",
+			"defaultUnit": "g",
 			"category": "Mléčné výrobky",
+			"icon": "🧈",
+			"isActive": true,
 			"createdAt": {
 				"$date": "2025-10-12T10:10:23.867Z"
 			},
@@ -159,8 +181,10 @@
 				"$oid": "68eb7ef1335fb9089bf86112"
 			},
 			"name": "Vejce",
-			"unit": "pcs",
+			"defaultUnit": "pcs",
 			"category": "Mléčné výrobky",
+			"icon": "🥚",
+			"isActive": true,
 			"createdAt": {
 				"$date": "2025-10-12T10:10:23.867Z"
 			},
@@ -173,8 +197,10 @@
 				"$oid": "68eb7ef1335fb9089bf86113"
 			},
 			"name": "Kuřecí prsa",
-			"unit": "kg",
+			"defaultUnit": "kg",
 			"category": "Maso",
+			"icon": "🍗",
+			"isActive": true,
 			"createdAt": {
 				"$date": "2025-10-12T10:10:23.867Z"
 			},
@@ -187,8 +213,10 @@
 				"$oid": "68eb7ef1335fb9089bf86114"
 			},
 			"name": "Vepřové maso",
-			"unit": "kg",
+			"defaultUnit": "kg",
 			"category": "Maso",
+			"icon": "🥩",
+			"isActive": true,
 			"createdAt": {
 				"$date": "2025-10-12T10:10:23.867Z"
 			},
@@ -201,8 +229,10 @@
 				"$oid": "68eb7ef1335fb9089bf86115"
 			},
 			"name": "Hovězí maso",
-			"unit": "kg",
+			"defaultUnit": "kg",
 			"category": "Maso",
+			"icon": "🥩",
+			"isActive": true,
 			"createdAt": {
 				"$date": "2025-10-12T10:10:23.867Z"
 			},
@@ -215,8 +245,10 @@
 				"$oid": "68eb7ef1335fb9089bf86116"
 			},
 			"name": "Šunka",
-			"unit": "g",
+			"defaultUnit": "g",
 			"category": "Maso",
+			"icon": "🥓",
+			"isActive": true,
 			"createdAt": {
 				"$date": "2025-10-12T10:10:23.867Z"
 			},
@@ -229,8 +261,10 @@
 				"$oid": "68eb7ef1335fb9089bf86117"
 			},
 			"name": "Salám",
-			"unit": "g",
+			"defaultUnit": "g",
 			"category": "Maso",
+			"icon": "🥩",
+			"isActive": true,
 			"createdAt": {
 				"$date": "2025-10-12T10:10:23.867Z"
 			},
@@ -243,8 +277,10 @@
 				"$oid": "68eb7ef1335fb9089bf86118"
 			},
 			"name": "Chléb",
-			"unit": "pcs",
+			"defaultUnit": "pcs",
 			"category": "Pečivo",
+			"icon": "🍞",
+			"isActive": true,
 			"createdAt": {
 				"$date": "2025-10-12T10:10:23.867Z"
 			},
@@ -257,8 +293,10 @@
 				"$oid": "68eb7ef1335fb9089bf86119"
 			},
 			"name": "Rohlíky",
-			"unit": "pcs",
+			"defaultUnit": "pcs",
 			"category": "Pečivo",
+			"icon": "🥖",
+			"isActive": true,
 			"createdAt": {
 				"$date": "2025-10-12T10:10:23.867Z"
 			},
@@ -271,8 +309,10 @@
 				"$oid": "68eb7ef1335fb9089bf86120"
 			},
 			"name": "Housky",
-			"unit": "pcs",
+			"defaultUnit": "pcs",
 			"category": "Pečivo",
+			"icon": "🥐",
+			"isActive": true,
 			"createdAt": {
 				"$date": "2025-10-12T10:10:23.867Z"
 			},
@@ -285,8 +325,10 @@
 				"$oid": "68eb7ef1335fb9089bf86121"
 			},
 			"name": "Rýže",
-			"unit": "kg",
+			"defaultUnit": "kg",
 			"category": "Trvanlivé potraviny",
+			"icon": "🍚",
+			"isActive": true,
 			"createdAt": {
 				"$date": "2025-10-12T10:10:23.867Z"
 			},
@@ -299,8 +341,10 @@
 				"$oid": "68eb7ef1335fb9089bf86122"
 			},
 			"name": "Těstoviny",
-			"unit": "g",
+			"defaultUnit": "g",
 			"category": "Trvanlivé potraviny",
+			"icon": "🍝",
+			"isActive": true,
 			"createdAt": {
 				"$date": "2025-10-12T10:10:23.867Z"
 			},
@@ -313,8 +357,10 @@
 				"$oid": "68eb7ef1335fb9089bf86123"
 			},
 			"name": "Mouka",
-			"unit": "kg",
+			"defaultUnit": "kg",
 			"category": "Trvanlivé potraviny",
+			"icon": "🌾",
+			"isActive": true,
 			"createdAt": {
 				"$date": "2025-10-12T10:10:23.867Z"
 			},
@@ -327,8 +373,10 @@
 				"$oid": "68eb7ef1335fb9089bf86124"
 			},
 			"name": "Cukr",
-			"unit": "kg",
+			"defaultUnit": "kg",
 			"category": "Trvanlivé potraviny",
+			"icon": "🧂",
+			"isActive": true,
 			"createdAt": {
 				"$date": "2025-10-12T10:10:23.867Z"
 			},
@@ -341,8 +389,10 @@
 				"$oid": "68eb7ef1335fb9089bf86125"
 			},
 			"name": "Sůl",
-			"unit": "kg",
+			"defaultUnit": "g",
 			"category": "Koření",
+			"icon": "🧂",
+			"isActive": true,
 			"createdAt": {
 				"$date": "2025-10-12T10:10:23.867Z"
 			},
@@ -355,8 +405,10 @@
 				"$oid": "68eb7ef1335fb9089bf86126"
 			},
 			"name": "Pepř",
-			"unit": "g",
+			"defaultUnit": "g",
 			"category": "Koření",
+			"icon": "🌶️",
+			"isActive": true,
 			"createdAt": {
 				"$date": "2025-10-12T10:10:23.867Z"
 			},
@@ -369,8 +421,10 @@
 				"$oid": "68eb7ef1335fb9089bf86127"
 			},
 			"name": "Olej",
-			"unit": "l",
-			"category": "Koření",
+			"defaultUnit": "l",
+			"category": "Oleje a tuky",
+			"icon": "🫒",
+			"isActive": true,
 			"createdAt": {
 				"$date": "2025-10-12T10:10:23.867Z"
 			},
@@ -383,8 +437,10 @@
 				"$oid": "68eb7ef1335fb9089bf86128"
 			},
 			"name": "Ocet",
-			"unit": "ml",
+			"defaultUnit": "ml",
 			"category": "Koření",
+			"icon": "🍶",
+			"isActive": true,
 			"createdAt": {
 				"$date": "2025-10-12T10:10:23.867Z"
 			},
@@ -397,8 +453,10 @@
 				"$oid": "68eb7ef1335fb9089bf86129"
 			},
 			"name": "Jablka",
-			"unit": "pcs",
+			"defaultUnit": "pcs",
 			"category": "Ovoce",
+			"icon": "🍎",
+			"isActive": true,
 			"createdAt": {
 				"$date": "2025-10-12T10:10:23.867Z"
 			},
@@ -411,8 +469,10 @@
 				"$oid": "68eb7ef1335fb9089bf86130"
 			},
 			"name": "Banány",
-			"unit": "pcs",
+			"defaultUnit": "pcs",
 			"category": "Ovoce",
+			"icon": "🍌",
+			"isActive": true,
 			"createdAt": {
 				"$date": "2025-10-12T10:10:23.867Z"
 			},
@@ -425,8 +485,10 @@
 				"$oid": "68eb7ef1335fb9089bf86131"
 			},
 			"name": "Pomeranče",
-			"unit": "pcs",
+			"defaultUnit": "pcs",
 			"category": "Ovoce",
+			"icon": "🍊",
+			"isActive": true,
 			"createdAt": {
 				"$date": "2025-10-12T10:10:23.867Z"
 			},
@@ -439,8 +501,10 @@
 				"$oid": "68eb7ef1335fb9089bf86132"
 			},
 			"name": "Hroznové víno",
-			"unit": "kg",
+			"defaultUnit": "kg",
 			"category": "Ovoce",
+			"icon": "🍇",
+			"isActive": true,
 			"createdAt": {
 				"$date": "2025-10-12T10:10:23.867Z"
 			},
@@ -453,8 +517,10 @@
 				"$oid": "68eb7ef1335fb9089bf86133"
 			},
 			"name": "Káva",
-			"unit": "g",
+			"defaultUnit": "g",
 			"category": "Nápoje",
+			"icon": "☕",
+			"isActive": true,
 			"createdAt": {
 				"$date": "2025-10-12T10:10:23.867Z"
 			},
@@ -467,8 +533,10 @@
 				"$oid": "68eb7ef1335fb9089bf86134"
 			},
 			"name": "Čaj",
-			"unit": "pcs",
+			"defaultUnit": "pcs",
 			"category": "Nápoje",
+			"icon": "🍵",
+			"isActive": true,
 			"createdAt": {
 				"$date": "2025-10-12T10:10:23.867Z"
 			},
@@ -481,8 +549,10 @@
 				"$oid": "68eb7ef1335fb9089bf86135"
 			},
 			"name": "Džus",
-			"unit": "l",
+			"defaultUnit": "l",
 			"category": "Nápoje",
+			"icon": "🧃",
+			"isActive": true,
 			"createdAt": {
 				"$date": "2025-10-12T10:10:23.867Z"
 			},
@@ -495,8 +565,10 @@
 				"$oid": "68eb7ef1335fb9089bf86136"
 			},
 			"name": "Voda",
-			"unit": "l",
+			"defaultUnit": "l",
 			"category": "Nápoje",
+			"icon": "💧",
+			"isActive": true,
 			"createdAt": {
 				"$date": "2025-10-12T10:10:23.867Z"
 			},

@@ -3,35 +3,23 @@
 /* tslint:disable */
 /* eslint-disable */
 export type PantryItem = {
-    /**
-     * Item ID
-     */
     _id?: string;
-    /**
-     * Group ID
-     */
     groupId?: string;
-    /**
-     * Reference to common item ID
-     */
     itemId?: string;
-    /**
-     * Item name
-     */
-    name: string;
-    /**
-     * Item quantity
-     */
-    quantity: number;
-    /**
-     * Unit of measurement
-     */
-    unit?: string;
-    /**
-     * Item category
-     */
+    itemType?: PantryItem.itemType;
+    quantity?: number;
+    name?: string;
     category?: string;
+    icon?: string;
+    defaultUnit?: string;
+    barcode?: string;
     createdAt?: string;
     updatedAt?: string;
 };
+export namespace PantryItem {
+    export enum itemType {
+        GLOBAL = 'global',
+        GROUP = 'group',
+    }
+}
 

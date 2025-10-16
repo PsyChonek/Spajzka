@@ -22,14 +22,14 @@ export class PantryService {
     }
     /**
      * Create pantry item
-     * Add a new item to the pantry
+     * Add a new item to the pantry (requires pantry:create permission)
      * @param requestBody
-     * @returns PantryItem Item created
+     * @returns any Item created
      * @throws ApiError
      */
     public static postApiPantry(
         requestBody: CreatePantryItemRequest,
-    ): CancelablePromise<PantryItem> {
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/pantry',
@@ -38,38 +38,19 @@ export class PantryService {
         });
     }
     /**
-     * Get pantry item by ID
-     * Retrieve a specific pantry item
-     * @param id
-     * @returns PantryItem Pantry item found
-     * @throws ApiError
-     */
-    public static getApiPantry1(
-        id: string,
-    ): CancelablePromise<PantryItem> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/pantry/{id}',
-            path: {
-                'id': id,
-            },
-            errors: {
-                404: `Item not found`,
-            },
-        });
-    }
-    /**
      * Update pantry item
-     * Update an existing pantry item
+     * Update an existing pantry item (requires pantry:update permission)
      * @param id
      * @param requestBody
-     * @returns PantryItem Item updated
+     * @returns any Item updated
      * @throws ApiError
      */
     public static putApiPantry(
         id: string,
-        requestBody: CreatePantryItemRequest,
-    ): CancelablePromise<PantryItem> {
+        requestBody: {
+            quantity?: number;
+        },
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/api/pantry/{id}',
@@ -82,7 +63,7 @@ export class PantryService {
     }
     /**
      * Delete pantry item
-     * Delete a pantry item
+     * Delete a pantry item (requires pantry:delete permission)
      * @param id
      * @returns void
      * @throws ApiError

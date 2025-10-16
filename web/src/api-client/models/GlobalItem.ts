@@ -2,7 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type Item = {
+export type GlobalItem = {
     /**
      * Item ID
      */
@@ -12,20 +12,25 @@ export type Item = {
      */
     name: string;
     /**
-     * Unit of measurement
-     */
-    unit: string;
-    /**
      * Item category
      */
-    category?: string;
+    category: string;
     /**
-     * Creation timestamp
+     * Emoji icon
      */
+    icon?: string;
+    /**
+     * Default unit of measurement
+     */
+    defaultUnit?: string;
+    /**
+     * Barcode
+     */
+    barcode?: string;
+    /**
+     * Whether item is active
+     */
+    isActive?: boolean;
     createdAt?: string;
-    /**
-     * Last update timestamp
-     */
-    updatedAt?: string;
 };
 

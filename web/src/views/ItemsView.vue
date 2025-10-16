@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useItemsStore } from '@/stores/itemsStore'
-import type { Item } from '@/services/api'
+import { useItemsStore, type Item } from '@/stores/itemsStore'
 import PageWrapper from '@/components/PageWrapper.vue'
 import { useAuthStore } from '@/stores/authStore'
 import SyncStatusBadge from '@/components/SyncStatusBadge.vue'
 import AddItemDialog, { type ItemFormData } from '@/components/AddItemDialog.vue'
+import ConfirmDialog from '@/components/ConfirmDialog.vue'
 
 const itemsStore = useItemsStore()
 const authStore = useAuthStore()
@@ -13,31 +13,52 @@ const authStore = useAuthStore()
 const searchQuery = ref('')
 const showAddDialog = ref(false)
 const showEditDialog = ref(false)
+const showDeleteDialog = ref(false)
 const editingItem = ref<Item | null>(null)
+const deletingItem = ref<Item | null>(null)
 const initialFormData = ref<Partial<ItemFormData>>({})
 
 const columns = [
+  {
+    name: 'icon',
+    label: '',
+    align: 'center' as const,
+    field: (row: Item) => row.icon || '',
+    sortable: false,
+    style: 'width: 80px'
+  },
   {
     name: 'name',
     required: true,
     label: 'Name',
     align: 'left' as const,
     field: (row: Item) => row.name,
-    sortable: true
+    sortable: true,
+    style: 'min-width: 200px'
   },
   {
-    name: 'unit',
+    name: 'type',
+    label: 'Type',
+    align: 'center' as const,
+    field: (row: Item) => row.type,
+    sortable: true,
+    style: 'width: 100px'
+  },
+  {
+    name: 'defaultUnit',
     label: 'Unit',
     align: 'center' as const,
-    field: (row: Item) => row.unit,
-    sortable: true
+    field: (row: Item) => row.defaultUnit || '-',
+    sortable: true,
+    style: 'width: 100px'
   },
   {
     name: 'category',
     label: 'Category',
     align: 'center' as const,
     field: (row: Item) => row.category || '-',
-    sortable: true
+    sortable: true,
+    style: 'width: 150px'
   },
   {
     name: 'createdAt',
@@ -45,14 +66,16 @@ const columns = [
     align: 'left' as const,
     field: (row: Item) => row.createdAt,
     format: (val: string | undefined) => val ? new Date(val).toLocaleDateString() : '-',
-    sortable: true
+    sortable: true,
+    style: 'width: 140px'
   },
   {
     name: 'actions',
     label: 'Actions',
     align: 'center' as const,
     field: '',
-    sortable: false
+    sortable: false,
+    style: 'width: 120px'
   }
 ]
 
@@ -64,19 +87,39 @@ const filteredItems = computed(() => {
   const query = searchQuery.value.toLowerCase()
   return itemsStore.sortedItems.filter(item =>
     item.name.toLowerCase().includes(query) ||
-    item.unit.toLowerCase().includes(query) ||
+    (item.defaultUnit && item.defaultUnit.toLowerCase().includes(query)) ||
     (item.category && item.category.toLowerCase().includes(query))
   )
 })
 
 const showAddButton = computed(() => {
-  return searchQuery.value.length > 0 && filteredItems.value.length === 0
+  if (!searchQuery.value) return false
+
+  // Show button if no items match, or if no exact match exists
+  const query = searchQuery.value.toLowerCase().trim()
+  const hasExactMatch = filteredItems.value.some(item =>
+    (item.name || '').toLowerCase().trim() === query
+  )
+
+  return !hasExactMatch
+})
+
+const canCreateGlobalItems = computed(() => {
+  return authStore.hasGlobalPermission('global_items:create')
+})
+
+const canUpdateGlobalItems = computed(() => {
+  return authStore.hasGlobalPermission('global_items:update')
+})
+
+const canDeleteGlobalItems = computed(() => {
+  return authStore.hasGlobalPermission('global_items:delete')
 })
 
 const openAddDialog = () => {
   initialFormData.value = {
     name: searchQuery.value,
-    unit: 'pcs',
+    defaultUnit: 'pcs',
     category: ''
   }
   showAddDialog.value = true
@@ -86,34 +129,90 @@ const openEditDialog = (item: Item) => {
   editingItem.value = item
   initialFormData.value = {
     name: item.name,
-    unit: item.unit,
-    category: item.category || ''
+    defaultUnit: item.defaultUnit,
+    category: item.category || '',
+    icon: item.icon || ''
   }
   showEditDialog.value = true
 }
 
 const saveNewItem = async (data: ItemFormData) => {
-  await itemsStore.addItem({
-    name: data.name,
-    unit: data.unit!,
-    category: data.category
-  })
+  // Check if user wants to create as global item
+  if (data.isGlobal) {
+    await itemsStore.addGlobalItem({
+      name: data.name,
+      category: data.category || 'Other',
+      defaultUnit: data.defaultUnit || 'pcs',
+      icon: data.icon
+    })
+  } else {
+    await itemsStore.addGroupItem({
+      name: data.name,
+      category: data.category || 'Other',
+      defaultUnit: data.defaultUnit || 'pcs',
+      icon: data.icon
+    })
+  }
   searchQuery.value = ''
 }
 
 const saveEditedItem = async (data: ItemFormData) => {
   if (editingItem.value && editingItem.value._id) {
-    await itemsStore.updateItem(editingItem.value._id, {
+    const updates = {
       name: data.name,
-      unit: data.unit!,
-      category: data.category
-    })
+      category: data.category || 'Other',
+      defaultUnit: data.defaultUnit || 'pcs',
+      icon: data.icon
+    }
+
+    // Update based on item type
+    if (editingItem.value.type === 'global') {
+      await itemsStore.updateGlobalItem(editingItem.value._id, updates)
+    } else {
+      await itemsStore.updateGroupItem(editingItem.value._id, updates)
+    }
     editingItem.value = null
   }
 }
 
-const deleteItem = (itemId: string) => {
-  itemsStore.deleteItem(itemId)
+const deleteItem = (item: Item) => {
+  deletingItem.value = item
+  showDeleteDialog.value = true
+}
+
+const confirmDelete = () => {
+  if (!deletingItem.value) return
+
+  if (deletingItem.value.type === 'global') {
+    itemsStore.deleteGlobalItem(deletingItem.value._id!)
+  } else {
+    itemsStore.deleteGroupItem(deletingItem.value._id!)
+  }
+  deletingItem.value = null
+}
+
+const cancelDelete = () => {
+  deletingItem.value = null
+}
+
+const deleteDialogMessage = computed(() => {
+  if (!deletingItem.value) return ''
+  const itemTypeLabel = deletingItem.value.type === 'global' ? 'global item' : 'group item'
+  return `Are you sure you want to delete "<strong>${deletingItem.value.name}</strong>"?<br><br>This ${itemTypeLabel} will be removed from all pantry and shopping lists.`
+})
+
+const canEditItem = (item: Item) => {
+  if (item.type === 'global') {
+    return canUpdateGlobalItems.value
+  }
+  return true // Group items can always be edited by group members
+}
+
+const canDeleteItem = (item: Item) => {
+  if (item.type === 'global') {
+    return canDeleteGlobalItems.value
+  }
+  return true // Group items can always be deleted by group members
 }
 </script>
 
@@ -130,7 +229,7 @@ const deleteItem = (itemId: string) => {
         <q-input
           v-model="searchQuery"
           outlined
-          placeholder="Search items by name, unit, or category..."
+          placeholder="Search items..."
           class="search-input"
           clearable
         >
@@ -158,10 +257,39 @@ const deleteItem = (itemId: string) => {
           flat
           bordered
         >
+          <template v-slot:body-cell-icon="props">
+            <q-td :props="props">
+              <div class="item-icon">{{ props.row.icon || '📋' }}</div>
+            </q-td>
+          </template>
+          <template v-slot:body-cell-type="props">
+            <q-td :props="props">
+              <q-badge
+                v-if="props.row.type === 'global'"
+                color="primary"
+                label="Global"
+              >
+                <q-tooltip>
+                  This item is shared across all users
+                </q-tooltip>
+              </q-badge>
+              <q-badge
+                v-else
+                color="secondary"
+                outline
+                label="Group"
+              >
+                <q-tooltip>
+                  This item is only visible to your group
+                </q-tooltip>
+              </q-badge>
+            </q-td>
+          </template>
           <template v-slot:body-cell-actions="props">
             <q-td :props="props">
               <div class="action-buttons">
                 <q-btn
+                  v-if="canEditItem(props.row)"
                   flat
                   dense
                   round
@@ -173,13 +301,14 @@ const deleteItem = (itemId: string) => {
                   <q-tooltip>Edit item</q-tooltip>
                 </q-btn>
                 <q-btn
+                  v-if="canDeleteItem(props.row)"
                   flat
                   dense
                   round
                   color="negative"
                   icon="delete"
                   size="sm"
-                  @click="deleteItem(props.row._id)"
+                  @click="deleteItem(props.row)"
                 >
                   <q-tooltip>Delete item</q-tooltip>
                 </q-btn>
@@ -202,11 +331,7 @@ const deleteItem = (itemId: string) => {
         v-model="showAddDialog"
         title="Add New Item"
         :initial-data="initialFormData"
-        :fields="{
-          name: true,
-          unit: true,
-          category: true
-        }"
+        :show-global-toggle="canCreateGlobalItems"
         @save="saveNewItem"
       />
 
@@ -215,12 +340,18 @@ const deleteItem = (itemId: string) => {
         v-model="showEditDialog"
         title="Edit Item"
         :initial-data="initialFormData"
-        :fields="{
-          name: true,
-          unit: true,
-          category: true
-        }"
         @save="saveEditedItem"
+      />
+
+      <!-- Delete Confirmation Dialog -->
+      <ConfirmDialog
+        v-model="showDeleteDialog"
+        title="Delete Item"
+        :message="deleteDialogMessage"
+        type="danger"
+        confirm-label="Delete"
+        @confirm="confirmDelete"
+        @cancel="cancelDelete"
       />
     </div>
   </PageWrapper>
@@ -269,5 +400,10 @@ const deleteItem = (itemId: string) => {
   display: flex;
   gap: 4px;
   justify-content: center;
+}
+
+.item-icon {
+  font-size: 2rem;
+  text-align: center;
 }
 </style>

@@ -2,13 +2,10 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type GroupMember = {
-    _id?: string;
-    name?: string;
-    email?: string;
-    role?: GroupMember.role;
+export type AssignRoleRequest = {
+    role: AssignRoleRequest.role;
 };
-export namespace GroupMember {
+export namespace AssignRoleRequest {
     export enum role {
         ADMIN = 'admin',
         MODERATOR = 'moderator',

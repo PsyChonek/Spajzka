@@ -1,13 +1,24 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import { PantryService, type PantryItem, isOnline, ApiError } from '@/services/api'
+import { ref, computed, watch } from 'vue'
+import { PantryService, type PantryItem, type CreatePantryItemRequest, ApiError } from '@/api-client'
+import { isOnline } from '@/utils/network'
 import { Notify } from 'quasar'
+import { useGroupsStore } from './groupsStore'
+import { useItemsStore } from './itemsStore'
 
 export const usePantryStore = defineStore('pantry', () => {
   const items = ref<PantryItem[]>([])
   const loading = ref(false)
   const lastSynced = ref<Date | null>(null)
   const pendingChanges = ref<Map<string, 'create' | 'update' | 'delete'>>(new Map())
+
+  // Watch for group changes and refetch items
+  const groupsStore = useGroupsStore()
+  watch(() => groupsStore.currentGroupId, (newGroupId, oldGroupId) => {
+    if (newGroupId && newGroupId !== oldGroupId) {
+      fetchItems()
+    }
+  }, { immediate: false })
 
   // Computed
   const sortedItems = computed(() => {
@@ -22,7 +33,6 @@ export const usePantryStore = defineStore('pantry', () => {
   // Actions
   async function fetchItems() {
     if (!isOnline()) {
-      console.log('Offline: Using cached pantry items')
       return
     }
 
@@ -33,7 +43,6 @@ export const usePantryStore = defineStore('pantry', () => {
       lastSynced.value = new Date()
       pendingChanges.value.clear()
     } catch (error: any) {
-      console.error('Failed to fetch pantry items:', error)
       // Only show notification if it's not a 404 (API might not be set up yet)
       const is404 = error instanceof ApiError && error.status === 404
       if (!is404 && error.message !== 'offline') {
@@ -43,19 +52,29 @@ export const usePantryStore = defineStore('pantry', () => {
           timeout: 2000
         })
       } else if (is404) {
-        console.log('API endpoint not found - using local data only')
       }
     } finally {
       loading.value = false
     }
   }
 
-  async function addItem(itemData: Omit<PantryItem, '_id' | 'createdAt' | 'updatedAt'>) {
+  async function addItem(itemData: CreatePantryItemRequest) {
     // Create temporary item for immediate UI update
     const tempId = `temp_${Date.now()}`
+
+    // Get item details from the items store to populate the temporary item
+    const itemsStore = useItemsStore()
+    const itemDetails = itemsStore.getItem(itemData.itemId, itemData.itemType as 'global' | 'group')
+
     const tempItem: PantryItem = {
       _id: tempId,
-      ...itemData,
+      itemId: itemData.itemId,
+      itemType: itemData.itemType as PantryItem.itemType,
+      quantity: itemData.quantity,
+      name: itemDetails?.name || 'Loading...',
+      category: itemDetails?.category,
+      icon: itemDetails?.icon,
+      defaultUnit: itemDetails?.defaultUnit,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
@@ -76,7 +95,6 @@ export const usePantryStore = defineStore('pantry', () => {
         // If 404, API doesn't exist - just use local data, don't queue
         const is404 = error instanceof ApiError && error.status === 404
         if (is404) {
-          console.log('API endpoint not available - using local storage only')
         } else {
           // For other errors, mark as pending for retry
           console.error('Failed to create item on server:', error)
@@ -116,7 +134,6 @@ export const usePantryStore = defineStore('pantry', () => {
           // If 404, API doesn't exist - just use local data
           const is404 = error instanceof ApiError && error.status === 404
           if (is404) {
-            console.log('API endpoint not available - using local storage only')
           } else {
             // For other errors, mark as pending for retry
             console.error('Failed to update item on server:', error)
@@ -146,7 +163,6 @@ export const usePantryStore = defineStore('pantry', () => {
           // If 404, API doesn't exist - just use local data
           const is404 = error instanceof ApiError && error.status === 404
           if (is404) {
-            console.log('API endpoint not available - using local storage only')
           } else {
             // For other errors, mark as pending for retry
             console.error('Failed to delete item on server:', error)
@@ -170,9 +186,13 @@ export const usePantryStore = defineStore('pantry', () => {
     for (const [id, action] of changes) {
       try {
         const item = items.value.find((i: PantryItem) => i._id === id)
-        
-        if (action === 'create' && item) {
-          const { _id, ...itemData } = item
+
+        if (action === 'create' && item && item.itemId && item.itemType && item.quantity !== undefined) {
+          const itemData: CreatePantryItemRequest = {
+            itemId: item.itemId,
+            itemType: item.itemType as CreatePantryItemRequest.itemType,
+            quantity: item.quantity
+          }
           const savedItem = await PantryService.postApiPantry(itemData)
           // Replace temp item with server item
           const index = items.value.findIndex((i: PantryItem) => i._id === id)
@@ -191,7 +211,6 @@ export const usePantryStore = defineStore('pantry', () => {
         // Skip 404 errors (API not ready)
         const is404 = error instanceof ApiError && error.status === 404
         if (is404) {
-          console.log(`API endpoint not available for ${action} operation`)
           pendingChanges.value.delete(id)
         } else {
           console.error(`Failed to sync ${action} for item ${id}:`, error)
@@ -211,14 +230,14 @@ export const usePantryStore = defineStore('pantry', () => {
 
   function incrementQuantity(id: string) {
     const item = items.value.find((i: PantryItem) => i._id === id)
-    if (item) {
+    if (item && item.quantity !== undefined) {
       updateItem(id, { quantity: item.quantity + 1 })
     }
   }
 
   function decrementQuantity(id: string) {
     const item = items.value.find((i: PantryItem) => i._id === id)
-    if (item && item.quantity > 0) {
+    if (item && item.quantity !== undefined && item.quantity > 0) {
       updateItem(id, { quantity: item.quantity - 1 })
     }
   }

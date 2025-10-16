@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useGroupsStore } from '@/stores/groupsStore'
+import GroupSelector from '@/components/GroupSelector.vue'
 
 const drawer = ref(false)
 const router = useRouter()
+const groupsStore = useGroupsStore()
 
 interface NavLink {
   to: string
@@ -13,8 +16,8 @@ interface NavLink {
 
 const navLinks: NavLink[] = [
   { to: '/', label: 'Home', icon: 'home' },
-  { to: '/pantry-list', label: 'Pantry List', icon: 'kitchen' },
-  { to: '/shopping-list', label: 'Shopping List', icon: 'shopping_cart' },
+  { to: '/pantry', label: 'Pantry', icon: 'kitchen' },
+  { to: '/shopping', label: 'Shopping', icon: 'shopping_cart' },
   { to: '/items', label: 'Items', icon: 'inventory' },
   { to: '/groups', label: 'Groups', icon: 'group' },
   { to: '/profile', label: 'Profile', icon: 'lock' }
@@ -24,6 +27,10 @@ const navigateTo = (path: string) => {
   router.push(path)
   drawer.value = false
 }
+
+onMounted(async () => {
+  await groupsStore.initialize()
+})
 </script>
 
 <template>
@@ -39,12 +46,15 @@ const navigateTo = (path: string) => {
         @click="drawer = !drawer"
       />
 
-      <q-toolbar-title>
+      <q-toolbar-title class="toolbar-title">
         Spajzka
       </q-toolbar-title>
 
+      <!-- Group Selector -->
+      <GroupSelector variant="toolbar" />
+
       <!-- Desktop Navigation -->
-      <div class="gt-xs">
+      <div class="gt-xs nav-links">
         <q-btn
           v-for="link in navLinks"
           :key="link.to"
@@ -67,6 +77,15 @@ const navigateTo = (path: string) => {
   >
     <q-scroll-area class="fit">
       <q-list padding>
+        <q-item-label header class="text-weight-bold">
+          Group
+        </q-item-label>
+
+        <!-- Group Selector in Drawer -->
+        <GroupSelector variant="drawer" />
+
+        <q-separator class="q-my-md" />
+
         <q-item-label header class="text-weight-bold">
           Navigation
         </q-item-label>
@@ -98,5 +117,20 @@ const navigateTo = (path: string) => {
                0 0 20px rgba(255, 255, 255, 0.6),
                0 0 30px rgba(255, 255, 255, 0.4);
   font-weight: 600;
+}
+
+.toolbar-title {
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.nav-links {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* Ensure toolbar children don't overflow */
+:deep(.q-toolbar) {
+  overflow: hidden;
 }
 </style>

@@ -3,9 +3,14 @@
 /* tslint:disable */
 /* eslint-disable */
 export type CreatePantryItemRequest = {
-    name: string;
+    itemId: string;
+    itemType: CreatePantryItemRequest.itemType;
     quantity: number;
-    unit?: string;
-    category?: string;
 };
+export namespace CreatePantryItemRequest {
+    export enum itemType {
+        GLOBAL = 'global',
+        GROUP = 'group',
+    }
+}
 

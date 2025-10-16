@@ -1,0 +1,130 @@
+{
+	"groupItems": [
+		{
+			"_id": {
+				"$oid": "68eb80b11d2eacda726c0e01"
+			},
+			"groupId": {
+				"$oid": "68eb80b11d2eacda726c0c01"
+			},
+			"name": "Domácí marmeláda",
+			"category": "Domácí výrobky",
+			"icon": "🍯",
+			"defaultUnit": "jar",
+			"createdBy": {
+				"$oid": "68eb80b11d2eacda726c0b8c"
+			},
+			"createdAt": {
+				"$date": "2025-10-13T08:00:00.000Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-13T08:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb80b11d2eacda726c0e02"
+			},
+			"groupId": {
+				"$oid": "68eb80b11d2eacda726c0c02"
+			},
+			"name": "Proteinový prášek",
+			"category": "Doplňky stravy",
+			"icon": "💪",
+			"defaultUnit": "scoop",
+			"createdBy": {
+				"$oid": "68eb80b11d2eacda726c0b8e"
+			},
+			"createdAt": {
+				"$date": "2025-10-13T09:00:00.000Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-13T09:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb80b11d2eacda726c0e03"
+			},
+			"groupId": {
+				"$oid": "68eb80b11d2eacda726c0c01"
+			},
+			"name": "Babičkin kompot",
+			"category": "Domácí výrobky",
+			"icon": "🍑",
+			"defaultUnit": "jar",
+			"createdBy": {
+				"$oid": "68eb80b11d2eacda726c0b8d"
+			},
+			"createdAt": {
+				"$date": "2025-10-13T10:00:00.000Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-13T10:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb80b11d2eacda726c0e04"
+			},
+			"groupId": {
+				"$oid": "68eb80b11d2eacda726c0c02"
+			},
+			"name": "Granola",
+			"category": "Zdravé snacky",
+			"icon": "🥣",
+			"defaultUnit": "g",
+			"createdBy": {
+				"$oid": "68eb80b11d2eacda726c0b8f"
+			},
+			"createdAt": {
+				"$date": "2025-10-13T11:00:00.000Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-13T11:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb80b11d2eacda726c0e05"
+			},
+			"groupId": {
+				"$oid": "68eb80b11d2eacda726c0c01"
+			},
+			"name": "Speciální koření na grilování",
+			"category": "Koření",
+			"icon": "�",
+			"defaultUnit": "g",
+			"createdBy": {
+				"$oid": "68eb80b11d2eacda726c0b8c"
+			},
+			"createdAt": {
+				"$date": "2025-10-13T12:00:00.000Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-13T12:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb80b11d2eacda726c0e06"
+			},
+			"groupId": {
+				"$oid": "68eb80b11d2eacda726c0c02"
+			},
+			"name": "Mandlové mléko",
+			"category": "Rostlinné mléka",
+			"icon": "🥛",
+			"defaultUnit": "l",
+			"createdBy": {
+				"$oid": "68eb80b11d2eacda726c0b8e"
+			},
+			"createdAt": {
+				"$date": "2025-10-13T13:00:00.000Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-13T13:00:00.000Z"
+			}
+		}
+	]
+}

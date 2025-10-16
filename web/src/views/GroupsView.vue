@@ -1,30 +1,35 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { GroupsService } from '@/api-client'
-import type { Group, GroupMember } from '@/api-client'
+import type { GroupMember } from '@/api-client'
 import PageWrapper from '@/components/PageWrapper.vue'
+import GroupActions from '@/components/GroupActions.vue'
+import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import { Notify } from 'quasar'
 import { useAuthStore } from '@/stores/authStore'
+import { useGroupsStore } from '@/stores/groupsStore'
 import { useRouter } from 'vue-router'
 
 const authStore = useAuthStore()
+const groupsStore = useGroupsStore()
 const router = useRouter()
 
-const group = ref<Group | null>(null)
 const members = ref<GroupMember[]>([])
 const loading = ref(false)
-const hasGroup = ref(false)
 
 // Dialog states
-const showCreateDialog = ref(false)
-const showJoinDialog = ref(false)
 const showEditDialog = ref(false)
 const showInviteDialog = ref(false)
 const showAuthRequiredDialog = ref(false)
+const showLeaveDialog = ref(false)
+const showDeleteDialog = ref(false)
+const showKickDialog = ref(false)
+const showRegenerateDialog = ref(false)
+
+// Kick member data
+const memberToKick = ref<{ userId: string, userName: string } | null>(null)
 
 // Form fields
-const newGroupName = ref('')
-const joinInviteCode = ref('')
 const editGroupName = ref('')
 
 onMounted(async () => {
@@ -32,7 +37,10 @@ onMounted(async () => {
     showAuthRequiredDialog.value = true
     return
   }
-  await fetchGroup()
+  await groupsStore.initialize()
+  if (groupsStore.currentGroup) {
+    await fetchMembers()
+  }
 })
 
 const goToLogin = () => {
@@ -40,31 +48,11 @@ const goToLogin = () => {
   router.push('/profile')
 }
 
-const fetchGroup = async () => {
-  loading.value = true
-  try {
-    group.value = await GroupsService.getApiGroupsMy()
-    hasGroup.value = true
-    await fetchMembers()
-  } catch (error: any) {
-    if (error.status === 404) {
-      hasGroup.value = false
-    } else {
-      Notify.create({
-        type: 'negative',
-        message: 'Failed to fetch group'
-      })
-    }
-  } finally {
-    loading.value = false
-  }
-}
-
 const fetchMembers = async () => {
-  if (!group.value?._id) return
+  if (!groupsStore.currentGroup?._id) return
 
   try {
-    members.value = await GroupsService.getApiGroupsMembers(group.value._id)
+    members.value = await GroupsService.getApiGroupsMembers(groupsStore.currentGroup._id)
   } catch (error) {
     Notify.create({
       type: 'negative',
@@ -73,77 +61,41 @@ const fetchMembers = async () => {
   }
 }
 
-const isAdmin = computed(() => {
-  if (!group.value) return false
-  const currentMember = members.value.find(m => m.isAdmin)
-  return !!currentMember?.isAdmin
+// Watch for group changes from navbar
+watch(() => groupsStore.currentGroupId, async () => {
+  if (groupsStore.currentGroup) {
+    await fetchMembers()
+  }
 })
 
-const createGroup = async () => {
-  if (!newGroupName.value.trim()) return
+const isAdmin = computed(() => {
+  if (!groupsStore.currentGroup) return false
+  const userId = authStore.user?._id
+  if (!userId) return false
+  const currentMember = members.value.find(m => m._id === userId)
+  return currentMember?.role === 'admin'
+})
 
-  loading.value = true
-  try {
-    group.value = await GroupsService.postApiGroups({
-      name: newGroupName.value.trim()
-    })
-    hasGroup.value = true
-    showCreateDialog.value = false
-    newGroupName.value = ''
+const handleGroupCreatedOrJoined = async () => {
+  if (groupsStore.currentGroup) {
     await fetchMembers()
-    Notify.create({
-      type: 'positive',
-      message: 'Group created successfully'
-    })
-  } catch (error) {
-    Notify.create({
-      type: 'negative',
-      message: 'Failed to create group'
-    })
-  } finally {
-    loading.value = false
-  }
-}
-
-const joinGroup = async () => {
-  if (!joinInviteCode.value.trim()) return
-
-  loading.value = true
-  try {
-    group.value = await GroupsService.postApiGroupsJoin({
-      inviteCode: joinInviteCode.value.trim().toUpperCase()
-    })
-    hasGroup.value = true
-    showJoinDialog.value = false
-    joinInviteCode.value = ''
-    await fetchMembers()
-    Notify.create({
-      type: 'positive',
-      message: 'Successfully joined group'
-    })
-  } catch (error: any) {
-    Notify.create({
-      type: 'negative',
-      message: error.body?.message || 'Failed to join group'
-    })
-  } finally {
-    loading.value = false
   }
 }
 
 const openEditDialog = () => {
-  editGroupName.value = group.value?.name || ''
+  editGroupName.value = groupsStore.currentGroup?.name || ''
   showEditDialog.value = true
 }
 
 const updateGroup = async () => {
-  if (!editGroupName.value.trim() || !group.value?._id) return
+  if (!editGroupName.value.trim() || !groupsStore.currentGroup?._id) return
 
   loading.value = true
   try {
-    group.value = await GroupsService.putApiGroups(group.value._id, {
+    await GroupsService.putApiGroups(groupsStore.currentGroup._id, {
       name: editGroupName.value.trim()
     })
+    await groupsStore.fetchGroups()
     showEditDialog.value = false
     Notify.create({
       type: 'positive',
@@ -159,22 +111,22 @@ const updateGroup = async () => {
   }
 }
 
-const leaveGroup = async () => {
-  if (!group.value?._id) return
+const leaveGroup = () => {
+  if (!groupsStore.currentGroup?._id) return
+  showLeaveDialog.value = true
+}
 
-  const confirmed = confirm(isAdmin.value && members.value.length > 1
-    ? 'As admin, you cannot leave while there are other members. Remove all members first or delete the group.'
-    : 'Are you sure you want to leave this group?'
-  )
-
-  if (!confirmed) return
+const confirmLeaveGroup = async () => {
+  if (!groupsStore.currentGroup?._id) return
 
   loading.value = true
   try {
-    await GroupsService.postApiGroupsLeave(group.value._id)
-    group.value = null
+    await GroupsService.postApiGroupsLeave(groupsStore.currentGroup._id)
+    await groupsStore.fetchGroups()
     members.value = []
-    hasGroup.value = false
+    if (groupsStore.currentGroup) {
+      await fetchMembers()
+    }
     Notify.create({
       type: 'positive',
       message: 'Successfully left group'
@@ -189,18 +141,28 @@ const leaveGroup = async () => {
   }
 }
 
-const deleteGroup = async () => {
-  if (!group.value?._id) return
+const leaveDialogMessage = computed(() => {
+  return isAdmin.value && members.value.length > 1
+    ? 'As admin, you cannot leave while there are other members. Remove all members first or delete the group.'
+    : 'Are you sure you want to leave this group?'
+})
 
-  const confirmed = confirm('Are you sure you want to delete this group? This action cannot be undone.')
-  if (!confirmed) return
+const deleteGroup = () => {
+  if (!groupsStore.currentGroup?._id) return
+  showDeleteDialog.value = true
+}
+
+const confirmDeleteGroup = async () => {
+  if (!groupsStore.currentGroup?._id) return
 
   loading.value = true
   try {
-    await GroupsService.deleteApiGroups(group.value._id)
-    group.value = null
+    await GroupsService.deleteApiGroups(groupsStore.currentGroup._id)
+    await groupsStore.fetchGroups()
     members.value = []
-    hasGroup.value = false
+    if (groupsStore.currentGroup) {
+      await fetchMembers()
+    }
     Notify.create({
       type: 'positive',
       message: 'Group deleted successfully'
@@ -215,19 +177,22 @@ const deleteGroup = async () => {
   }
 }
 
-const kickMember = async (userId: string, userName: string) => {
-  if (!group.value?._id) return
+const kickMember = (userId: string, userName: string) => {
+  if (!groupsStore.currentGroup?._id) return
+  memberToKick.value = { userId, userName }
+  showKickDialog.value = true
+}
 
-  const confirmed = confirm(`Are you sure you want to kick ${userName} from the group?`)
-  if (!confirmed) return
+const confirmKickMember = async () => {
+  if (!groupsStore.currentGroup?._id || !memberToKick.value) return
 
   loading.value = true
   try {
-    await GroupsService.deleteApiGroupsKick(group.value._id, userId)
+    await GroupsService.deleteApiGroupsKick(groupsStore.currentGroup._id, memberToKick.value.userId)
     await fetchMembers()
     Notify.create({
       type: 'positive',
-      message: `${userName} has been removed from the group`
+      message: `${memberToKick.value.userName} has been removed from the group`
     })
   } catch (error) {
     Notify.create({
@@ -236,21 +201,31 @@ const kickMember = async (userId: string, userName: string) => {
     })
   } finally {
     loading.value = false
+    memberToKick.value = null
   }
 }
 
-const regenerateInviteCode = async () => {
-  if (!group.value?._id) return
+const cancelKickMember = () => {
+  memberToKick.value = null
+}
 
-  const confirmed = confirm('Are you sure you want to regenerate the invite code? The old code will no longer work.')
-  if (!confirmed) return
+const kickDialogMessage = computed(() => {
+  if (!memberToKick.value) return ''
+  return `Are you sure you want to kick <strong>${memberToKick.value.userName}</strong> from the group?`
+})
+
+const regenerateInviteCode = () => {
+  if (!groupsStore.currentGroup?._id) return
+  showRegenerateDialog.value = true
+}
+
+const confirmRegenerateInviteCode = async () => {
+  if (!groupsStore.currentGroup?._id) return
 
   loading.value = true
   try {
-    const result = await GroupsService.postApiGroupsRegenerateInvite(group.value._id)
-    if (group.value && result.inviteCode) {
-      group.value.inviteCode = result.inviteCode
-    }
+    await GroupsService.postApiGroupsRegenerateInvite(groupsStore.currentGroup._id)
+    await groupsStore.fetchGroups()
     Notify.create({
       type: 'positive',
       message: 'Invite code regenerated'
@@ -266,17 +241,15 @@ const regenerateInviteCode = async () => {
 }
 
 const toggleInvite = async () => {
-  if (!group.value?._id) return
+  if (!groupsStore.currentGroup?._id) return
 
-  const newStatus = !group.value.inviteEnabled
+  const newStatus = !groupsStore.currentGroup.inviteEnabled
   loading.value = true
   try {
-    await GroupsService.postApiGroupsToggleInvite(group.value._id, {
+    await GroupsService.postApiGroupsToggleInvite(groupsStore.currentGroup._id, {
       enabled: newStatus
     })
-    if (group.value) {
-      group.value.inviteEnabled = newStatus
-    }
+    await groupsStore.fetchGroups()
     Notify.create({
       type: 'positive',
       message: `Invites ${newStatus ? 'enabled' : 'disabled'}`
@@ -292,9 +265,9 @@ const toggleInvite = async () => {
 }
 
 const copyInviteCode = () => {
-  if (!group.value?.inviteCode) return
+  if (!groupsStore.currentGroup?.inviteCode) return
 
-  navigator.clipboard.writeText(group.value.inviteCode)
+  navigator.clipboard.writeText(groupsStore.currentGroup.inviteCode)
   Notify.create({
     type: 'positive',
     message: 'Invite code copied to clipboard'
@@ -324,7 +297,7 @@ const memberColumns = [
     name: 'role',
     label: 'Role',
     align: 'center' as const,
-    field: (row: GroupMember) => row.isAdmin ? 'Admin' : 'Member',
+    field: (row: GroupMember) => row.role === 'admin' ? 'Admin' : 'Member',
     sortable: true
   },
   {
@@ -344,50 +317,27 @@ const memberColumns = [
       </div>
 
       <!-- Loading State -->
-      <div v-if="loading && !group && authStore.isAuthenticated" class="text-center q-pa-xl">
+      <div v-if="loading && groupsStore.groups.length === 0 && authStore.isAuthenticated" class="text-center q-pa-xl">
         <q-spinner size="50px" color="primary" />
         <div class="q-mt-md text-grey-7">Loading...</div>
       </div>
 
       <!-- No Group State -->
-      <div v-else-if="!hasGroup && authStore.isAuthenticated" class="no-group-container">
-        <q-card class="no-group-card">
-          <q-card-section class="text-center q-pa-xl">
-            <q-icon name="group" size="80px" color="grey-5" class="q-mb-md" />
-            <h5 class="q-mt-md q-mb-sm">You're not in a group yet</h5>
-            <p class="text-grey-7 q-mb-xl">
-              Create a new group or join an existing one with an invite code
-            </p>
-
-            <div class="row q-gutter-md justify-center">
-              <q-btn
-                color="primary"
-                icon="add"
-                label="Create Group"
-                size="lg"
-                @click="showCreateDialog = true"
-              />
-              <q-btn
-                color="secondary"
-                icon="login"
-                label="Join Group"
-                size="lg"
-                outline
-                @click="showJoinDialog = true"
-              />
-            </div>
-          </q-card-section>
-        </q-card>
+      <div v-else-if="groupsStore.groups.length === 0 && authStore.isAuthenticated" class="no-group-container">
+        <GroupActions 
+          @group-created="handleGroupCreatedOrJoined"
+          @group-joined="handleGroupCreatedOrJoined"
+        />
       </div>
 
-      <!-- Has Group State -->
-      <div v-else-if="group && authStore.isAuthenticated">
+      <!-- Has Groups State -->
+      <div v-else-if="groupsStore.currentGroup && authStore.isAuthenticated">
         <!-- Group Info Card -->
         <q-card class="q-mb-lg">
           <q-card-section>
             <div class="row items-center justify-between">
               <div>
-                <div class="text-h5">{{ group.name }}</div>
+                <div class="text-h5">{{ groupsStore.currentGroup.name }}</div>
                 <div class="text-caption text-grey-7">
                   {{ members.length }} {{ members.length === 1 ? 'member' : 'members' }}
                 </div>
@@ -433,7 +383,7 @@ const memberColumns = [
         </q-card>
 
         <!-- Members Table -->
-        <q-card>
+        <q-card class="q-mb-lg">
           <q-card-section>
             <div class="text-h6 q-mb-md">Members</div>
             <q-table
@@ -446,15 +396,15 @@ const memberColumns = [
               <template v-slot:body-cell-role="props">
                 <q-td :props="props">
                   <q-badge
-                    :color="props.row.isAdmin ? 'primary' : 'grey-6'"
-                    :label="props.row.isAdmin ? 'Admin' : 'Member'"
+                    :color="props.row.role === 'admin' ? 'primary' : 'grey-6'"
+                    :label="props.row.role === 'admin' ? 'Admin' : 'Member'"
                   />
                 </q-td>
               </template>
               <template v-slot:body-cell-actions="props">
                 <q-td :props="props">
                   <q-btn
-                    v-if="isAdmin && !props.row.isAdmin"
+                    v-if="isAdmin && props.row.role !== 'admin'"
                     flat
                     dense
                     round
@@ -470,68 +420,13 @@ const memberColumns = [
             </q-table>
           </q-card-section>
         </q-card>
+
+        <!-- Group Actions Panel -->
+        <GroupActions 
+          @group-created="handleGroupCreatedOrJoined"
+          @group-joined="handleGroupCreatedOrJoined"
+        />
       </div>
-
-      <!-- Create Group Dialog -->
-      <q-dialog v-model="showCreateDialog">
-        <q-card style="min-width: 400px">
-          <q-card-section>
-            <div class="text-h6">Create New Group</div>
-          </q-card-section>
-
-          <q-card-section class="q-pt-none">
-            <q-input
-              v-model="newGroupName"
-              outlined
-              label="Group Name"
-              autofocus
-              @keyup.enter="createGroup"
-            />
-          </q-card-section>
-
-          <q-card-actions align="right">
-            <q-btn flat label="Cancel" color="primary" v-close-popup />
-            <q-btn
-              label="Create"
-              color="primary"
-              @click="createGroup"
-              :disable="!newGroupName.trim() || loading"
-              :loading="loading"
-            />
-          </q-card-actions>
-        </q-card>
-      </q-dialog>
-
-      <!-- Join Group Dialog -->
-      <q-dialog v-model="showJoinDialog">
-        <q-card style="min-width: 400px">
-          <q-card-section>
-            <div class="text-h6">Join Group</div>
-          </q-card-section>
-
-          <q-card-section class="q-pt-none">
-            <q-input
-              v-model="joinInviteCode"
-              outlined
-              label="Invite Code"
-              autofocus
-              @keyup.enter="joinGroup"
-              hint="Enter the invite code shared by the group admin"
-            />
-          </q-card-section>
-
-          <q-card-actions align="right">
-            <q-btn flat label="Cancel" color="primary" v-close-popup />
-            <q-btn
-              label="Join"
-              color="primary"
-              @click="joinGroup"
-              :disable="!joinInviteCode.trim() || loading"
-              :loading="loading"
-            />
-          </q-card-actions>
-        </q-card>
-      </q-dialog>
 
       <!-- Edit Group Dialog -->
       <q-dialog v-model="showEditDialog">
@@ -575,7 +470,7 @@ const memberColumns = [
               <div class="text-caption text-grey-7 q-mb-sm">Share this code with others to invite them:</div>
               <div class="invite-code-display">
                 <div class="text-h4 text-primary text-weight-bold">
-                  {{ group?.inviteCode }}
+                  {{ groupsStore.currentGroup?.inviteCode }}
                 </div>
                 <q-btn
                   flat
@@ -604,16 +499,16 @@ const memberColumns = [
                   :loading="loading"
                 />
                 <q-btn
-                  :outline="!group?.inviteEnabled"
-                  :color="group?.inviteEnabled ? 'positive' : 'negative'"
-                  :label="group?.inviteEnabled ? 'Invites Enabled' : 'Invites Disabled'"
-                  :icon="group?.inviteEnabled ? 'check_circle' : 'block'"
+                  :outline="!groupsStore.currentGroup?.inviteEnabled"
+                  :color="groupsStore.currentGroup?.inviteEnabled ? 'positive' : 'negative'"
+                  :label="groupsStore.currentGroup?.inviteEnabled ? 'Invites Enabled' : 'Invites Disabled'"
+                  :icon="groupsStore.currentGroup?.inviteEnabled ? 'check_circle' : 'block'"
                   @click="toggleInvite"
                   :loading="loading"
                 />
               </div>
               <div class="text-caption text-grey-7">
-                {{ group?.inviteEnabled
+                {{ groupsStore.currentGroup?.inviteEnabled
                   ? 'Users can join with the invite code'
                   : 'Invites are currently disabled' }}
               </div>
@@ -647,13 +542,51 @@ const memberColumns = [
             <q-btn
               label="Go to Login"
               color="primary"
-              icon="login" 
+              icon="login"
               size="lg"
               @click="goToLogin"
             />
           </q-card-actions>
         </q-card>
       </q-dialog>
+
+      <!-- Confirmation Dialogs -->
+      <ConfirmDialog
+        v-model="showLeaveDialog"
+        title="Leave Group"
+        :message="leaveDialogMessage"
+        type="warning"
+        confirm-label="Leave"
+        @confirm="confirmLeaveGroup"
+      />
+
+      <ConfirmDialog
+        v-model="showDeleteDialog"
+        title="Delete Group"
+        message="Are you sure you want to delete this group? This action cannot be undone."
+        type="danger"
+        confirm-label="Delete"
+        @confirm="confirmDeleteGroup"
+      />
+
+      <ConfirmDialog
+        v-model="showKickDialog"
+        title="Remove Member"
+        :message="kickDialogMessage"
+        type="danger"
+        confirm-label="Remove"
+        @confirm="confirmKickMember"
+        @cancel="cancelKickMember"
+      />
+
+      <ConfirmDialog
+        v-model="showRegenerateDialog"
+        title="Regenerate Invite Code"
+        message="Are you sure you want to regenerate the invite code? The old code will no longer work."
+        type="warning"
+        confirm-label="Regenerate"
+        @confirm="confirmRegenerateInviteCode"
+      />
     </div>
   </PageWrapper>
 </template>

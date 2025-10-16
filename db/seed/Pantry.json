@@ -5,23 +5,9 @@
 				"$oid": "68eb80b11d2eacda726c0c01"
 			},
 			"itemId": {
-				"$oid": "68eb7ef1335fb9089bf86101"
+				"$oid": "000000000000000000000001"
 			},
-			"quantity": 3,
-			"createdAt": {
-				"$date": "2025-10-12T10:09:31.478Z"
-			},
-			"updatedAt": {
-				"$date": "2025-10-12T10:09:31.478Z"
-			}
-		},
-		{
-			"groupId": {
-				"$oid": "68eb80b11d2eacda726c0c01"
-			},
-			"itemId": {
-				"$oid": "68eb7ef1335fb9089bf86104"
-			},
+			"itemType": "global",
 			"quantity": 2,
 			"createdAt": {
 				"$date": "2025-10-12T10:09:31.478Z"
@@ -35,9 +21,10 @@
 				"$oid": "68eb80b11d2eacda726c0c01"
 			},
 			"itemId": {
-				"$oid": "68eb7ef1335fb9089bf86105"
+				"$oid": "000000000000000000000002"
 			},
-			"quantity": 5,
+			"itemType": "global",
+			"quantity": 1,
 			"createdAt": {
 				"$date": "2025-10-12T10:09:31.478Z"
 			},
@@ -48,256 +35,113 @@
 		{
 			"groupId": {
 				"$oid": "68eb80b11d2eacda726c0c01"
+			},
+			"itemId": {
+				"$oid": "68eb80b11d2eacda726c0e01"
+			},
+			"itemType": "group",
+			"quantity": 3,
+			"createdAt": {
+				"$date": "2025-10-13T10:00:00.000Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-13T10:00:00.000Z"
+			}
+		},
+		{
+			"groupId": {
+				"$oid": "68eb80b11d2eacda726c0c02"
+			},
+			"itemId": {
+				"$oid": "000000000000000000000003"
+			},
+			"itemType": "global",
+			"quantity": 12,
+			"createdAt": {
+				"$date": "2025-10-12T10:09:31.478Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:09:31.478Z"
+			}
+		},
+		{
+			"groupId": {
+				"$oid": "68eb80b11d2eacda726c0c02"
+			},
+			"itemId": {
+				"$oid": "68eb80b11d2eacda726c0e02"
+			},
+			"itemType": "group",
+			"quantity": 1,
+			"createdAt": {
+				"$date": "2025-10-13T10:00:00.000Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-13T10:00:00.000Z"
+			}
+		},
+		{
+			"groupId": {
+				"$oid": "68eb80b11d2eacda726c0d01"
 			},
 			"itemId": {
 				"$oid": "68eb7ef1335fb9089bf86108"
 			},
+			"itemType": "global",
 			"quantity": 1,
 			"createdAt": {
-				"$date": "2025-10-12T10:09:31.478Z"
+				"$date": "2025-10-14T08:00:00.000Z"
 			},
 			"updatedAt": {
-				"$date": "2025-10-12T10:09:31.478Z"
+				"$date": "2025-10-14T08:00:00.000Z"
 			}
 		},
 		{
 			"groupId": {
-				"$oid": "68eb80b11d2eacda726c0c01"
-			},
-			"itemId": {
-				"$oid": "68eb7ef1335fb9089bf86110"
-			},
-			"quantity": 250,
-			"createdAt": {
-				"$date": "2025-10-12T10:09:31.478Z"
-			},
-			"updatedAt": {
-				"$date": "2025-10-12T10:09:31.478Z"
-			}
-		},
-		{
-			"groupId": {
-				"$oid": "68eb80b11d2eacda726c0c01"
-			},
-			"itemId": {
-				"$oid": "68eb7ef1335fb9089bf86111"
-			},
-			"quantity": 200,
-			"createdAt": {
-				"$date": "2025-10-12T10:09:31.478Z"
-			},
-			"updatedAt": {
-				"$date": "2025-10-12T10:09:31.478Z"
-			}
-		},
-		{
-			"groupId": {
-				"$oid": "68eb80b11d2eacda726c0c01"
+				"$oid": "68eb80b11d2eacda726c0d01"
 			},
 			"itemId": {
 				"$oid": "68eb7ef1335fb9089bf86112"
 			},
-			"quantity": 10,
+			"itemType": "global",
+			"quantity": 6,
 			"createdAt": {
-				"$date": "2025-10-12T10:09:31.478Z"
+				"$date": "2025-10-14T08:00:00.000Z"
 			},
 			"updatedAt": {
-				"$date": "2025-10-12T10:09:31.478Z"
+				"$date": "2025-10-14T08:00:00.000Z"
 			}
 		},
 		{
 			"groupId": {
-				"$oid": "68eb80b11d2eacda726c0c01"
+				"$oid": "68eb80b11d2eacda726c0d01"
 			},
 			"itemId": {
 				"$oid": "68eb7ef1335fb9089bf86118"
 			},
+			"itemType": "global",
 			"quantity": 1,
 			"createdAt": {
-				"$date": "2025-10-12T10:09:31.478Z"
+				"$date": "2025-10-14T08:00:00.000Z"
 			},
 			"updatedAt": {
-				"$date": "2025-10-12T10:09:31.478Z"
+				"$date": "2025-10-14T08:00:00.000Z"
 			}
 		},
 		{
 			"groupId": {
-				"$oid": "68eb80b11d2eacda726c0c01"
+				"$oid": "68eb80b11d2eacda726c0d01"
 			},
 			"itemId": {
 				"$oid": "68eb7ef1335fb9089bf86121"
 			},
-			"quantity": 1,
-			"createdAt": {
-				"$date": "2025-10-12T10:09:31.478Z"
-			},
-			"updatedAt": {
-				"$date": "2025-10-12T10:09:31.478Z"
-			}
-		},
-		{
-			"groupId": {
-				"$oid": "68eb80b11d2eacda726c0c01"
-			},
-			"itemId": {
-				"$oid": "68eb7ef1335fb9089bf86122"
-			},
+			"itemType": "global",
 			"quantity": 500,
 			"createdAt": {
-				"$date": "2025-10-12T10:09:31.478Z"
+				"$date": "2025-10-14T08:00:00.000Z"
 			},
 			"updatedAt": {
-				"$date": "2025-10-12T10:09:31.478Z"
-			}
-		},
-		{
-			"groupId": {
-				"$oid": "68eb80b11d2eacda726c0c01"
-			},
-			"itemId": {
-				"$oid": "68eb7ef1335fb9089bf86125"
-			},
-			"quantity": 1,
-			"createdAt": {
-				"$date": "2025-10-12T10:09:31.478Z"
-			},
-			"updatedAt": {
-				"$date": "2025-10-12T10:09:31.478Z"
-			}
-		},
-		{
-			"groupId": {
-				"$oid": "68eb80b11d2eacda726c0c01"
-			},
-			"itemId": {
-				"$oid": "68eb7ef1335fb9089bf86127"
-			},
-			"quantity": 1,
-			"createdAt": {
-				"$date": "2025-10-12T10:09:31.478Z"
-			},
-			"updatedAt": {
-				"$date": "2025-10-12T10:09:31.478Z"
-			}
-		},
-		{
-			"groupId": {
-				"$oid": "68eb80b11d2eacda726c0c01"
-			},
-			"itemId": {
-				"$oid": "68eb7ef1335fb9089bf86129"
-			},
-			"quantity": 6,
-			"createdAt": {
-				"$date": "2025-10-12T10:09:31.478Z"
-			},
-			"updatedAt": {
-				"$date": "2025-10-12T10:09:31.478Z"
-			}
-		},
-		{
-			"groupId": {
-				"$oid": "68eb80b11d2eacda726c0c01"
-			},
-			"itemId": {
-				"$oid": "68eb7ef1335fb9089bf86133"
-			},
-			"quantity": 250,
-			"createdAt": {
-				"$date": "2025-10-12T10:09:31.478Z"
-			},
-			"updatedAt": {
-				"$date": "2025-10-12T10:09:31.478Z"
-			}
-		},
-		{
-			"groupId": {
-				"$oid": "68eb80b11d2eacda726c0c02"
-			},
-			"itemId": {
-				"$oid": "68eb7ef1335fb9089bf86102"
-			},
-			"quantity": 2,
-			"createdAt": {
-				"$date": "2025-10-12T10:09:31.478Z"
-			},
-			"updatedAt": {
-				"$date": "2025-10-12T10:09:31.478Z"
-			}
-		},
-		{
-			"groupId": {
-				"$oid": "68eb80b11d2eacda726c0c02"
-			},
-			"itemId": {
-				"$oid": "68eb7ef1335fb9089bf86103"
-			},
-			"quantity": 4,
-			"createdAt": {
-				"$date": "2025-10-12T10:09:31.478Z"
-			},
-			"updatedAt": {
-				"$date": "2025-10-12T10:09:31.478Z"
-			}
-		},
-		{
-			"groupId": {
-				"$oid": "68eb80b11d2eacda726c0c02"
-			},
-			"itemId": {
-				"$oid": "68eb7ef1335fb9089bf86113"
-			},
-			"quantity": 0.5,
-			"createdAt": {
-				"$date": "2025-10-12T10:09:31.478Z"
-			},
-			"updatedAt": {
-				"$date": "2025-10-12T10:09:31.478Z"
-			}
-		},
-		{
-			"groupId": {
-				"$oid": "68eb80b11d2eacda726c0c02"
-			},
-			"itemId": {
-				"$oid": "68eb7ef1335fb9089bf86119"
-			},
-			"quantity": 6,
-			"createdAt": {
-				"$date": "2025-10-12T10:09:31.478Z"
-			},
-			"updatedAt": {
-				"$date": "2025-10-12T10:09:31.478Z"
-			}
-		},
-		{
-			"groupId": {
-				"$oid": "68eb80b11d2eacda726c0c02"
-			},
-			"itemId": {
-				"$oid": "68eb7ef1335fb9089bf86134"
-			},
-			"quantity": 20,
-			"createdAt": {
-				"$date": "2025-10-12T10:09:31.478Z"
-			},
-			"updatedAt": {
-				"$date": "2025-10-12T10:09:31.478Z"
-			}
-		},
-		{
-			"groupId": {
-				"$oid": "68eb80b11d2eacda726c0c02"
-			},
-			"itemId": {
-				"$oid": "68eb7ef1335fb9089bf86136"
-			},
-			"quantity": 6,
-			"createdAt": {
-				"$date": "2025-10-12T10:09:31.478Z"
-			},
-			"updatedAt": {
-				"$date": "2025-10-12T10:09:31.478Z"
+				"$date": "2025-10-14T08:00:00.000Z"
 			}
 		}
 	]

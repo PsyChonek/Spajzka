@@ -3,39 +3,23 @@
 /* tslint:disable */
 /* eslint-disable */
 export type ShoppingItem = {
-    /**
-     * Item ID
-     */
     _id?: string;
-    /**
-     * Group ID
-     */
     groupId?: string;
-    /**
-     * Reference to common item ID
-     */
     itemId?: string;
-    /**
-     * Item name
-     */
-    name: string;
-    /**
-     * Item quantity
-     */
+    itemType?: ShoppingItem.itemType;
     quantity?: number;
-    /**
-     * Unit of measurement
-     */
-    unit?: string;
-    /**
-     * Whether item is completed
-     */
     completed?: boolean;
-    /**
-     * Item category
-     */
+    name?: string;
     category?: string;
+    icon?: string;
+    defaultUnit?: string;
     createdAt?: string;
     updatedAt?: string;
 };
+export namespace ShoppingItem {
+    export enum itemType {
+        GLOBAL = 'global',
+        GROUP = 'group',
+    }
+}
 

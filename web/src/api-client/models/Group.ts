@@ -12,9 +12,16 @@ export type Group = {
      */
     name: string;
     /**
-     * Admin user ID
+     * Whether this is a personal group
      */
-    adminId?: string;
+    isPersonal?: boolean;
+    /**
+     * Array of members with their roles
+     */
+    members?: Array<{
+        userId?: string;
+        role?: 'admin' | 'moderator' | 'member';
+    }>;
     /**
      * Invite code for joining group
      */
@@ -23,10 +30,6 @@ export type Group = {
      * Whether invite is enabled
      */
     inviteEnabled?: boolean;
-    /**
-     * Array of member user IDs
-     */
-    memberIds?: Array<string>;
     createdAt?: string;
     updatedAt?: string;
 };

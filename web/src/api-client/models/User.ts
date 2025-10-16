@@ -16,6 +16,10 @@ export type User = {
      */
     email?: string;
     /**
+     * Array of global permissions the user has
+     */
+    globalPermissions?: Array<string>;
+    /**
      * Account creation timestamp
      */
     createdAt?: string;

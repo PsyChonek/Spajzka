@@ -22,14 +22,14 @@ export class ShoppingService {
     }
     /**
      * Create shopping item
-     * Add a new item to the shopping list
+     * Add a new item to the shopping list (requires shopping:create permission)
      * @param requestBody
-     * @returns ShoppingItem Item created
+     * @returns any Item created
      * @throws ApiError
      */
     public static postApiShopping(
         requestBody: CreateShoppingItemRequest,
-    ): CancelablePromise<ShoppingItem> {
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/shopping',
@@ -38,41 +38,20 @@ export class ShoppingService {
         });
     }
     /**
-     * Get shopping item by ID
-     * Retrieve a specific shopping item
-     * @param id
-     * @returns ShoppingItem Shopping item found
-     * @throws ApiError
-     */
-    public static getApiShopping1(
-        id: string,
-    ): CancelablePromise<ShoppingItem> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/shopping/{id}',
-            path: {
-                'id': id,
-            },
-        });
-    }
-    /**
      * Update shopping item
-     * Update an existing shopping item
+     * Update an existing shopping item (requires shopping:update permission)
      * @param id
      * @param requestBody
-     * @returns ShoppingItem Item updated
+     * @returns any Item updated
      * @throws ApiError
      */
     public static putApiShopping(
         id: string,
         requestBody: {
-            name?: string;
             quantity?: number;
-            unit?: string;
             completed?: boolean;
-            category?: string;
         },
-    ): CancelablePromise<ShoppingItem> {
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/api/shopping/{id}',
@@ -85,7 +64,7 @@ export class ShoppingService {
     }
     /**
      * Delete shopping item
-     * Delete a shopping item
+     * Delete a shopping item (requires shopping:delete permission)
      * @param id
      * @returns void
      * @throws ApiError

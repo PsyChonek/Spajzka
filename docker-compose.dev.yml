@@ -44,6 +44,7 @@ services:
     volumes:
       # Mount source code for hot-reload
       - ./api/src:/app/src
+      - ./api/nodemon.json:/app/nodemon.json
       - ./api/tsconfig.json:/app/tsconfig.json
       - ./api/.env:/app/.env
       # Prevent overwriting node_modules

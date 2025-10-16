@@ -1,0 +1,69 @@
+{
+	"roles": [
+		{
+			"_id": "system_moderator",
+			"name": "System Moderator",
+			"description": "Can manage global items visible to all users",
+			"isGlobal": true,
+			"permissions": [
+				"global_items:create",
+				"global_items:update",
+				"global_items:delete"
+			]
+		},
+		{
+			"_id": "admin",
+			"name": "Group Admin",
+			"description": "Full control over group and its data",
+			"isGlobal": false,
+			"permissions": [
+				"group:update",
+				"group:delete",
+				"group:manage_members",
+				"group:manage_roles",
+				"group_items:create",
+				"group_items:update",
+				"group_items:delete",
+				"pantry:create",
+				"pantry:update",
+				"pantry:delete",
+				"shopping:create",
+				"shopping:update",
+				"shopping:delete"
+			]
+		},
+		{
+			"_id": "moderator",
+			"name": "Group Moderator",
+			"description": "Can manage group items and members",
+			"isGlobal": false,
+			"permissions": [
+				"group:manage_members",
+				"group_items:create",
+				"group_items:update",
+				"group_items:delete",
+				"pantry:create",
+				"pantry:update",
+				"pantry:delete",
+				"shopping:create",
+				"shopping:update",
+				"shopping:delete"
+			]
+		},
+		{
+			"_id": "member",
+			"name": "Group Member",
+			"description": "Can manage pantry and shopping lists",
+			"isGlobal": false,
+			"permissions": [
+				"group_items:create",
+				"pantry:create",
+				"pantry:update",
+				"pantry:delete",
+				"shopping:create",
+				"shopping:update",
+				"shopping:delete"
+			]
+		}
+	]
+}
