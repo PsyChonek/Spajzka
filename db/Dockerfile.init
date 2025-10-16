@@ -1,3 +1,5 @@
+# Production database initialization container
+# Runs install, seed (optional), and migrate operations
 FROM node:20-alpine
 
 WORKDIR /app
@@ -19,7 +21,7 @@ COPY seed/ ./seed/
 RUN echo '#!/bin/sh' > /app/start.sh && \
     echo 'set -e' >> /app/start.sh && \
     echo '' >> /app/start.sh && \
-    echo 'echo "=== Spajzka Database Initialization (Development) ==="' >> /app/start.sh && \
+    echo 'echo "=== Spajzka Database Initialization ==="' >> /app/start.sh && \
     echo '' >> /app/start.sh && \
     echo '# Wait for MongoDB to be ready' >> /app/start.sh && \
     echo 'echo "Waiting for MongoDB to be ready..."' >> /app/start.sh && \
@@ -33,9 +35,13 @@ RUN echo '#!/bin/sh' > /app/start.sh && \
     echo 'echo "1. Installing system data..."' >> /app/start.sh && \
     echo 'node install.js' >> /app/start.sh && \
     echo '' >> /app/start.sh && \
-    echo '# Run seed (development data)' >> /app/start.sh && \
-    echo 'echo "2. Seeding development data..."' >> /app/start.sh && \
-    echo 'node seed.js' >> /app/start.sh && \
+    echo '# Run seed only in development' >> /app/start.sh && \
+    echo 'if [ "$NODE_ENV" = "development" ]; then' >> /app/start.sh && \
+    echo '  echo "2. Seeding development data..."' >> /app/start.sh && \
+    echo '  node seed.js' >> /app/start.sh && \
+    echo 'else' >> /app/start.sh && \
+    echo '  echo "2. Skipping seed data (production mode)"' >> /app/start.sh && \
+    echo 'fi' >> /app/start.sh && \
     echo '' >> /app/start.sh && \
     echo '# Run migrations' >> /app/start.sh && \
     echo 'echo "3. Running migrations..."' >> /app/start.sh && \

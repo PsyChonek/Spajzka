@@ -14,20 +14,24 @@ services:
       - spajzka-network-dev
     restart: unless-stopped
 
-  mongodb-seed:
+  mongodb-init:
     build:
       context: ./db
       dockerfile: Dockerfile.dev
-    container_name: spajzka-mongodb-seed-dev
+    container_name: spajzka-mongodb-init-dev
     depends_on:
       - mongodb
     environment:
       - MONGO_URL=mongodb://${MONGO_USERNAME:-admin}:${MONGO_PASSWORD:-password}@mongodb:27017
       - DB_NAME=spajzka
+      - NODE_ENV=development
     volumes:
-      # Mount seed files for live updates
+      # Mount scripts and data for live updates
+      - ./db/install:/app/install
       - ./db/seed:/app/seed
+      - ./db/install.js:/app/install.js
       - ./db/seed.js:/app/seed.js
+      - ./db/migrate.js:/app/migrate.js
     networks:
       - spajzka-network-dev
     restart: "no"
@@ -40,7 +44,10 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - mongodb
+      mongodb:
+        condition: service_started
+      mongodb-init:
+        condition: service_completed_successfully
     volumes:
       # Mount source code for hot-reload
       - ./api/src:/app/src

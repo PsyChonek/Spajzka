@@ -1,8 +1,6 @@
 services:
   mongodb:
-    build:
-      context: ./db
-      dockerfile: Dockerfile
+    image: mongo:7.0
     container_name: spajzka-mongodb
     environment:
       - MONGO_INITDB_DATABASE=spajzka
@@ -13,6 +11,21 @@ services:
     networks:
       - spajzka-network
     restart: unless-stopped
+
+  mongodb-init:
+    build:
+      context: ./db
+      dockerfile: Dockerfile.init
+    container_name: spajzka-mongodb-init
+    depends_on:
+      - mongodb
+    environment:
+      - MONGO_URL=mongodb://${MONGO_USERNAME:-admin}:${MONGO_PASSWORD:-password}@mongodb:27017
+      - DB_NAME=spajzka
+      - NODE_ENV=production
+    networks:
+      - spajzka-network
+    restart: "no"
 
   api:
     build:
@@ -27,7 +40,10 @@ services:
       - MONGO_URL=mongodb://${MONGO_USERNAME:-admin}:${MONGO_PASSWORD:-password}@mongodb:27017
       - DB_NAME=spajzka
     depends_on:
-      - mongodb
+      mongodb:
+        condition: service_started
+      mongodb-init:
+        condition: service_completed_successfully
     networks:
       - spajzka-network
     restart: unless-stopped

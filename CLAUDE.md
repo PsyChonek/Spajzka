@@ -64,8 +64,34 @@ npm run docker:down
 npm run docker:clean  # Remove volumes
 ```
 
-### Database Seeding
-The database is automatically seeded when the MongoDB container starts. Seed data is located in `db/seed/*.json`.
+### Database Initialization
+
+The database initialization process consists of three steps:
+1. **Install** - System data (roles, global items) that's required for the app to function
+2. **Seed** - Development/test data (users, groups, items) - only runs in development
+3. **Migrate** - Schema migrations to update existing data structures
+
+#### Automatic Initialization
+- **Development**: The `mongodb-init` container automatically runs all three steps when starting with `docker:dev`
+- **Production**: The `mongodb-init` container runs install and migrate (skips seed) when starting with `docker:prod`
+
+#### Manual Database Operations
+```bash
+# Run locally (requires MongoDB running)
+npm run db:install  # Install system data only
+npm run db:seed     # Seed development data only
+npm run db:migrate  # Run migrations only
+npm run db:init     # Run all three steps
+
+# Run via Docker
+npm run docker:db:init       # Re-run init in dev environment
+npm run docker:db:init:prod  # Re-run init in production environment
+```
+
+**Data locations:**
+- System data: `db/install/*.json`
+- Development seed data: `db/seed/*.json`
+- Migration script: `db/migrate.js`
 
 ## Architecture
 
@@ -141,13 +167,19 @@ All state is managed through Pinia stores with the following pattern:
 4. Add sync method callable from `useOnlineSync` composable
 5. Use temporary IDs pattern for optimistic creates
 
-### Database Seeding
+### Database Data Files
 
-Seed files in `db/seed/*.json` follow MongoDB Extended JSON format:
+Data files in `db/install/*.json` and `db/seed/*.json` follow MongoDB Extended JSON format:
 - `{ "$oid": "..." }` for ObjectIds
 - `{ "$date": "..." }` for Dates
 - Collection name derived from filename (e.g., `Items.json` → `items` collection)
-- Upsert-based seeding preserves existing data
+- Upsert-based operations preserve existing data
+
+**Install vs Seed:**
+- **Install data** (`db/install/`): System-critical data required for the app to function (roles, global items). Always runs in all environments.
+- **Seed data** (`db/seed/`): Development/test data (users, groups, sample items). Only runs in development environment.
+
+**Migrations** (`db/migrate.js`): Schema updates and data transformations. Always runs to keep the database structure up-to-date.
 
 ## Environment Variables
 
@@ -172,4 +204,8 @@ Seed files in `db/seed/*.json` follow MongoDB Extended JSON format:
 - `web/src/main.ts` - Vue app initialization, Quasar setup, PWA registration
 - `web/src/router/index.ts` - Vue Router configuration
 - `web/vite.config.ts` - Vite build configuration with PWA plugin
-- `db/seed.js` - Database seeding script with Extended JSON support
+- `db/install.js` - System data installation script
+- `db/seed.js` - Development data seeding script with Extended JSON support
+- `db/migrate.js` - Database schema migration script
+- `db/Dockerfile.init` - Production database initialization container
+- `db/Dockerfile.dev` - Development database initialization container

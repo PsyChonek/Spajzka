@@ -21,7 +21,13 @@
     "docker:prod:build": "docker-compose up --build",
     "docker:down": "docker-compose -f docker-compose.dev.yml down",
     "docker:down:prod": "docker-compose down",
-    "docker:clean": "docker-compose -f docker-compose.dev.yml down -v"
+    "docker:clean": "docker-compose -f docker-compose.dev.yml down -v",
+    "db:install": "cd db && node install.js",
+    "db:seed": "cd db && node seed.js",
+    "db:migrate": "cd db && node migrate.js",
+    "db:init": "npm run db:install && npm run db:seed && npm run db:migrate",
+    "docker:db:init": "docker-compose -f docker-compose.dev.yml up mongodb-init",
+    "docker:db:init:prod": "docker-compose up mongodb-init"
   },
   "repository": {
     "type": "git",
