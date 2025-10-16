@@ -16,6 +16,10 @@ export type User = {
      */
     email?: string;
     /**
+     * Whether the user is an anonymous user
+     */
+    isAnonymous?: boolean;
+    /**
      * Array of global permissions the user has
      */
     globalPermissions?: Array<string>;

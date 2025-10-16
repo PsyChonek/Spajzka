@@ -242,6 +242,13 @@ export const usePantryStore = defineStore('pantry', () => {
     }
   }
 
+  function $reset() {
+    items.value = []
+    loading.value = false
+    lastSynced.value = null
+    pendingChanges.value.clear()
+  }
+
   return {
     items,
     sortedItems,
@@ -254,7 +261,8 @@ export const usePantryStore = defineStore('pantry', () => {
     deleteItem,
     syncPendingChanges,
     incrementQuantity,
-    decrementQuantity
+    decrementQuantity,
+    $reset
   }
 }, {
   persist: true

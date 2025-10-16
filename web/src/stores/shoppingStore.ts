@@ -234,6 +234,13 @@ export const useShoppingStore = defineStore('shopping', () => {
     }
   }
 
+  function $reset() {
+    items.value = []
+    loading.value = false
+    lastSynced.value = null
+    pendingChanges.value.clear()
+  }
+
   return {
     items,
     sortedItems,
@@ -247,7 +254,8 @@ export const useShoppingStore = defineStore('shopping', () => {
     updateItem,
     deleteItem,
     toggleItem,
-    syncPendingChanges
+    syncPendingChanges,
+    $reset
   }
 }, {
   persist: true

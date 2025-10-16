@@ -23,6 +23,9 @@ const router = Router();
  *           type: string
  *           format: email
  *           description: User's email address
+ *         isAnonymous:
+ *           type: boolean
+ *           description: Whether the user is an anonymous user
  *         globalPermissions:
  *           type: array
  *           items:
@@ -274,6 +277,7 @@ router.post('/auth/register', async (req: AuthRequest, res: Response) => {
       _id: userId,
       name,
       email: email.toLowerCase(),
+      isAnonymous: false,
       createdAt: newUser.createdAt
     };
 
@@ -352,6 +356,7 @@ router.post('/auth/login', async (req: AuthRequest, res: Response) => {
       _id: user._id.toString(),
       name: user.name,
       email: user.email,
+      isAnonymous: user.isAnonymous || false,
       createdAt: user.createdAt
     };
 
@@ -436,6 +441,7 @@ router.get('/auth/me', authMiddleware, async (req: AuthRequest, res: Response) =
       _id: user._id.toString(),
       name: user.name,
       email: user.email,
+      isAnonymous: user.isAnonymous || false,
       globalPermissions,
       activeGroupId: activeGroupId?.toString(),
       personalGroupId: user.personalGroupId?.toString(),
@@ -542,6 +548,7 @@ router.put('/auth/profile', authMiddleware, async (req: AuthRequest, res: Respon
       _id: result._id.toString(),
       name: result.name,
       email: result.email,
+      isAnonymous: result.isAnonymous || false,
       createdAt: result.createdAt
     });
   } catch (error) {

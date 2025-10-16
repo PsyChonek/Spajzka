@@ -132,8 +132,8 @@ authStore.initialize()
       <div class="container">
       <h2 class="text-h4 text-center q-mb-lg">User Authentication</h2>
 
-      <!-- Not Authenticated - Show Login/Register -->
-      <div v-if="!authStore.isAuthenticated" class="auth-forms">
+      <!-- Not Authenticated or Anonymous - Show Login/Register -->
+      <div v-if="!authStore.isAuthenticated || authStore.isAnonymous" class="auth-forms">
         <q-card class="form-card">
           <!-- Toggle Buttons -->
           <q-card-section class="q-pb-none">
@@ -280,8 +280,8 @@ authStore.initialize()
         </q-card>
       </div>
 
-      <!-- Authenticated - Show User Info -->
-      <div v-else class="user-info">
+      <!-- Authenticated and Not Anonymous - Show User Info -->
+      <div v-else-if="authStore.isAuthenticated && !authStore.isAnonymous" class="user-info">
         <q-card class="user-card">
           <q-card-section class="bg-primary text-white">
             <div class="row items-center">

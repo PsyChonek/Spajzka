@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
 import { GroupsService, AuthenticationService, type Group, ApiError } from '@/api-client'
 import { Notify } from 'quasar'
 
@@ -36,7 +36,7 @@ export const useGroupsStore = defineStore('groups', () => {
 
       // If no current group selected, select the first one (personal group)
       if (!currentGroupId.value && fetchedGroups.length > 0) {
-        currentGroupId.value = fetchedGroups[0]._id || null
+        currentGroupId.value = fetchedGroups[0]?._id || null
       }
 
       // If current group no longer exists, switch to first available
@@ -121,6 +121,13 @@ export const useGroupsStore = defineStore('groups', () => {
     await fetchGroups()
   }
 
+  function $reset() {
+    groups.value = []
+    currentGroupId.value = null
+    loading.value = false
+    lastSynced.value = null
+  }
+
   return {
     groups,
     sortedGroups,
@@ -131,10 +138,11 @@ export const useGroupsStore = defineStore('groups', () => {
     fetchGroups,
     createGroup,
     selectGroup,
-    initialize
+    initialize,
+    $reset
   }
 }, {
   persist: {
-    paths: ['currentGroupId'] // Only persist the selected group
+    pick: ['currentGroupId'] // Only persist the selected group
   }
 })

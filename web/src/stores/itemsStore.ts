@@ -397,6 +397,14 @@ export const useItemsStore = defineStore('items', () => {
     }
   }
 
+  function $reset() {
+    globalItems.value = []
+    groupItems.value = []
+    loading.value = false
+    lastSynced.value = null
+    pendingChanges.value.clear()
+  }
+
   return {
     globalItems,
     groupItems,
@@ -415,7 +423,8 @@ export const useItemsStore = defineStore('items', () => {
     updateGlobalItem,
     deleteGlobalItem,
     syncPendingChanges,
-    getItem
+    getItem,
+    $reset
   }
 }, {
   persist: true

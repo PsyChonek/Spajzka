@@ -103,7 +103,19 @@ export const useAuthStore = defineStore('auth', () => {
       token.value = null
       user.value = null
       localStorage.removeItem('auth_token')
-      
+
+      // Reset all other stores to clear user data
+      // Import stores dynamically to avoid circular dependencies
+      const { useGroupsStore } = await import('./groupsStore')
+      const { usePantryStore } = await import('./pantryStore')
+      const { useShoppingStore } = await import('./shoppingStore')
+      const { useItemsStore } = await import('./itemsStore')
+
+      useGroupsStore().$reset()
+      usePantryStore().$reset()
+      useShoppingStore().$reset()
+      useItemsStore().$reset()
+
       Notify.create({
         type: 'info',
         message: 'Logged out successfully',

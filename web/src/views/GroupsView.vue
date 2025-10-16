@@ -33,7 +33,8 @@ const memberToKick = ref<{ userId: string, userName: string } | null>(null)
 const editGroupName = ref('')
 
 onMounted(async () => {
-  if (!authStore.isAuthenticated) {
+  // Show auth dialog for anonymous users
+  if (authStore.isAnonymous) {
     showAuthRequiredDialog.value = true
     return
   }
@@ -317,21 +318,21 @@ const memberColumns = [
       </div>
 
       <!-- Loading State -->
-      <div v-if="loading && groupsStore.groups.length === 0 && authStore.isAuthenticated" class="text-center q-pa-xl">
+      <div v-if="loading && groupsStore.groups.length === 0 && !authStore.isAnonymous" class="text-center q-pa-xl">
         <q-spinner size="50px" color="primary" />
         <div class="q-mt-md text-grey-7">Loading...</div>
       </div>
 
       <!-- No Group State -->
-      <div v-else-if="groupsStore.groups.length === 0 && authStore.isAuthenticated" class="no-group-container">
-        <GroupActions 
+      <div v-else-if="groupsStore.groups.length === 0 && !authStore.isAnonymous" class="no-group-container">
+        <GroupActions
           @group-created="handleGroupCreatedOrJoined"
           @group-joined="handleGroupCreatedOrJoined"
         />
       </div>
 
       <!-- Has Groups State -->
-      <div v-else-if="groupsStore.currentGroup && authStore.isAuthenticated">
+      <div v-else-if="groupsStore.currentGroup && !authStore.isAnonymous">
         <!-- Group Info Card -->
         <q-card class="q-mb-lg">
           <q-card-section>
