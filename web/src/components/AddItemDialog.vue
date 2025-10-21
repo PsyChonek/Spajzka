@@ -102,7 +102,7 @@ const isFormValid = () => {
 
 <template>
   <q-dialog :model-value="modelValue" @update:model-value="emit('update:modelValue', $event)">
-    <q-card style="min-width: 400px">
+    <q-card style="width: 100%; max-width: 400px">
       <q-card-section>
         <div class="text-h6">{{ title }}</div>
       </q-card-section>

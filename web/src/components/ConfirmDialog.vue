@@ -63,7 +63,7 @@ const handleCancel = () => {
     @update:model-value="emit('update:modelValue', $event)"
     persistent
   >
-    <q-card style="min-width: 400px">
+    <q-card style="width: 100%; max-width: 400px">
       <q-card-section class="row items-center q-pb-none">
         <q-icon
           :name="getIcon()"

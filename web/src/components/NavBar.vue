@@ -1,12 +1,36 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGroupsStore } from '@/stores/groupsStore'
+import { usePantryStore } from '@/stores/pantryStore'
+import { useShoppingStore } from '@/stores/shoppingStore'
+import { useItemsStore } from '@/stores/itemsStore'
+import { useAuthStore } from '@/stores/authStore'
 import GroupSelector from '@/components/GroupSelector.vue'
+import SyncStatusBadge from '@/components/SyncStatusBadge.vue'
 
 const drawer = ref(false)
 const router = useRouter()
 const groupsStore = useGroupsStore()
+const pantryStore = usePantryStore()
+const shoppingStore = useShoppingStore()
+const itemsStore = useItemsStore()
+const authStore = useAuthStore()
+
+// Compute the most recent sync time across all stores
+const lastSynced = computed(() => {
+  const times = [
+    pantryStore.lastSynced,
+    shoppingStore.lastSynced,
+    itemsStore.lastSynced,
+    groupsStore.lastSynced
+  ]
+    .filter(Boolean)
+    .map(t => typeof t === 'string' ? new Date(t) : t) as Date[]
+
+  if (times.length === 0) return null
+  return new Date(Math.max(...times.map(d => d.getTime())))
+})
 
 interface NavLink {
   to: string
@@ -50,8 +74,24 @@ onMounted(async () => {
         Spajzka
       </q-toolbar-title>
 
+      <!-- Sync Status Badge - Desktop (left side after title) -->
+      <div class="gt-xs q-ml-md">
+        <SyncStatusBadge
+          :last-synced="lastSynced"
+          :is-authenticated="authStore.isAuthenticated"
+        />
+      </div>
+
       <!-- Group Selector -->
       <GroupSelector variant="toolbar" />
+
+      <!-- Sync Status Badge - Mobile (right side) -->
+      <div class="lt-sm q-ml-sm">
+        <SyncStatusBadge
+          :last-synced="lastSynced"
+          :is-authenticated="authStore.isAuthenticated"
+        />
+      </div>
 
       <!-- Desktop Navigation -->
       <div class="gt-xs nav-links">

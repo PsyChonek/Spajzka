@@ -1,17 +1,16 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useQuasar } from 'quasar'
 import { useShoppingStore } from '@/stores/shoppingStore'
 import { useItemsStore } from '@/stores/itemsStore'
 import { CreateShoppingItemRequest, type ShoppingItem } from '@/api-client'
 import PageWrapper from '@/components/PageWrapper.vue'
-import SyncStatusBadge from '@/components/SyncStatusBadge.vue'
 import ItemSuggestions from '@/components/ItemSuggestions.vue'
 import AddItemDialog, { type ItemFormData } from '@/components/AddItemDialog.vue'
-import { useAuthStore } from '@/stores/authStore'
 
+const $q = useQuasar()
 const shoppingStore = useShoppingStore()
 const itemsStore = useItemsStore()
-const authStore = useAuthStore()
 
 // Fetch items from master list and shopping items on mount
 onMounted(() => {
@@ -23,14 +22,15 @@ const searchQuery = ref('')
 const showAddDialog = ref(false)
 const initialFormData = ref<Partial<ItemFormData>>({})
 
-const columns = [
+const columns = computed(() => [
   {
     name: 'icon',
     label: '',
     align: 'center' as const,
     field: (row: ShoppingItem) => row.icon || '',
     sortable: false,
-    style: 'width: 80px'
+    style: 'width: 50px',
+    headerStyle: 'width: 50px'
   },
   {
     name: 'name',
@@ -38,10 +38,9 @@ const columns = [
     label: 'Item',
     align: 'left' as const,
     field: (row: ShoppingItem) => row.name || 'Loading...',
-    sortable: false,
-    style: 'min-width: 200px'
+    sortable: false
   }
-]
+])
 
 const filteredItems = computed(() => {
   let filtered = shoppingStore.sortedItems
@@ -157,12 +156,6 @@ const deleteItem = (item: ShoppingItem, event: Event) => {
 <template>
   <PageWrapper>
     <div class="shopping-list-view">
-      <!-- Sync Status Badge -->
-      <SyncStatusBadge
-        :last-synced="shoppingStore.lastSynced"
-        :is-authenticated="authStore.isAuthenticated"
-      />
-
     <div class="search-container">
       <q-input
         v-model="searchQuery"
@@ -199,6 +192,7 @@ const deleteItem = (item: ShoppingItem, event: Event) => {
         :columns="columns"
         row-key="_id"
         :rows-per-page-options="[10, 25, 50]"
+        dense
         flat
         bordered
         hide-header
@@ -263,17 +257,6 @@ const deleteItem = (item: ShoppingItem, event: Event) => {
 </template>
 
 <style scoped>
-.shopping-list-view {
-  position: relative;
-}
-
-.sync-status {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  z-index: 100;
-}
-
 .search-container {
   display: flex;
   flex-direction: column;
@@ -339,12 +322,21 @@ const deleteItem = (item: ShoppingItem, event: Event) => {
 }
 
 .item-icon {
-  font-size: 2rem;
+  font-size: 1.5rem;
   text-align: center;
 }
 
 .icon-cell {
   cursor: pointer;
+}
+
+/* Compact table cells */
+:deep(.q-table tbody td) {
+  padding: 4px 8px;
+}
+
+:deep(.q-table thead th) {
+  padding: 8px 8px;
 }
 
 </style>

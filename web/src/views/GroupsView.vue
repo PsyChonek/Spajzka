@@ -5,11 +5,12 @@ import type { GroupMember } from '@/api-client'
 import PageWrapper from '@/components/PageWrapper.vue'
 import GroupActions from '@/components/GroupActions.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
-import { Notify } from 'quasar'
+import { Notify, useQuasar } from 'quasar'
 import { useAuthStore } from '@/stores/authStore'
 import { useGroupsStore } from '@/stores/groupsStore'
 import { useRouter } from 'vue-router'
 
+const $q = useQuasar()
 const authStore = useAuthStore()
 const groupsStore = useGroupsStore()
 const router = useRouter()
@@ -168,10 +169,10 @@ const confirmDeleteGroup = async () => {
       type: 'positive',
       message: 'Group deleted successfully'
     })
-  } catch (error) {
+  } catch (error: any) {
     Notify.create({
       type: 'negative',
-      message: 'Failed to delete group'
+      message: error.body?.message || 'Failed to delete group'
     })
   } finally {
     loading.value = false
@@ -279,7 +280,7 @@ const showInvite = () => {
   showInviteDialog.value = true
 }
 
-const memberColumns = [
+const allMemberColumns = [
   {
     name: 'name',
     label: 'Name',
@@ -292,22 +293,34 @@ const memberColumns = [
     label: 'Email',
     align: 'left' as const,
     field: (row: GroupMember) => row.email,
-    sortable: true
+    sortable: true,
+    hideOnMobile: true
   },
   {
     name: 'role',
     label: 'Role',
     align: 'center' as const,
     field: (row: GroupMember) => row.role === 'admin' ? 'Admin' : 'Member',
-    sortable: true
+    sortable: true,
+    style: 'width: 100px',
+    headerStyle: 'width: 100px'
   },
   {
     name: 'actions',
     label: 'Actions',
     align: 'center' as const,
-    field: ''
+    field: '',
+    style: 'width: 100px',
+    headerStyle: 'width: 100px'
   }
 ]
+
+const memberColumns = computed(() => {
+  if ($q.screen.lt.md) {
+    return allMemberColumns.filter(col => !col.hideOnMobile)
+  }
+  return allMemberColumns
+})
 </script>
 
 <template>
@@ -354,6 +367,7 @@ const memberColumns = [
                   <q-tooltip>Edit Group</q-tooltip>
                 </q-btn>
                 <q-btn
+                  v-if="!groupsStore.currentGroup.isPersonal"
                   flat
                   icon="link"
                   color="primary"
@@ -370,7 +384,7 @@ const memberColumns = [
                   <q-tooltip>Leave Group</q-tooltip>
                 </q-btn>
                 <q-btn
-                  v-if="isAdmin"
+                  v-if="isAdmin && !groupsStore.currentGroup.isPersonal"
                   flat
                   icon="delete"
                   color="negative"
@@ -391,6 +405,7 @@ const memberColumns = [
               :rows="members"
               :columns="memberColumns"
               row-key="_id"
+              dense
               flat
               bordered
             >
@@ -431,7 +446,7 @@ const memberColumns = [
 
       <!-- Edit Group Dialog -->
       <q-dialog v-model="showEditDialog">
-        <q-card style="min-width: 400px">
+        <q-card style="width: 100%; max-width: 400px">
           <q-card-section>
             <div class="text-h6">Edit Group</div>
           </q-card-section>
@@ -461,7 +476,7 @@ const memberColumns = [
 
       <!-- Invite Code Dialog -->
       <q-dialog v-model="showInviteDialog">
-        <q-card style="min-width: 400px">
+        <q-card style="width: 100%; max-width: 400px">
           <q-card-section>
             <div class="text-h6">Invite Code</div>
           </q-card-section>
@@ -524,7 +539,7 @@ const memberColumns = [
 
       <!-- Authentication Required Dialog -->
       <q-dialog v-model="showAuthRequiredDialog" persistent>
-        <q-card style="min-width: 400px">
+        <q-card style="width: 100%; max-width: 400px">
           <q-card-section class="text-center q-pt-lg">
             <q-icon name="lock" size="60px" color="orange" class="q-mb-md" />
             <div class="text-h6">Authentication Required</div>
@@ -617,5 +632,14 @@ const memberColumns = [
   padding: 1rem;
   background: rgba(var(--q-primary-rgb), 0.1);
   border-radius: 8px;
+}
+
+/* Compact table cells */
+:deep(.q-table tbody td) {
+  padding: 4px 8px;
+}
+
+:deep(.q-table thead th) {
+  padding: 8px 8px;
 }
 </style>

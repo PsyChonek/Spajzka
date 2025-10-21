@@ -359,6 +359,43 @@ authStore.initialize()
 
           <q-separator />
 
+          <q-card-section>
+            <div class="text-h6 q-mb-md">Permissions</div>
+
+            <q-list bordered separator>
+              <q-item>
+                <q-item-section avatar>
+                  <q-icon name="shield" color="primary" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label>Global Permissions</q-item-label>
+                  <q-item-label caption>
+                    <div v-if="authStore.user?.globalPermissions && authStore.user.globalPermissions.length > 0" class="permissions-list">
+                      <q-chip
+                        v-for="permission in authStore.user.globalPermissions"
+                        :key="permission"
+                        size="sm"
+                        color="primary"
+                        text-color="white"
+                        icon="check_circle"
+                        class="q-ma-xs"
+                      >
+                        {{ permission }}
+                      </q-chip>
+                    </div>
+                    <span v-else class="text-grey-6">No global permissions</span>
+                  </q-item-label>
+                </q-item-section>
+              </q-item>
+            </q-list>
+
+            <div class="text-caption text-grey-6 q-mt-sm q-px-md">
+              Global permissions are system-wide. Group-specific permissions are managed in the Groups section.
+            </div>
+          </q-card-section>
+
+          <q-separator />
+
           <q-card-actions>
             <q-btn
               flat
@@ -401,7 +438,7 @@ authStore.initialize()
 
       <!-- Edit Profile Dialog -->
       <q-dialog v-model="showProfileDialog">
-        <q-card style="min-width: 400px">
+        <q-card style="width: 100%; max-width: 400px">
           <q-card-section>
             <div class="text-h6">Edit Profile</div>
           </q-card-section>
@@ -449,7 +486,7 @@ authStore.initialize()
 
       <!-- Change Password Dialog -->
       <q-dialog v-model="showPasswordDialog">
-        <q-card style="min-width: 400px">
+        <q-card style="width: 100%; max-width: 400px">
           <q-card-section>
             <div class="text-h6">Change Password</div>
           </q-card-section>
@@ -556,5 +593,12 @@ authStore.initialize()
 
 .api-status-card {
   background: rgba(255, 255, 255, 0.9);
+}
+
+.permissions-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
 }
 </style>

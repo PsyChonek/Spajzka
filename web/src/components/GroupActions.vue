@@ -111,7 +111,7 @@ const joinGroup = async () => {
 
     <!-- Create Group Dialog -->
     <q-dialog v-model="showCreateDialog">
-      <q-card style="min-width: 400px">
+      <q-card style="width: 100%; max-width: 400px">
         <q-card-section>
           <div class="text-h6">Create New Group</div>
         </q-card-section>
@@ -142,7 +142,7 @@ const joinGroup = async () => {
 
     <!-- Join Group Dialog -->
     <q-dialog v-model="showJoinDialog">
-      <q-card style="min-width: 400px">
+      <q-card style="width: 100%; max-width: 400px">
         <q-card-section>
           <div class="text-h6">Join Group</div>
         </q-card-section>

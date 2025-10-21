@@ -1,17 +1,16 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useQuasar } from 'quasar'
 import { usePantryStore } from '@/stores/pantryStore'
 import { useItemsStore } from '@/stores/itemsStore'
-import { useAuthStore } from '@/stores/authStore'
 import type { PantryItem } from '@/api-client'
 import PageWrapper from '@/components/PageWrapper.vue'
-import SyncStatusBadge from '@/components/SyncStatusBadge.vue'
 import ItemSuggestions from '@/components/ItemSuggestions.vue'
 import AddItemDialog, { type ItemFormData } from '@/components/AddItemDialog.vue'
 
+const $q = useQuasar()
 const pantryStore = usePantryStore()
 const itemsStore = useItemsStore()
-const authStore = useAuthStore()
 
 // Fetch items from master list and pantry items on mount
 onMounted(() => {
@@ -25,14 +24,15 @@ const showEditDialog = ref(false)
 const editingItem = ref<PantryItem | null>(null)
 const initialFormData = ref<Partial<ItemFormData>>({})
 
-const columns = [
+const allColumns = [
   {
     name: 'icon',
     label: '',
     align: 'center' as const,
     field: (row: PantryItem) => row.icon || '',
     sortable: false,
-    style: 'width: 80px'
+    style: 'width: 50px',
+    headerStyle: 'width: 50px'
   },
   {
     name: 'name',
@@ -40,8 +40,7 @@ const columns = [
     label: 'Name',
     align: 'left' as const,
     field: (row: PantryItem) => row.name || 'Unknown Item',
-    sortable: true,
-    style: 'min-width: 200px'
+    sortable: true
   },
   {
     name: 'quantity',
@@ -49,7 +48,8 @@ const columns = [
     align: 'center' as const,
     field: (row: PantryItem) => row.quantity || 0,
     sortable: true,
-    style: 'width: 180px'
+    style: 'width: 150px',
+    headerStyle: 'width: 150px'
   },
   {
     name: 'createdAt',
@@ -58,7 +58,9 @@ const columns = [
     field: (row: PantryItem) => row.createdAt,
     format: (val: string) => new Date(val).toLocaleDateString(),
     sortable: true,
-    style: 'width: 140px'
+    style: 'width: 110px',
+    headerStyle: 'width: 110px',
+    hideOnMobile: true
   },
   {
     name: 'actions',
@@ -66,9 +68,17 @@ const columns = [
     align: 'center' as const,
     field: '',
     sortable: false,
-    style: 'width: 120px'
+    style: 'width: 100px',
+    headerStyle: 'width: 100px'
   }
 ]
+
+const columns = computed(() => {
+  if ($q.screen.lt.md) {
+    return allColumns.filter(col => !col.hideOnMobile)
+  }
+  return allColumns
+})
 
 const filteredItems = computed(() => {
   if (!searchQuery.value) {
@@ -222,12 +232,6 @@ const deleteItem = (itemId: string) => {
 <template>
   <PageWrapper>
     <div class="items-view">
-      <!-- Sync Status Badge -->
-      <SyncStatusBadge
-        :last-synced="pantryStore.lastSynced"
-        :is-authenticated="authStore.isAuthenticated"
-      />
-
     <div class="search-container">
       <q-input
         v-model="searchQuery"
@@ -264,6 +268,7 @@ const deleteItem = (itemId: string) => {
         :columns="columns"
         row-key="_id"
         :rows-per-page-options="[10, 25, 50]"
+        dense
         flat
         bordered
       >
@@ -362,24 +367,6 @@ const deleteItem = (itemId: string) => {
 </template>
 
 <style scoped>
-.items-view {
-  position: relative;
-}
-
-.sync-status {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  z-index: 100;
-}
-
-:deep(.sync-status) {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  z-index: 100;
-}
-
 .search-container {
   display: flex;
   flex-direction: column;
@@ -409,26 +396,35 @@ const deleteItem = (itemId: string) => {
 
 .action-buttons {
   display: flex;
-  gap: 4px;
+  gap: 2px;
   justify-content: center;
 }
 
 .quantity-controls {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
   justify-content: center;
 }
 
 .quantity-value {
-  min-width: 30px;
+  min-width: 25px;
   text-align: center;
   font-weight: 500;
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 
 .item-icon {
-  font-size: 2rem;
+  font-size: 1.5rem;
   text-align: center;
+}
+
+/* Compact table cells */
+:deep(.q-table tbody td) {
+  padding: 4px 8px;
+}
+
+:deep(.q-table thead th) {
+  padding: 8px 8px;
 }
 </style>

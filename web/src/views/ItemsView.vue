@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useQuasar } from 'quasar'
 import { useItemsStore, type Item } from '@/stores/itemsStore'
 import PageWrapper from '@/components/PageWrapper.vue'
 import { useAuthStore } from '@/stores/authStore'
-import SyncStatusBadge from '@/components/SyncStatusBadge.vue'
 import AddItemDialog, { type ItemFormData } from '@/components/AddItemDialog.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 
+const $q = useQuasar()
 const itemsStore = useItemsStore()
 const authStore = useAuthStore()
 
@@ -18,14 +19,15 @@ const editingItem = ref<Item | null>(null)
 const deletingItem = ref<Item | null>(null)
 const initialFormData = ref<Partial<ItemFormData>>({})
 
-const columns = [
+const allColumns = [
   {
     name: 'icon',
     label: '',
     align: 'center' as const,
     field: (row: Item) => row.icon || '',
     sortable: false,
-    style: 'width: 80px'
+    style: 'width: 50px',
+    headerStyle: 'width: 50px'
   },
   {
     name: 'name',
@@ -33,8 +35,7 @@ const columns = [
     label: 'Name',
     align: 'left' as const,
     field: (row: Item) => row.name,
-    sortable: true,
-    style: 'min-width: 200px'
+    sortable: true
   },
   {
     name: 'type',
@@ -42,7 +43,9 @@ const columns = [
     align: 'center' as const,
     field: (row: Item) => row.type,
     sortable: true,
-    style: 'width: 100px'
+    style: 'width: 100px',
+    headerStyle: 'width: 100px',
+    hideOnMobile: true
   },
   {
     name: 'defaultUnit',
@@ -50,7 +53,8 @@ const columns = [
     align: 'center' as const,
     field: (row: Item) => row.defaultUnit || '-',
     sortable: true,
-    style: 'width: 100px'
+    style: 'width: 80px',
+    headerStyle: 'width: 80px'
   },
   {
     name: 'category',
@@ -58,7 +62,9 @@ const columns = [
     align: 'center' as const,
     field: (row: Item) => row.category || '-',
     sortable: true,
-    style: 'width: 150px'
+    style: 'width: 120px',
+    headerStyle: 'width: 120px',
+    hideOnMobile: true
   },
   {
     name: 'createdAt',
@@ -67,7 +73,9 @@ const columns = [
     field: (row: Item) => row.createdAt,
     format: (val: string | undefined) => val ? new Date(val).toLocaleDateString() : '-',
     sortable: true,
-    style: 'width: 140px'
+    style: 'width: 110px',
+    headerStyle: 'width: 110px',
+    hideOnMobile: true
   },
   {
     name: 'actions',
@@ -75,9 +83,17 @@ const columns = [
     align: 'center' as const,
     field: '',
     sortable: false,
-    style: 'width: 120px'
+    style: 'width: 100px',
+    headerStyle: 'width: 100px'
   }
-]
+] as const
+
+const columns = computed(() => {
+  if ($q.screen.lt.md) {
+    return allColumns.filter((col: any) => !col.hideOnMobile)
+  }
+  return allColumns
+})
 
 const filteredItems = computed(() => {
   if (!searchQuery.value) {
@@ -219,12 +235,6 @@ const canDeleteItem = (item: Item) => {
 <template>
   <PageWrapper>
     <div class="items-view">
-      <!-- Sync Status Badge -->
-      <SyncStatusBadge
-        :last-synced="itemsStore.lastSynced"
-        :is-authenticated="authStore.isAuthenticated"
-      />
-
       <div class="search-container">
         <q-input
           v-model="searchQuery"
@@ -254,6 +264,7 @@ const canDeleteItem = (item: Item) => {
           :columns="columns"
           row-key="_id"
           :rows-per-page-options="[10, 25, 50]"
+          dense
           flat
           bordered
         >
@@ -289,28 +300,28 @@ const canDeleteItem = (item: Item) => {
             <q-td :props="props">
               <div class="action-buttons">
                 <q-btn
-                  v-if="canEditItem(props.row)"
                   flat
                   dense
                   round
                   color="primary"
                   icon="edit"
                   size="sm"
+                  :disable="!canEditItem(props.row)"
                   @click="openEditDialog(props.row)"
                 >
-                  <q-tooltip>Edit item</q-tooltip>
+                  <q-tooltip>{{ canEditItem(props.row) ? 'Edit item' : 'No permission to edit' }}</q-tooltip>
                 </q-btn>
                 <q-btn
-                  v-if="canDeleteItem(props.row)"
                   flat
                   dense
                   round
                   color="negative"
                   icon="delete"
                   size="sm"
+                  :disable="!canDeleteItem(props.row)"
                   @click="deleteItem(props.row)"
                 >
-                  <q-tooltip>Delete item</q-tooltip>
+                  <q-tooltip>{{ canDeleteItem(props.row) ? 'Delete item' : 'No permission to delete' }}</q-tooltip>
                 </q-btn>
               </div>
             </q-td>
@@ -358,17 +369,6 @@ const canDeleteItem = (item: Item) => {
 </template>
 
 <style scoped>
-.items-view {
-  position: relative;
-}
-
-.sync-status {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  z-index: 100;
-}
-
 .search-container {
   display: flex;
   flex-direction: column;
@@ -398,12 +398,21 @@ const canDeleteItem = (item: Item) => {
 
 .action-buttons {
   display: flex;
-  gap: 4px;
+  gap: 2px;
   justify-content: center;
 }
 
 .item-icon {
-  font-size: 2rem;
+  font-size: 1.5rem;
   text-align: center;
+}
+
+/* Compact table cells */
+:deep(.q-table tbody td) {
+  padding: 4px 8px;
+}
+
+:deep(.q-table thead th) {
+  padding: 8px 8px;
 }
 </style>
