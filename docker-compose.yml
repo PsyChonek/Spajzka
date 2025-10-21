@@ -11,6 +11,8 @@ services:
     networks:
       - spajzka-network
     restart: unless-stopped
+    ports: 
+      - "27018:27017"
 
   mongodb-init:
     build:
