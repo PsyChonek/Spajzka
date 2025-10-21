@@ -86,7 +86,7 @@ const allColumns = [
     style: 'width: 100px',
     headerStyle: 'width: 100px'
   }
-] as const
+]
 
 const columns = computed(() => {
   if ($q.screen.lt.md) {
