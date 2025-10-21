@@ -52,6 +52,15 @@ const allColumns = [
     headerStyle: 'width: 150px'
   },
   {
+    name: 'unit',
+    label: 'Unit',
+    align: 'center' as const,
+    field: (row: PantryItem) => row.defaultUnit || 'pcs',
+    sortable: true,
+    style: 'width: 80px',
+    headerStyle: 'width: 80px'
+  },
+  {
     name: 'createdAt',
     label: 'Created',
     align: 'left' as const,
@@ -304,6 +313,11 @@ const deleteItem = (itemId: string) => {
                 <q-tooltip>Increase quantity</q-tooltip>
               </q-btn>
             </div>
+          </q-td>
+        </template>
+        <template v-slot:body-cell-unit="props">
+          <q-td :props="props" class="text-center">
+            {{ props.row.defaultUnit || 'pcs' }}
           </q-td>
         </template>
         <template v-slot:body-cell-actions="props">
