@@ -29,29 +29,33 @@ export const useAuthStore = defineStore('auth', () => {
     loading.value = true
     try {
       const response = await AuthenticationService.postApiAuthRegister(data)
-      
+
       // Store token and user
       token.value = response.token!
       user.value = response.user!
       localStorage.setItem('auth_token', response.token!)
-      
+
+      // Fetch user's groups after successful registration
+      const { useGroupsStore } = await import('./groupsStore')
+      await useGroupsStore().fetchGroups()
+
       Notify.create({
         type: 'positive',
         message: 'Account created successfully!',
         timeout: 2000
       })
-      
+
       return true
     } catch (error: any) {
       console.error('Registration failed:', error)
-      
+
       const message = error instanceof ApiError ? error.body?.message : 'Registration failed'
       Notify.create({
         type: 'negative',
         message,
         timeout: 3000
       })
-      
+
       return false
     } finally {
       loading.value = false
@@ -63,29 +67,33 @@ export const useAuthStore = defineStore('auth', () => {
     loading.value = true
     try {
       const response = await AuthenticationService.postApiAuthLogin(data)
-      
+
       // Store token and user
       token.value = response.token!
       user.value = response.user!
       localStorage.setItem('auth_token', response.token!)
-      
+
+      // Fetch user's groups after successful login
+      const { useGroupsStore } = await import('./groupsStore')
+      await useGroupsStore().fetchGroups()
+
       Notify.create({
         type: 'positive',
         message: 'Logged in successfully!',
         timeout: 2000
       })
-      
+
       return true
     } catch (error: any) {
       console.error('Login failed:', error)
-      
+
       const message = error instanceof ApiError ? error.body?.message : 'Login failed'
       Notify.create({
         type: 'negative',
         message,
         timeout: 3000
       })
-      
+
       return false
     } finally {
       loading.value = false
@@ -121,6 +129,12 @@ export const useAuthStore = defineStore('auth', () => {
         message: 'Logged out successfully',
         timeout: 2000
       })
+
+      // Create a new anonymous user session
+      await createAnonymous()
+
+      // Fetch groups for the new anonymous user
+      await useGroupsStore().fetchGroups()
     }
   }
 

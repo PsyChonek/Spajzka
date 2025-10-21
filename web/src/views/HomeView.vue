@@ -7,16 +7,16 @@ const router = useRouter()
 const features = [
   {
     icon: 'inventory_2',
-    title: 'Pantry List',
+    title: 'Pantry',
     description: 'Manage your pantry inventory with quantities, prices, and more',
-    route: '/pantry-list',
+    route: '/pantry',
     color: 'primary'
   },
   {
     icon: 'shopping_cart',
-    title: 'Shopping List',
+    title: 'Shopping',
     description: 'Keep track of items you need to buy with a simple checklist',
-    route: '/shopping-list',
+    route: '/shopping',
     color: 'secondary'
   }
 ]

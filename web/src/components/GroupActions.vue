@@ -41,10 +41,10 @@ const createGroup = async () => {
     })
     
     emit('groupCreated')
-  } catch (error) {
+  } catch (error: any) {
     Notify.create({
       type: 'negative',
-      message: 'Failed to create group'
+      message: error.body?.message || 'Failed to create group'
     })
   } finally {
     loading.value = false

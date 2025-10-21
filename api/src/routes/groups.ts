@@ -135,19 +135,6 @@ router.post('/groups', authMiddleware, async (req: AuthRequest, res: Response) =
       });
     }
 
-    // Check if user is already in a shared group (personal groups don't count)
-    const existingMembership = await db.collection('groups').findOne({
-      'members.userId': new ObjectId(req.userId),
-      isPersonal: false
-    });
-
-    if (existingMembership) {
-      return res.status(400).json({
-        message: 'User is already a member of a shared group',
-        code: 'ALREADY_IN_GROUP'
-      });
-    }
-
     const inviteCode = generateInviteCode();
 
     const newGroup = {
@@ -492,19 +479,6 @@ router.post('/groups/join', authMiddleware, async (req: AuthRequest, res: Respon
       });
     }
 
-    // Check if user is already in a shared group
-    const existingMembership = await db.collection('groups').findOne({
-      'members.userId': new ObjectId(req.userId),
-      isPersonal: false
-    });
-
-    if (existingMembership) {
-      return res.status(400).json({
-        message: 'User is already a member of a shared group',
-        code: 'ALREADY_IN_GROUP'
-      });
-    }
-
     // Find group by invite code
     const group = await db.collection('groups').findOne({
       inviteCode: inviteCode.trim().toUpperCase(),
@@ -522,6 +496,18 @@ router.post('/groups/join', authMiddleware, async (req: AuthRequest, res: Respon
       return res.status(400).json({
         message: 'Invites are disabled for this group',
         code: 'INVITES_DISABLED'
+      });
+    }
+
+    // Check if user is already a member of this specific group
+    const isAlreadyMember = group.members.some((m: any) =>
+      m.userId.toString() === req.userId
+    );
+
+    if (isAlreadyMember) {
+      return res.status(400).json({
+        message: 'You are already a member of this group',
+        code: 'ALREADY_MEMBER'
       });
     }
 
