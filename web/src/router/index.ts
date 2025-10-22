@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
+import { useStoreRefresh } from '@/composables/useStoreRefresh'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -36,6 +37,25 @@ const routes: RouteRecordRaw[] = [
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes
+})
+
+// Add navigation guard to refresh stores on each page navigation
+router.beforeEach(async (to, from) => {
+  // Only refresh if navigating to a different route
+  if (to.path !== from.path) {
+    // Ensure auth is initialized before trying to refresh stores
+    const { useAuthStore } = await import('@/stores/authStore')
+    const authStore = useAuthStore()
+    
+    // Wait for auth initialization to complete
+    if (!authStore.initialized) {
+      await authStore.initialize()
+    }
+    
+    // Now refresh all stores
+    const { refreshAllStores } = useStoreRefresh()
+    await refreshAllStores()
+  }
 })
 
 export default router

@@ -373,7 +373,7 @@ const canDeleteItem = (item: Item) => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 10vh;
+  padding-top: 4vh;
   margin-bottom: 2rem;
 }
 

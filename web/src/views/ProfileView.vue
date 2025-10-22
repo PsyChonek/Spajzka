@@ -122,8 +122,7 @@ const changePassword = async () => {
   }
 }
 
-// Initialize on mount
-authStore.initialize()
+// Note: No need to initialize on mount - router guard and App.vue handle this
 </script>
 
 <template>

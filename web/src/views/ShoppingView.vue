@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useShoppingStore } from '@/stores/shoppingStore'
 import { useItemsStore } from '@/stores/itemsStore'
 import { CreateShoppingItemRequest, type ShoppingItem } from '@/api-client'
@@ -10,11 +10,7 @@ import AddItemDialog, { type ItemFormData } from '@/components/AddItemDialog.vue
 const shoppingStore = useShoppingStore()
 const itemsStore = useItemsStore()
 
-// Fetch items from master list and shopping items on mount
-onMounted(() => {
-  itemsStore.fetchItems()
-  shoppingStore.fetchItems()
-})
+// Note: No need to fetch items on mount - the router guard handles this
 
 const searchQuery = ref('')
 const showAddDialog = ref(false)
@@ -259,7 +255,7 @@ const deleteItem = (item: ShoppingItem, event: Event) => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 10vh;
+  padding-top: 4vh;
   margin-bottom: 2rem;
 }
 
