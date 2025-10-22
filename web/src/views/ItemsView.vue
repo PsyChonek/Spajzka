@@ -19,6 +19,7 @@ const showDeleteDialog = ref(false)
 const editingItem = ref<Item | null>(null)
 const deletingItem = ref<Item | null>(null)
 const initialFormData = ref<Partial<ItemFormData>>({})
+const focusField = ref<'name' | 'icon' | 'unit' | 'category'>('name')
 
 const allColumns = [
   {
@@ -27,8 +28,8 @@ const allColumns = [
     align: 'center' as const,
     field: (row: Item) => row.icon || '',
     sortable: false,
-    style: 'width: 50px',
-    headerStyle: 'width: 50px'
+    classes: 'col-icon',
+    headerClasses: 'col-icon'
   },
   {
     name: 'name',
@@ -36,36 +37,38 @@ const allColumns = [
     label: 'Name',
     align: 'left' as const,
     field: (row: Item) => row.name,
-    sortable: true
+    sortable: true,
+    classes: 'col-name',
+    headerClasses: 'col-name'
   },
   {
     name: 'type',
     label: 'Type',
-    align: 'center' as const,
+    align: 'left' as const,
     field: (row: Item) => row.type,
     sortable: true,
-    style: 'width: 100px',
-    headerStyle: 'width: 100px',
-    hideOnMobile: true
+    hideOnMobile: true,
+    classes: 'col-type',
+    headerClasses: 'col-type'
   },
   {
     name: 'defaultUnit',
     label: 'Unit',
-    align: 'center' as const,
+    align: 'left' as const,
     field: (row: Item) => row.defaultUnit || '-',
     sortable: true,
-    style: 'width: 80px',
-    headerStyle: 'width: 80px'
+    classes: 'col-unit',
+    headerClasses: 'col-unit'
   },
   {
     name: 'category',
     label: 'Category',
-    align: 'center' as const,
+    align: 'left' as const,
     field: (row: Item) => row.category || '-',
     sortable: true,
-    style: 'width: 120px',
-    headerStyle: 'width: 120px',
-    hideOnMobile: true
+    hideOnMobile: true,
+    classes: 'col-category',
+    headerClasses: 'col-category'
   },
   {
     name: 'createdAt',
@@ -74,9 +77,9 @@ const allColumns = [
     field: (row: Item) => row.createdAt,
     format: (val: string | undefined) => val ? new Date(val).toLocaleDateString() : '-',
     sortable: true,
-    style: 'width: 110px',
-    headerStyle: 'width: 110px',
-    hideOnMobile: true
+    hideOnMobile: true,
+    classes: 'col-created',
+    headerClasses: 'col-created'
   },
   {
     name: 'actions',
@@ -84,8 +87,9 @@ const allColumns = [
     align: 'center' as const,
     field: '',
     sortable: false,
-    style: 'width: 100px',
-    headerStyle: 'width: 100px'
+    hideOnMobile: true,
+    classes: 'col-actions',
+    headerClasses: 'col-actions'
   }
 ]
 
@@ -142,8 +146,9 @@ const openAddDialog = () => {
   showAddDialog.value = true
 }
 
-const openEditDialog = (item: Item) => {
+const openEditDialog = (item: Item, field: 'name' | 'icon' | 'unit' | 'category' = 'name') => {
   editingItem.value = item
+  focusField.value = field
   initialFormData.value = {
     name: item.name,
     defaultUnit: item.defaultUnit,
@@ -195,6 +200,11 @@ const saveEditedItem = async (data: ItemFormData) => {
 const deleteItem = (item: Item) => {
   deletingItem.value = item
   showDeleteDialog.value = true
+}
+
+const handleDeleteFromDialog = () => {
+  if (!editingItem.value) return
+  deleteItem(editingItem.value)
 }
 
 const confirmDelete = () => {
@@ -260,8 +270,39 @@ const canDeleteItem = (item: Item) => {
           bordered
         >
           <template v-slot:body-cell-icon="props">
-            <q-td :props="props">
+            <q-td
+              :props="props"
+              class="cursor-pointer"
+              @click="openEditDialog(props.row, 'icon')"
+            >
               <div class="item-icon">{{ props.row.icon || '📋' }}</div>
+            </q-td>
+          </template>
+          <template v-slot:body-cell-name="props">
+            <q-td
+              :props="props"
+              class="cursor-pointer"
+              @click="openEditDialog(props.row, 'name')"
+            >
+              {{ props.row.name }}
+            </q-td>
+          </template>
+          <template v-slot:body-cell-defaultUnit="props">
+            <q-td
+              :props="props"
+              class="cursor-pointer"
+              @click="openEditDialog(props.row, 'unit')"
+            >
+              {{ props.row.defaultUnit || '-' }}
+            </q-td>
+          </template>
+          <template v-slot:body-cell-category="props">
+            <q-td
+              :props="props"
+              class="cursor-pointer"
+              @click="openEditDialog(props.row, 'category')"
+            >
+              {{ props.row.category || '-' }}
             </q-td>
           </template>
           <template v-slot:body-cell-type="props">
@@ -342,7 +383,10 @@ const canDeleteItem = (item: Item) => {
         v-model="showEditDialog"
         title="Edit Item"
         :initial-data="initialFormData"
+        :focus-field="focusField"
+        :show-delete-button="true"
         @save="saveEditedItem"
+        @delete="handleDeleteFromDialog"
       />
 
       <!-- Delete Confirmation Dialog -->
@@ -364,8 +408,6 @@ const canDeleteItem = (item: Item) => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 4vh;
-  margin-bottom: 2rem;
 }
 
 .add-button-container {
@@ -385,15 +427,108 @@ const canDeleteItem = (item: Item) => {
 
 .item-icon {
   font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+/* Table layout */
+:deep(.q-table thead),
+:deep(.q-table tbody),
+:deep(.q-table tr) {
+  width: 100%;
+  display: table;
+  table-layout: fixed;
+}
+
+:deep(.q-table th),
+:deep(.q-table td) {
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+/* Override Quasar's dense padding for first column */
+:deep(.q-table--dense th:first-child),
+:deep(.q-table--dense td:first-child) {
+  padding-left: 8px;
+}
+
+/* Center icon column */
+:deep(.q-table .col-icon) {
+  width: 60px;
   text-align: center;
 }
 
-/* Compact table cells */
-:deep(.q-table tbody td) {
-  padding: 4px 8px;
+/* Desktop column widths */
+:deep(.q-table .col-name) {
+  width: auto;
 }
 
-:deep(.q-table thead th) {
-  padding: 8px 8px;
+:deep(.q-table .col-type) {
+  width: 100px;
+}
+
+:deep(.q-table .col-unit) {
+  width: 80px;
+}
+
+:deep(.q-table .col-category) {
+  width: 120px;
+}
+
+:deep(.q-table .col-created) {
+  width: 110px;
+}
+
+:deep(.q-table .col-actions) {
+  width: 100px;
+}
+
+/* Mobile styles */
+@media (max-width: 1023px) {
+  /* Column widths for mobile (3 columns) */
+  :deep(.q-table .col-icon) {
+    width: 15%;
+  }
+
+  :deep(.q-table .col-name) {
+    width: 50%;
+  }
+
+  :deep(.q-table .col-unit) {
+    width: 35%;
+  }
+
+  /* Fill viewport height */
+  .items-view {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .table-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .table-container :deep(.q-table) {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .table-container :deep(.q-table__container) {
+    flex: 1;
+    min-height: 0;
+  }
+
+  .table-container :deep(.q-table__middle) {
+    flex: 1;
+    overflow-y: auto;
+  }
 }
 </style>

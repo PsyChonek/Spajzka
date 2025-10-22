@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, nextTick } from 'vue'
+import type { QInput } from 'quasar'
 
 export interface ItemFormData {
   name: string
@@ -20,19 +21,26 @@ interface Props {
   readonlyItemFields?: boolean
   // Show global item toggle (when user has permission)
   showGlobalToggle?: boolean
+  // Field to focus when dialog opens: 'name', 'quantity', 'icon', or default
+  focusField?: 'name' | 'quantity' | 'icon' | 'unit' | 'category'
+  // Show delete button (for editing existing items)
+  showDeleteButton?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   title: 'Add New Item',
   showPantryFields: false,
   readonlyItemFields: false,
-  showGlobalToggle: false
+  showGlobalToggle: false,
+  focusField: 'name',
+  showDeleteButton: false
 })
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void
   (e: 'save', data: ItemFormData): void
   (e: 'cancel'): void
+  (e: 'delete'): void
 }>()
 
 // Form fields
@@ -42,6 +50,13 @@ const formDefaultUnit = ref('pcs')
 const formCategory = ref('')
 const formIcon = ref('')
 const formIsGlobal = ref(false)
+
+// Input refs for focusing
+const nameInputRef = ref<QInput | null>(null)
+const quantityInputRef = ref<QInput | null>(null)
+const iconInputRef = ref<QInput | null>(null)
+const unitInputRef = ref<QInput | null>(null)
+const categoryInputRef = ref<QInput | null>(null)
 
 // Watch for initial data changes
 watch(() => props.initialData, (newData) => {
@@ -54,6 +69,26 @@ watch(() => props.initialData, (newData) => {
     formIsGlobal.value = newData.isGlobal || false
   }
 }, { immediate: true })
+
+// Watch for dialog opening to focus the correct field
+watch(() => props.modelValue, (isOpen) => {
+  if (isOpen) {
+    nextTick(() => {
+      const focusMap = {
+        name: nameInputRef,
+        quantity: quantityInputRef,
+        icon: iconInputRef,
+        unit: unitInputRef,
+        category: categoryInputRef
+      }
+
+      const targetRef = focusMap[props.focusField]
+      if (targetRef?.value) {
+        targetRef.value.focus()
+      }
+    })
+  }
+})
 
 const handleClose = () => {
   emit('update:modelValue', false)
@@ -98,6 +133,12 @@ const isFormValid = () => {
   if (!formDefaultUnit.value.trim()) return false
   return true
 }
+
+const handleDelete = () => {
+  emit('delete')
+  emit('update:modelValue', false)
+  resetForm()
+}
 </script>
 
 <template>
@@ -110,15 +151,16 @@ const isFormValid = () => {
       <q-card-section class="q-pt-none">
         <!-- Base fields (always shown) -->
         <q-input
+          ref="nameInputRef"
           v-model="formName"
           outlined
           label="Item Name *"
-          autofocus
           class="q-mb-md"
           @keyup.enter="handleSave"
         />
 
         <q-input
+          ref="unitInputRef"
           v-model="formDefaultUnit"
           outlined
           label="Unit *"
@@ -127,6 +169,7 @@ const isFormValid = () => {
         />
 
         <q-input
+          ref="categoryInputRef"
           v-model="formCategory"
           outlined
           label="Category"
@@ -135,6 +178,7 @@ const isFormValid = () => {
         />
 
         <q-input
+          ref="iconInputRef"
           v-model="formIcon"
           outlined
           label="Icon (emoji)"
@@ -163,6 +207,7 @@ const isFormValid = () => {
           <div class="text-subtitle2 text-grey-7 q-mb-sm">Pantry Information</div>
 
           <q-input
+            ref="quantityInputRef"
             v-model.number="formQuantity"
             outlined
             label="Quantity"
@@ -173,6 +218,15 @@ const isFormValid = () => {
       </q-card-section>
 
       <q-card-actions align="right">
+        <q-btn
+          v-if="showDeleteButton"
+          flat
+          label="Delete"
+          color="negative"
+          icon="delete"
+          @click="handleDelete"
+          class="q-mr-auto"
+        />
         <q-btn flat label="Cancel" color="primary" @click="handleClose" />
         <q-btn
           label="Save"

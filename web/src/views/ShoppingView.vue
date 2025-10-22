@@ -24,8 +24,8 @@ const columns = computed(() => [
     align: 'center' as const,
     field: (row: ShoppingItem) => row.icon || '',
     sortable: false,
-    style: 'width: 50px',
-    headerStyle: 'width: 50px'
+    classes: 'col-icon',
+    headerClasses: 'col-icon'
   },
   {
     name: 'name',
@@ -33,7 +33,9 @@ const columns = computed(() => [
     label: 'Item',
     align: 'left' as const,
     field: (row: ShoppingItem) => row.name || 'Loading...',
-    sortable: false
+    sortable: false,
+    classes: 'col-name',
+    headerClasses: 'col-name'
   }
 ])
 
@@ -139,13 +141,6 @@ const toggleItem = (item: ShoppingItem) => {
     shoppingStore.toggleItem(item._id)
   }
 }
-
-const deleteItem = (item: ShoppingItem, event: Event) => {
-  event.stopPropagation() // Prevent toggling the item when clicking delete
-  if (item._id) {
-    shoppingStore.deleteItem(item._id)
-  }
-}
 </script>
 
 <template>
@@ -197,25 +192,12 @@ const deleteItem = (item: ShoppingItem, event: Event) => {
             class="item-name-cell clickable"
             @click="toggleItem(props.row)"
           >
-            <div class="item-row">
-              <span
-                class="item-name"
-                :class="{ 'completed': props.row.completed }"
-              >
-                {{ props.value }}
-              </span>
-                <q-btn
-                  flat
-                  dense
-                  round
-                  color="negative"
-                  icon="delete"
-                  size="sm"
-                  @click="deleteItem(props.row, $event)"
-                >
-                  <q-tooltip>Delete item</q-tooltip>
-                </q-btn>
-            </div>
+            <span
+              class="item-name"
+              :class="{ 'completed': props.row.completed }"
+            >
+              {{ props.value }}
+            </span>
           </q-td>
         </template>
         <template v-slot:no-data>
@@ -246,8 +228,6 @@ const deleteItem = (item: ShoppingItem, event: Event) => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 4vh;
-  margin-bottom: 2rem;
 }
 
 .add-button-container {
@@ -268,17 +248,9 @@ const deleteItem = (item: ShoppingItem, event: Event) => {
   background-color: rgba(0, 0, 0, 0.03);
 }
 
-.item-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-}
-
 .item-name {
   font-weight: 500;
   transition: all 0.3s;
-  flex: 1;
 }
 
 .item-name.completed {
@@ -287,31 +259,85 @@ const deleteItem = (item: ShoppingItem, event: Event) => {
   color: #666;
 }
 
-.delete-btn {
-  opacity: 0.6;
-  transition: opacity 0.2s;
-}
-
-.delete-btn:hover {
-  opacity: 1;
-}
-
 .item-icon {
   font-size: 1.5rem;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
 }
 
 .icon-cell {
   cursor: pointer;
 }
 
-/* Compact table cells */
-:deep(.q-table tbody td) {
-  padding: 4px 8px;
+/* Table layout */
+:deep(.q-table thead),
+:deep(.q-table tbody),
+:deep(.q-table tr) {
+  width: 100%;
+  display: table;
+  table-layout: fixed;
 }
 
-:deep(.q-table thead th) {
-  padding: 8px 8px;
+:deep(.q-table th),
+:deep(.q-table td) {
+  padding: 8px;
+  box-sizing: border-box;
 }
 
+/* Override Quasar's dense padding for first column */
+:deep(.q-table--dense th:first-child),
+:deep(.q-table--dense td:first-child) {
+  padding-left: 8px;
+}
+
+/* Center icon column */
+:deep(.q-table .col-icon) {
+  width: 60px;
+  text-align: center;
+}
+
+/* Name column takes remaining space */
+:deep(.q-table .col-name) {
+  width: auto;
+}
+
+/* Mobile: Expand table to fill viewport height */
+@media (max-width: 1023px) {
+  .shopping-list-view {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .table-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .table-container :deep(.q-table) {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .table-container :deep(.q-table__container) {
+    flex: 1;
+    min-height: 0;
+  }
+
+  .table-container :deep(.q-table__middle) {
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  /* Mobile column widths */
+  :deep(.q-table .col-icon) {
+    width: 60px;
+  }
+}
 </style>

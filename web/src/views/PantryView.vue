@@ -28,8 +28,8 @@ const allColumns = [
     align: 'center' as const,
     field: (row: PantryItem) => row.icon || '',
     sortable: false,
-    style: 'width: 50px',
-    headerStyle: 'width: 50px'
+    classes: 'col-icon',
+    headerClasses: 'col-icon'
   },
   {
     name: 'name',
@@ -37,25 +37,27 @@ const allColumns = [
     label: 'Name',
     align: 'left' as const,
     field: (row: PantryItem) => row.name || 'Unknown Item',
-    sortable: true
+    sortable: true,
+    classes: 'col-name',
+    headerClasses: 'col-name'
   },
   {
     name: 'quantity',
     label: 'Quantity',
-    align: 'center' as const,
+    align: 'left' as const,
     field: (row: PantryItem) => row.quantity || 0,
     sortable: true,
-    style: 'width: 150px',
-    headerStyle: 'width: 150px'
+    classes: 'col-quantity',
+    headerClasses: 'col-quantity'
   },
   {
     name: 'unit',
     label: 'Unit',
-    align: 'center' as const,
+    align: 'left' as const,
     field: (row: PantryItem) => row.defaultUnit || 'pcs',
     sortable: true,
-    style: 'width: 80px',
-    headerStyle: 'width: 80px'
+    classes: 'col-unit',
+    headerClasses: 'col-unit'
   },
   {
     name: 'createdAt',
@@ -64,9 +66,9 @@ const allColumns = [
     field: (row: PantryItem) => row.createdAt,
     format: (val: string) => new Date(val).toLocaleDateString(),
     sortable: true,
-    style: 'width: 110px',
-    headerStyle: 'width: 110px',
-    hideOnMobile: true
+    hideOnMobile: true,
+    classes: 'col-created',
+    headerClasses: 'col-created'
   },
   {
     name: 'actions',
@@ -74,8 +76,9 @@ const allColumns = [
     align: 'center' as const,
     field: '',
     sortable: false,
-    style: 'width: 100px',
-    headerStyle: 'width: 100px'
+    hideOnMobile: true,
+    classes: 'col-actions',
+    headerClasses: 'col-actions'
   }
 ]
 
@@ -143,8 +146,11 @@ const openAddDialog = () => {
   showAddDialog.value = true
 }
 
-const openEditDialog = (item: PantryItem) => {
+const focusField = ref<'name' | 'quantity' | 'icon' | 'unit' | 'category'>('name')
+
+const openEditDialog = (item: PantryItem, field: 'name' | 'quantity' | 'icon' | 'unit' | 'category' = 'name') => {
   editingItem.value = item
+  focusField.value = field
   initialFormData.value = {
     name: item.name || 'Unknown Item',
     defaultUnit: item.defaultUnit || 'pcs',
@@ -218,20 +224,13 @@ const saveEditedItem = async (data: ItemFormData) => {
   }
 }
 
-const incrementQuantity = (item: PantryItem) => {
-  if (item._id) {
-    pantryStore.incrementQuantity(item._id)
-  }
-}
-
-const decrementQuantity = (item: PantryItem) => {
-  if (item._id) {
-    pantryStore.decrementQuantity(item._id)
-  }
-}
-
 const deleteItem = (itemId: string) => {
   pantryStore.deleteItem(itemId)
+}
+
+const handleDeleteFromDialog = () => {
+  if (!editingItem.value?._id) return
+  deleteItem(editingItem.value._id)
 }
 </script>
 
@@ -269,41 +268,38 @@ const deleteItem = (itemId: string) => {
         bordered
       >
         <template v-slot:body-cell-icon="props">
-          <q-td :props="props">
+          <q-td
+            :props="props"
+            class="cursor-pointer"
+            @click="openEditDialog(props.row, 'icon')"
+          >
             <div class="item-icon">{{ props.row.icon || '📦' }}</div>
           </q-td>
         </template>
+        <template v-slot:body-cell-name="props">
+          <q-td
+            :props="props"
+            class="cursor-pointer"
+            @click="openEditDialog(props.row, 'name')"
+          >
+            {{ props.row.name || 'Unknown Item' }}
+          </q-td>
+        </template>
         <template v-slot:body-cell-quantity="props">
-          <q-td :props="props">
-            <div class="quantity-controls">
-              <q-btn
-                flat
-                dense
-                round
-                color="warning"
-                icon="remove"
-                size="sm"
-                @click="decrementQuantity(props.row)"
-              >
-                <q-tooltip>Decrease quantity</q-tooltip>
-              </q-btn>
-              <span class="quantity-value">{{ props.row.quantity }}</span>
-              <q-btn
-                flat
-                dense
-                round
-                color="positive"
-                icon="add"
-                size="sm"
-                @click="incrementQuantity(props.row)"
-              >
-                <q-tooltip>Increase quantity</q-tooltip>
-              </q-btn>
-            </div>
+          <q-td
+            :props="props"
+            class="cursor-pointer"
+            @click="openEditDialog(props.row, 'quantity')"
+          >
+            {{ props.row.quantity }}
           </q-td>
         </template>
         <template v-slot:body-cell-unit="props">
-          <q-td :props="props" class="text-center">
+          <q-td
+            :props="props"
+            class="cursor-pointer"
+            @click="openEditDialog(props.row, 'unit')"
+          >
             {{ props.row.defaultUnit || 'pcs' }}
           </q-td>
         </template>
@@ -361,7 +357,10 @@ const deleteItem = (itemId: string) => {
       title="Edit Item"
       :initial-data="initialFormData"
       :show-pantry-fields="true"
+      :focus-field="focusField"
+      :show-delete-button="true"
       @save="saveEditedItem"
+      @delete="handleDeleteFromDialog"
     />
     </div>
   </PageWrapper>
@@ -372,8 +371,6 @@ const deleteItem = (itemId: string) => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 4vh;
-  margin-bottom: 2rem;
 }
 
 .add-button-container {
@@ -391,31 +388,110 @@ const deleteItem = (itemId: string) => {
   justify-content: center;
 }
 
-.quantity-controls {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  justify-content: center;
-}
-
-.quantity-value {
-  min-width: 25px;
-  text-align: center;
-  font-weight: 500;
-  font-size: 1rem;
-}
-
 .item-icon {
   font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+/* Table layout */
+:deep(.q-table thead),
+:deep(.q-table tbody),
+:deep(.q-table tr) {
+  width: 100%;
+  display: table;
+  table-layout: fixed;
+}
+
+:deep(.q-table th),
+:deep(.q-table td) {
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+/* Override Quasar's dense padding for first column */
+:deep(.q-table--dense th:first-child),
+:deep(.q-table--dense td:first-child) {
+  padding-left: 8px;
+}
+
+/* Center icon column */
+:deep(.q-table .col-icon) {
+  width: 60px;
   text-align: center;
 }
 
-/* Compact table cells */
-:deep(.q-table tbody td) {
-  padding: 4px 8px;
+/* Desktop column widths */
+:deep(.q-table .col-name) {
+  width: auto;
 }
 
-:deep(.q-table thead th) {
-  padding: 8px 8px;
+:deep(.q-table .col-quantity) {
+  width: 100px;
+}
+
+:deep(.q-table .col-unit) {
+  width: 80px;
+}
+
+:deep(.q-table .col-created) {
+  width: 120px;
+}
+
+:deep(.q-table .col-actions) {
+  width: 100px;
+}
+
+/* Mobile styles */
+@media (max-width: 1023px) {
+  /* Column widths for mobile (4 columns) */
+  :deep(.q-table .col-icon) {
+    width: 15%;
+  }
+
+  :deep(.q-table .col-name) {
+    width: 40%;
+  }
+
+  :deep(.q-table .col-quantity) {
+    width: 25%;
+  }
+
+  :deep(.q-table .col-unit) {
+    width: 20%;
+  }
+
+  /* Fill viewport height */
+  .items-view {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .table-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .table-container :deep(.q-table) {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .table-container :deep(.q-table__container) {
+    flex: 1;
+    min-height: 0;
+  }
+
+  .table-container :deep(.q-table__middle) {
+    flex: 1;
+    overflow-y: auto;
+  }
 }
 </style>
