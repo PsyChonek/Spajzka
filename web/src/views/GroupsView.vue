@@ -39,7 +39,8 @@ onMounted(async () => {
     showAuthRequiredDialog.value = true
     return
   }
-  await groupsStore.initialize()
+  // Router guard handles store initialization
+  // Just fetch members for the current group
   if (groupsStore.currentGroup) {
     await fetchMembers()
   }

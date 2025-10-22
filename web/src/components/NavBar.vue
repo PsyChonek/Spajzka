@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGroupsStore } from '@/stores/groupsStore'
 import { usePantryStore } from '@/stores/pantryStore'
@@ -52,9 +52,7 @@ const navigateTo = (path: string) => {
   drawer.value = false
 }
 
-onMounted(async () => {
-  await groupsStore.initialize()
-})
+// Note: App.vue handles auth initialization on mount
 </script>
 
 <template>

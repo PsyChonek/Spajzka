@@ -1,27 +1,29 @@
 import { onMounted, onUnmounted } from 'vue'
 import { usePantryStore } from '@/stores/pantryStore'
 import { useShoppingStore } from '@/stores/shoppingStore'
+import { useItemsStore } from '@/stores/itemsStore'
+import { useStoreRefresh } from '@/composables/useStoreRefresh'
 
 let isInitialized = false
 
 export function useOnlineSync() {
   const pantryStore = usePantryStore()
   const shoppingStore = useShoppingStore()
+  const itemsStore = useItemsStore()
+  const { refreshAllStores } = useStoreRefresh()
 
   const handleOnline = async () => {
     console.log('Back online - syncing pending changes...')
     
-    // Sync both stores
+    // Sync pending changes first
     await Promise.all([
       pantryStore.syncPendingChanges(),
-      shoppingStore.syncPendingChanges()
+      shoppingStore.syncPendingChanges(),
+      itemsStore.syncPendingChanges()
     ])
 
-    // Fetch latest data from server
-    await Promise.all([
-      pantryStore.fetchItems(),
-      shoppingStore.fetchItems()
-    ])
+    // Fetch latest data from server to ensure everything is up to date
+    await refreshAllStores()
   }
 
   const handleOffline = () => {
@@ -40,8 +42,7 @@ export function useOnlineSync() {
 
     // Initial fetch if online
     if (navigator.onLine) {
-      pantryStore.fetchItems()
-      shoppingStore.fetchItems()
+      refreshAllStores()
     }
   })
 

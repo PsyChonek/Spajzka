@@ -13,6 +13,8 @@ export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
   const token = ref<string | null>(localStorage.getItem('auth_token'))
   const loading = ref(false)
+  const initialized = ref(false)
+  const initializing = ref(false)
 
   const isAuthenticated = computed(() => !!token.value && !!user.value)
   const isAnonymous = computed(() => user.value?.isAnonymous === true)
@@ -35,9 +37,10 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = response.user!
       localStorage.setItem('auth_token', response.token!)
 
-      // Fetch user's groups after successful registration
-      const { useGroupsStore } = await import('./groupsStore')
-      await useGroupsStore().fetchGroups()
+      // Refresh all stores after successful registration to get latest data
+      const { useStoreRefresh } = await import('@/composables/useStoreRefresh')
+      const { refreshAllStores } = useStoreRefresh()
+      await refreshAllStores()
 
       Notify.create({
         type: 'positive',
@@ -73,9 +76,10 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = response.user!
       localStorage.setItem('auth_token', response.token!)
 
-      // Fetch user's groups after successful login
-      const { useGroupsStore } = await import('./groupsStore')
-      await useGroupsStore().fetchGroups()
+      // Refresh all stores after successful login to get latest data
+      const { useStoreRefresh } = await import('@/composables/useStoreRefresh')
+      const { refreshAllStores } = useStoreRefresh()
+      await refreshAllStores()
 
       Notify.create({
         type: 'positive',
@@ -133,8 +137,10 @@ export const useAuthStore = defineStore('auth', () => {
       // Create a new anonymous user session
       await createAnonymous()
 
-      // Fetch groups for the new anonymous user
-      await useGroupsStore().fetchGroups()
+      // Refresh all stores for the new anonymous user
+      const { useStoreRefresh } = await import('@/composables/useStoreRefresh')
+      const { refreshAllStores } = useStoreRefresh()
+      await refreshAllStores()
     }
   }
 
@@ -150,11 +156,13 @@ export const useAuthStore = defineStore('auth', () => {
     } catch (error: any) {
       console.error('Failed to fetch user:', error)
       
-      // If 401, token is invalid - clear auth
+      // If 401, token is invalid - clear auth and create anonymous user
       if (error instanceof ApiError && error.status === 401) {
         token.value = null
         user.value = null
         localStorage.removeItem('auth_token')
+        // Create anonymous user as fallback
+        await createAnonymous()
       }
     } finally {
       loading.value = false
@@ -266,11 +274,34 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Initialize - fetch user if token exists, or create anonymous user
   async function initialize() {
-    if (token.value) {
-      await fetchUser()
-    } else {
-      // Auto-create anonymous user if no token exists
-      await createAnonymous()
+    // Prevent multiple simultaneous initializations
+    if (initializing.value) {
+      // Wait for ongoing initialization to complete
+      while (initializing.value) {
+        await new Promise(resolve => setTimeout(resolve, 50))
+      }
+      return
+    }
+
+    // Skip if already initialized with valid state
+    if (initialized.value && isAuthenticated.value) {
+      return
+    }
+
+    initializing.value = true
+    try {
+      if (token.value) {
+        await fetchUser()
+      }
+      
+      // If still not authenticated after fetching (token was invalid or didn't exist), create anonymous user
+      if (!isAuthenticated.value) {
+        await createAnonymous()
+      }
+      
+      initialized.value = true
+    } finally {
+      initializing.value = false
     }
   }
 
@@ -278,6 +309,8 @@ export const useAuthStore = defineStore('auth', () => {
     user,
     token,
     loading,
+    initialized,
+    initializing,
     isAuthenticated,
     isAnonymous,
     userEmail,

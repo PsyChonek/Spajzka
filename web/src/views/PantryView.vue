@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useQuasar } from 'quasar'
 import { usePantryStore } from '@/stores/pantryStore'
 import { useItemsStore } from '@/stores/itemsStore'
@@ -12,11 +12,7 @@ const $q = useQuasar()
 const pantryStore = usePantryStore()
 const itemsStore = useItemsStore()
 
-// Fetch items from master list and pantry items on mount
-onMounted(() => {
-  itemsStore.fetchItems()
-  pantryStore.fetchItems()
-})
+// Note: No need to fetch items on mount - the router guard handles this
 
 const searchQuery = ref('')
 const showAddDialog = ref(false)
@@ -385,7 +381,7 @@ const deleteItem = (itemId: string) => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 10vh;
+  padding-top: 4vh;
   margin-bottom: 2rem;
 }
 
