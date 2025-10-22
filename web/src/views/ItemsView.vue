@@ -6,6 +6,7 @@ import PageWrapper from '@/components/PageWrapper.vue'
 import { useAuthStore } from '@/stores/authStore'
 import AddItemDialog, { type ItemFormData } from '@/components/AddItemDialog.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
+import SearchInput from '@/components/SearchInput.vue'
 
 const $q = useQuasar()
 const itemsStore = useItemsStore()
@@ -236,17 +237,7 @@ const canDeleteItem = (item: Item) => {
   <PageWrapper>
     <div class="items-view">
       <div class="search-container">
-        <q-input
-          v-model="searchQuery"
-          outlined
-          placeholder="Search items..."
-          class="search-input"
-          clearable
-        >
-          <template v-slot:prepend>
-            <q-icon name="search" />
-          </template>
-        </q-input>
+        <SearchInput v-model="searchQuery" />
 
         <div v-if="showAddButton" class="add-button-container q-mt-md">
           <q-btn
@@ -375,16 +366,6 @@ const canDeleteItem = (item: Item) => {
   align-items: center;
   padding-top: 4vh;
   margin-bottom: 2rem;
-}
-
-.search-input {
-  width: 100%;
-  max-width: 800px;
-  font-size: 1.2rem;
-}
-
-.search-input :deep(.q-field__control) {
-  height: 60px;
 }
 
 .add-button-container {

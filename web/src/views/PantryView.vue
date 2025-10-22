@@ -7,6 +7,7 @@ import type { PantryItem } from '@/api-client'
 import PageWrapper from '@/components/PageWrapper.vue'
 import ItemSuggestions from '@/components/ItemSuggestions.vue'
 import AddItemDialog, { type ItemFormData } from '@/components/AddItemDialog.vue'
+import SearchInput from '@/components/SearchInput.vue'
 
 const $q = useQuasar()
 const pantryStore = usePantryStore()
@@ -238,17 +239,7 @@ const deleteItem = (itemId: string) => {
   <PageWrapper>
     <div class="items-view">
     <div class="search-container">
-      <q-input
-        v-model="searchQuery"
-        outlined
-        placeholder="Search items..."
-        class="search-input"
-        clearable
-      >
-        <template v-slot:prepend>
-          <q-icon name="search" />
-        </template>
-      </q-input>
+      <SearchInput v-model="searchQuery" />
 
       <!-- Suggestions from Items list -->
       <ItemSuggestions
@@ -383,16 +374,6 @@ const deleteItem = (itemId: string) => {
   align-items: center;
   padding-top: 4vh;
   margin-bottom: 2rem;
-}
-
-.search-input {
-  width: 100%;
-  max-width: 800px;
-  font-size: 1.2rem;
-}
-
-.search-input :deep(.q-field__control) {
-  height: 60px;
 }
 
 .add-button-container {
