@@ -156,6 +156,8 @@ const handleDelete = () => {
           outlined
           label="Item Name *"
           class="q-mb-md"
+          :readonly="readonlyItemFields"
+          :disable="readonlyItemFields"
           @keyup.enter="handleSave"
         />
 
@@ -166,6 +168,8 @@ const handleDelete = () => {
           label="Unit *"
           placeholder="e.g., kg, pcs, liter"
           class="q-mb-md"
+          :readonly="readonlyItemFields"
+          :disable="readonlyItemFields"
         />
 
         <q-input
@@ -175,6 +179,8 @@ const handleDelete = () => {
           label="Category"
           placeholder="e.g., Dairy, Vegetables"
           class="q-mb-md"
+          :readonly="readonlyItemFields"
+          :disable="readonlyItemFields"
         />
 
         <q-input
@@ -184,6 +190,8 @@ const handleDelete = () => {
           label="Icon (emoji)"
           placeholder="e.g., 🥛, 🥕, 🍎"
           class="q-mb-md"
+          :readonly="readonlyItemFields"
+          :disable="readonlyItemFields"
         />
 
         <!-- Global item toggle -->

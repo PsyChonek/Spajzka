@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { useQuasar } from 'quasar'
 import { usePantryStore } from '@/stores/pantryStore'
 import { useItemsStore } from '@/stores/itemsStore'
+import { useAuthStore } from '@/stores/authStore'
 import type { PantryItem } from '@/api-client'
 import PageWrapper from '@/components/PageWrapper.vue'
 import ItemSuggestions from '@/components/ItemSuggestions.vue'
@@ -12,6 +13,7 @@ import SearchInput from '@/components/SearchInput.vue'
 const $q = useQuasar()
 const pantryStore = usePantryStore()
 const itemsStore = useItemsStore()
+const authStore = useAuthStore()
 
 // Note: No need to fetch items on mount - the router guard handles this
 
@@ -148,6 +150,20 @@ const openAddDialog = () => {
 
 const focusField = ref<'name' | 'quantity' | 'icon' | 'unit' | 'category'>('name')
 
+// Check if user can edit item fields (not just quantity)
+const canEditItemFields = computed(() => {
+  if (!editingItem.value) return false
+
+  // For global items, check if user has global_items:update permission
+  if (editingItem.value.itemType === 'global') {
+    return authStore.hasGlobalPermission('global_items:update')
+  }
+
+  // For group items, check if user has group_items:update permission
+  // Note: This checks global permissions, but could be extended to check group-level permissions
+  return authStore.hasGlobalPermission('group_items:update')
+})
+
 const openEditDialog = (item: PantryItem, field: 'name' | 'quantity' | 'icon' | 'unit' | 'category' = 'name') => {
   editingItem.value = item
   focusField.value = field
@@ -216,10 +232,38 @@ const saveNewItem = async (data: ItemFormData) => {
 
 const saveEditedItem = async (data: ItemFormData) => {
   if (editingItem.value && editingItem.value._id) {
-    // For pantry items, we can only update the quantity, not the item reference
+    // Update the pantry quantity
     await pantryStore.updateItem(editingItem.value._id, {
       quantity: data.quantity || 1
     })
+
+    // If user has permission and item fields changed, update the underlying item
+    if (canEditItemFields.value && editingItem.value.itemId) {
+      const itemChanged =
+        data.name !== editingItem.value.name ||
+        data.defaultUnit !== editingItem.value.defaultUnit ||
+        data.category !== editingItem.value.category ||
+        data.icon !== editingItem.value.icon
+
+      if (itemChanged) {
+        const itemUpdates = {
+          name: data.name,
+          defaultUnit: data.defaultUnit,
+          category: data.category,
+          icon: data.icon
+        }
+
+        if (editingItem.value.itemType === 'global') {
+          await itemsStore.updateGlobalItem(editingItem.value.itemId, itemUpdates)
+        } else {
+          await itemsStore.updateGroupItem(editingItem.value.itemId, itemUpdates)
+        }
+
+        // Refresh pantry to get updated item details
+        await pantryStore.fetchItems()
+      }
+    }
+
     editingItem.value = null
   }
 }
@@ -354,9 +398,10 @@ const handleDeleteFromDialog = () => {
     <!-- Edit Item Dialog -->
     <AddItemDialog
       v-model="showEditDialog"
-      title="Edit Item"
+      :title="`Edit Item${editingItem ? ` (${editingItem.itemType === 'global' ? 'Global' : 'Group'})` : ''}`"
       :initial-data="initialFormData"
       :show-pantry-fields="true"
+      :readonly-item-fields="!canEditItemFields"
       :focus-field="focusField"
       :show-delete-button="true"
       @save="saveEditedItem"

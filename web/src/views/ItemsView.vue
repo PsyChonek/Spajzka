@@ -47,7 +47,6 @@ const allColumns = [
     align: 'left' as const,
     field: (row: Item) => row.type,
     sortable: true,
-    hideOnMobile: true,
     classes: 'col-type',
     headerClasses: 'col-type'
   },
@@ -241,6 +240,19 @@ const canDeleteItem = (item: Item) => {
   }
   return true // Group items can always be deleted by group members
 }
+
+// Check if currently editing item can have its fields edited
+const canEditItemFields = computed(() => {
+  if (!editingItem.value) return false
+
+  // For global items, check if user has global_items:update permission
+  if (editingItem.value.type === 'global') {
+    return canUpdateGlobalItems.value
+  }
+
+  // For group items, user can always edit
+  return true
+})
 </script>
 
 <template>
@@ -381,8 +393,9 @@ const canDeleteItem = (item: Item) => {
       <!-- Edit Item Dialog -->
       <AddItemDialog
         v-model="showEditDialog"
-        title="Edit Item"
+        :title="`Edit Item${editingItem ? ` (${editingItem.type === 'global' ? 'Global' : 'Group'})` : ''}`"
         :initial-data="initialFormData"
+        :readonly-item-fields="!canEditItemFields"
         :focus-field="focusField"
         :show-delete-button="true"
         @save="saveEditedItem"
@@ -488,17 +501,21 @@ const canDeleteItem = (item: Item) => {
 
 /* Mobile styles */
 @media (max-width: 1023px) {
-  /* Column widths for mobile (3 columns) */
+  /* Column widths for mobile (4 columns: icon, name, type, unit) */
   :deep(.q-table .col-icon) {
-    width: 15%;
+    width: 12%;
   }
 
   :deep(.q-table .col-name) {
-    width: 50%;
+    width: 38%;
+  }
+
+  :deep(.q-table .col-type) {
+    width: 25%;
   }
 
   :deep(.q-table .col-unit) {
-    width: 35%;
+    width: 25%;
   }
 
   /* Fill viewport height */
