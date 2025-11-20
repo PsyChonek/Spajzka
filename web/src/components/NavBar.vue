@@ -5,6 +5,7 @@ import { useGroupsStore } from '@/stores/groupsStore'
 import { usePantryStore } from '@/stores/pantryStore'
 import { useShoppingStore } from '@/stores/shoppingStore'
 import { useItemsStore } from '@/stores/itemsStore'
+import { useRecipesStore } from '@/stores/recipesStore'
 import { useAuthStore } from '@/stores/authStore'
 import GroupSelector from '@/components/GroupSelector.vue'
 import SyncStatusBadge from '@/components/SyncStatusBadge.vue'
@@ -15,6 +16,7 @@ const groupsStore = useGroupsStore()
 const pantryStore = usePantryStore()
 const shoppingStore = useShoppingStore()
 const itemsStore = useItemsStore()
+const recipesStore = useRecipesStore()
 const authStore = useAuthStore()
 
 // Compute the most recent sync time across all stores
@@ -23,6 +25,7 @@ const lastSynced = computed(() => {
     pantryStore.lastSynced,
     shoppingStore.lastSynced,
     itemsStore.lastSynced,
+    recipesStore.lastSynced,
     groupsStore.lastSynced
   ]
     .filter(Boolean)
@@ -43,6 +46,7 @@ const navLinks: NavLink[] = [
   { to: '/pantry', label: 'Pantry', icon: 'kitchen' },
   { to: '/shopping', label: 'Shopping', icon: 'shopping_cart' },
   { to: '/items', label: 'Items', icon: 'inventory' },
+  { to: '/recipes', label: 'Recipes', icon: 'restaurant_menu' },
   { to: '/groups', label: 'Groups', icon: 'group' },
   { to: '/profile', label: 'Profile', icon: 'lock' }
 ]

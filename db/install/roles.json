@@ -3,12 +3,15 @@
 		{
 			"_id": "system_moderator",
 			"name": "System Moderator",
-			"description": "Can manage global items visible to all users",
+			"description": "Can manage global items and recipes visible to all users",
 			"isGlobal": true,
 			"permissions": [
 				"global_items:create",
 				"global_items:update",
-				"global_items:delete"
+				"global_items:delete",
+				"global_recipes:create",
+				"global_recipes:update",
+				"global_recipes:delete"
 			]
 		},
 		{
@@ -24,6 +27,9 @@
 				"group_items:create",
 				"group_items:update",
 				"group_items:delete",
+				"group_recipes:create",
+				"group_recipes:update",
+				"group_recipes:delete",
 				"pantry:create",
 				"pantry:update",
 				"pantry:delete",
@@ -42,6 +48,9 @@
 				"group_items:create",
 				"group_items:update",
 				"group_items:delete",
+				"group_recipes:create",
+				"group_recipes:update",
+				"group_recipes:delete",
 				"pantry:create",
 				"pantry:update",
 				"pantry:delete",
@@ -57,6 +66,7 @@
 			"isGlobal": false,
 			"permissions": [
 				"group_items:create",
+				"group_recipes:create",
 				"pantry:create",
 				"pantry:update",
 				"pantry:delete",

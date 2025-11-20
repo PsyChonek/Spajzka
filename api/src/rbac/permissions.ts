@@ -5,6 +5,10 @@ export type Permission =
   | 'global_items:create'
   | 'global_items:update'
   | 'global_items:delete'
+  // Global recipes permissions
+  | 'global_recipes:create'
+  | 'global_recipes:update'
+  | 'global_recipes:delete'
   // Group management permissions
   | 'group:update'
   | 'group:delete'
@@ -14,6 +18,10 @@ export type Permission =
   | 'group_items:create'
   | 'group_items:update'
   | 'group_items:delete'
+  // Group recipes permissions
+  | 'group_recipes:create'
+  | 'group_recipes:update'
+  | 'group_recipes:delete'
   // Pantry permissions
   | 'pantry:create'
   | 'pantry:update'

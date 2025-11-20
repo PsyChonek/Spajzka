@@ -481,6 +481,237 @@
           "quantity"
         ]
       },
+      "RecipeIngredient": {
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "description": "Item ID reference (optional)"
+          },
+          "itemName": {
+            "type": "string",
+            "description": "Name of the ingredient"
+          },
+          "quantity": {
+            "type": "number",
+            "description": "Quantity of ingredient"
+          },
+          "unit": {
+            "type": "string",
+            "description": "Unit of measurement"
+          }
+        },
+        "required": [
+          "itemName",
+          "quantity",
+          "unit"
+        ]
+      },
+      "GlobalRecipe": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "description": "Recipe ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "Recipe name"
+          },
+          "description": {
+            "type": "string",
+            "description": "Recipe description"
+          },
+          "icon": {
+            "type": "string",
+            "description": "Emoji icon"
+          },
+          "recipeType": {
+            "type": "string",
+            "enum": [
+              "global"
+            ],
+            "description": "Recipe type"
+          },
+          "userId": {
+            "type": "string",
+            "description": "User ID who created this recipe"
+          },
+          "servings": {
+            "type": "number",
+            "description": "Number of servings"
+          },
+          "ingredients": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecipeIngredient"
+            }
+          },
+          "instructions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Step-by-step instructions"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "name",
+          "recipeType",
+          "userId",
+          "servings",
+          "ingredients",
+          "instructions"
+        ]
+      },
+      "GroupRecipe": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "description": "Recipe ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "Recipe name"
+          },
+          "description": {
+            "type": "string",
+            "description": "Recipe description"
+          },
+          "icon": {
+            "type": "string",
+            "description": "Emoji icon"
+          },
+          "recipeType": {
+            "type": "string",
+            "enum": [
+              "group"
+            ],
+            "description": "Recipe type"
+          },
+          "groupId": {
+            "type": "string",
+            "description": "Group ID this recipe belongs to"
+          },
+          "userId": {
+            "type": "string",
+            "description": "User ID who created this recipe"
+          },
+          "servings": {
+            "type": "number",
+            "description": "Number of servings"
+          },
+          "ingredients": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecipeIngredient"
+            }
+          },
+          "instructions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Step-by-step instructions"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "name",
+          "recipeType",
+          "groupId",
+          "userId",
+          "servings",
+          "ingredients",
+          "instructions"
+        ]
+      },
+      "CreateGlobalRecipeRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          },
+          "servings": {
+            "type": "number"
+          },
+          "ingredients": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecipeIngredient"
+            }
+          },
+          "instructions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "servings",
+          "ingredients",
+          "instructions"
+        ]
+      },
+      "CreateGroupRecipeRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          },
+          "servings": {
+            "type": "number"
+          },
+          "ingredients": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecipeIngredient"
+            }
+          },
+          "instructions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "servings",
+          "ingredients",
+          "instructions"
+        ]
+      },
       "ShoppingItem": {
         "type": "object",
         "properties": {
@@ -1782,6 +2013,322 @@
         "responses": {
           "204": {
             "description": "Item deleted"
+          }
+        }
+      }
+    },
+    "/api/recipes": {
+      "get": {
+        "summary": "Get all recipes",
+        "description": "Get both global recipes and group recipes for user's group",
+        "tags": [
+          "Recipes"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Combined list of recipes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "globalRecipes": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/GlobalRecipe"
+                      }
+                    },
+                    "groupRecipes": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/GroupRecipe"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/recipes/global": {
+      "get": {
+        "summary": "Get global recipes",
+        "description": "Get all global recipes (requires global_recipes:create permission)",
+        "tags": [
+          "Recipes"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of global recipes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GlobalRecipe"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create global recipe",
+        "description": "Create a new global recipe (requires global_recipes:create permission)",
+        "tags": [
+          "Recipes"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateGlobalRecipeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Global recipe created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GlobalRecipe"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permissions"
+          }
+        }
+      }
+    },
+    "/api/recipes/global/{id}": {
+      "put": {
+        "summary": "Update global recipe",
+        "description": "Update a global recipe (requires global_recipes:update permission)",
+        "tags": [
+          "Recipes"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateGlobalRecipeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Global recipe updated"
+          },
+          "403": {
+            "description": "Insufficient permissions"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete global recipe",
+        "description": "Delete a global recipe (requires global_recipes:delete permission)",
+        "tags": [
+          "Recipes"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Global recipe deleted"
+          },
+          "403": {
+            "description": "Insufficient permissions"
+          }
+        }
+      }
+    },
+    "/api/recipes/group": {
+      "get": {
+        "summary": "Get group recipes",
+        "description": "Get all recipes for user's active group",
+        "tags": [
+          "Recipes"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of group recipes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GroupRecipe"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create group recipe",
+        "description": "Create a new group-shared recipe (requires group_recipes:create permission)",
+        "tags": [
+          "Recipes"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateGroupRecipeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Group recipe created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GroupRecipe"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permissions"
+          }
+        }
+      }
+    },
+    "/api/recipes/group/{id}": {
+      "put": {
+        "summary": "Update group recipe",
+        "description": "Update a group recipe (requires group_recipes:update permission)",
+        "tags": [
+          "Recipes"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateGroupRecipeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Group recipe updated"
+          },
+          "403": {
+            "description": "Insufficient permissions"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete group recipe",
+        "description": "Delete a group recipe (requires group_recipes:delete permission)",
+        "tags": [
+          "Recipes"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Group recipe deleted"
+          },
+          "403": {
+            "description": "Insufficient permissions"
           }
         }
       }

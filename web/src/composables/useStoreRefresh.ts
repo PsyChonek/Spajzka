@@ -3,6 +3,7 @@ import { useGroupsStore } from '@/stores/groupsStore'
 import { usePantryStore } from '@/stores/pantryStore'
 import { useShoppingStore } from '@/stores/shoppingStore'
 import { useItemsStore } from '@/stores/itemsStore'
+import { useRecipesStore } from '@/stores/recipesStore'
 
 // Cooldown configuration (in milliseconds)
 const REFRESH_COOLDOWN_MS = 5000 // 5 seconds
@@ -22,6 +23,7 @@ export function useStoreRefresh() {
   const pantryStore = usePantryStore()
   const shoppingStore = useShoppingStore()
   const itemsStore = useItemsStore()
+  const recipesStore = useRecipesStore()
 
   /**
    * Refresh all stores - fetches fresh data for authenticated users
@@ -63,7 +65,8 @@ export function useStoreRefresh() {
     await Promise.all([
       itemsStore.fetchItems(),
       pantryStore.fetchItems(),
-      shoppingStore.fetchItems()
+      shoppingStore.fetchItems(),
+      recipesStore.fetchItems()
     ])
   }
 
@@ -111,7 +114,8 @@ export function useStoreRefresh() {
     await Promise.all([
       itemsStore.fetchItems(),
       pantryStore.fetchItems(),
-      shoppingStore.fetchItems()
+      shoppingStore.fetchItems(),
+      recipesStore.fetchItems()
     ])
   }
 

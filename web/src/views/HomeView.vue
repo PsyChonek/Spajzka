@@ -18,6 +18,13 @@ const features = [
     description: 'Keep track of items you need to buy with a simple checklist',
     route: '/shopping',
     color: 'secondary'
+  },
+  {
+    icon: 'restaurant_menu',
+    title: 'Recipes',
+    description: 'Create and manage your personal and group recipes with ingredients and instructions',
+    route: '/recipes',
+    color: 'accent'
   }
 ]
 
