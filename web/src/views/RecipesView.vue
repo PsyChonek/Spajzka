@@ -3,16 +3,14 @@ import { ref, computed } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRecipesStore, type Recipe } from '@/stores/recipesStore'
 import { useAuthStore } from '@/stores/authStore'
-import { useGroupsStore } from '@/stores/groupsStore'
 import { useItemsStore } from '@/stores/itemsStore'
 import PageWrapper from '@/components/PageWrapper.vue'
 import SearchInput from '@/components/SearchInput.vue'
-import type { RecipeIngredient } from '@/api-client'
+import { GlobalRecipe, GroupRecipe, type RecipeIngredient } from '@/api-client'
 
 const $q = useQuasar()
 const recipesStore = useRecipesStore()
 const authStore = useAuthStore()
-const groupsStore = useGroupsStore()
 const itemsStore = useItemsStore()
 
 const searchQuery = ref('')
@@ -24,7 +22,7 @@ const formName = ref('')
 const formDescription = ref('')
 const formIcon = ref('')
 const formServings = ref(4)
-const formRecipeType = ref<'global' | 'group'>('global')
+const formRecipeType = ref<GlobalRecipe.recipeType | GroupRecipe.recipeType>(GlobalRecipe.recipeType.GLOBAL)
 const formIngredients = ref<RecipeIngredient[]>([{ itemName: '', quantity: 1, unit: 'pcs' }])
 const formInstructions = ref<string[]>([''])
 
@@ -63,18 +61,6 @@ const canEditGlobalRecipe = computed(() => {
 
 const canDeleteGlobalRecipe = computed(() => {
   return authStore.hasGlobalPermission('global_recipes:delete')
-})
-
-const canCreateGroupRecipe = computed(() => {
-  return authStore.hasGlobalPermission('group_recipes:create')
-})
-
-const canEditGroupRecipe = computed(() => {
-  return authStore.hasGlobalPermission('group_recipes:update')
-})
-
-const canDeleteGroupRecipe = computed(() => {
-  return authStore.hasGlobalPermission('group_recipes:delete')
 })
 
 const allColumns = [
@@ -147,7 +133,7 @@ const columns = computed(() => {
 // Dialog actions
 const openAddDialog = () => {
   editingRecipe.value = null
-  formRecipeType.value = 'group' // Default to group
+  formRecipeType.value = GroupRecipe.recipeType.GROUP // Default to group
   formName.value = searchQuery.value
   formDescription.value = ''
   formIcon.value = ''
@@ -190,10 +176,11 @@ const handleSaveRecipe = async () => {
 
   if (editingRecipe.value) {
     // Update existing recipe
+    if (!editingRecipe.value._id) return
     await recipesStore.updateRecipe(editingRecipe.value._id, recipeData)
   } else {
     // Create new recipe
-    if (formRecipeType.value === 'global') {
+    if (formRecipeType.value === GlobalRecipe.recipeType.GLOBAL) {
       if (!canCreateGlobalRecipe.value) {
         $q.notify({
           type: 'negative',
@@ -214,13 +201,17 @@ const handleSaveRecipe = async () => {
 }
 
 const handleDeleteRecipe = async (recipe: Recipe) => {
+  if (!recipe._id) return
+
   $q.dialog({
     title: 'Delete Recipe',
     message: `Are you sure you want to delete "${recipe.name}"?`,
     cancel: true,
     persistent: false
   }).onOk(async () => {
-    await recipesStore.deleteRecipe(recipe._id)
+    if (recipe._id) {
+      await recipesStore.deleteRecipe(recipe._id)
+    }
   })
 }
 
@@ -244,7 +235,6 @@ const removeIngredient = (index: number) => {
 }
 
 // Item autocomplete for ingredients
-const ingredientSearchQuery = ref<string[]>([])
 
 const getItemOptions = (index: number, val: string, update: any) => {
   if (val === '') {
@@ -271,15 +261,18 @@ const getItemOptions = (index: number, val: string, update: any) => {
 const ingredientOptions = ref<any[][]>([])
 
 const handleItemSelect = (index: number, val: any) => {
+  const ingredient = formIngredients.value[index]
+  if (!ingredient) return
+
   // If val is an object from items (selected from dropdown)
   if (val && val._id) {
-    formIngredients.value[index].itemId = val._id
-    formIngredients.value[index].itemName = val.name
-    formIngredients.value[index].unit = val.defaultUnit || formIngredients.value[index].unit || 'pcs'
+    ingredient.itemId = val._id
+    ingredient.itemName = val.name
+    ingredient.unit = val.defaultUnit || ingredient.unit || 'pcs'
   } else if (typeof val === 'string') {
     // Custom text input
-    formIngredients.value[index].itemName = val
-    formIngredients.value[index].itemId = undefined
+    ingredient.itemName = val
+    ingredient.itemId = undefined
   }
 }
 
@@ -295,12 +288,12 @@ const removeInstruction = (index: number) => {
 }
 
 const canEditRecipe = (recipe: Recipe) => {
-  if (recipe.recipeType === 'global') return canEditGlobalRecipe.value
+  if (recipe.recipeType === GlobalRecipe.recipeType.GLOBAL) return canEditGlobalRecipe.value
   return true // Group recipes can always be edited
 }
 
 const canDeleteRecipe = (recipe: Recipe) => {
-  if (recipe.recipeType === 'global') return canDeleteGlobalRecipe.value
+  if (recipe.recipeType === GlobalRecipe.recipeType.GLOBAL) return canDeleteGlobalRecipe.value
   return true // Group recipes can always be deleted
 }
 </script>
@@ -356,7 +349,7 @@ const canDeleteRecipe = (recipe: Recipe) => {
           <template v-slot:body-cell-type="props">
             <q-td :props="props">
               <q-badge
-                v-if="props.row.recipeType === 'global'"
+                v-if="props.row.recipeType === GlobalRecipe.recipeType.GLOBAL"
                 color="primary"
                 label="Global"
               >
@@ -590,7 +583,7 @@ const canDeleteRecipe = (recipe: Recipe) => {
             </div>
 
             <div
-              v-for="(instruction, index) in formInstructions"
+              v-for="(_instruction, index) in formInstructions"
               :key="index"
               class="row q-col-gutter-sm q-mb-sm"
             >

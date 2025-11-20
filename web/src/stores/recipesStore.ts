@@ -1,14 +1,12 @@
 import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
-import { RecipesService, type GlobalRecipe, type GroupRecipe, type CreateGlobalRecipeRequest, type CreateGroupRecipeRequest, ApiError } from '@/api-client'
+import { RecipesService, GlobalRecipe, GroupRecipe, type CreateGlobalRecipeRequest, type CreateGroupRecipeRequest, ApiError } from '@/api-client'
 import { isOnline } from '@/utils/network'
 import { Notify } from 'quasar'
 import { useGroupsStore } from './groupsStore'
 
 // Union type for both recipe types
-export type Recipe = (GlobalRecipe | GroupRecipe) & {
-  recipeType: 'global' | 'group'
-}
+export type Recipe = GlobalRecipe | GroupRecipe
 
 export const useRecipesStore = defineStore('recipes', () => {
   const items = ref<Recipe[]>([])
@@ -33,11 +31,11 @@ export const useRecipesStore = defineStore('recipes', () => {
   })
 
   const globalRecipes = computed(() =>
-    sortedItems.value.filter(recipe => recipe.recipeType === 'global')
+    sortedItems.value.filter(recipe => recipe.recipeType === GlobalRecipe.recipeType.GLOBAL)
   )
 
   const groupRecipes = computed(() =>
-    sortedItems.value.filter(recipe => recipe.recipeType === 'group')
+    sortedItems.value.filter(recipe => recipe.recipeType === GroupRecipe.recipeType.GROUP)
   )
 
   const hasPendingChanges = computed(() => pendingChanges.value.size > 0)
@@ -54,8 +52,8 @@ export const useRecipesStore = defineStore('recipes', () => {
 
       // Combine global and group recipes
       const allRecipes: Recipe[] = [
-        ...(response.globalRecipes || []).map(r => ({ ...r, recipeType: 'global' as const })),
-        ...(response.groupRecipes || []).map(r => ({ ...r, recipeType: 'group' as const }))
+        ...(response.globalRecipes || []),
+        ...(response.groupRecipes || [])
       ]
 
       items.value = allRecipes
@@ -78,10 +76,10 @@ export const useRecipesStore = defineStore('recipes', () => {
   async function addGlobalRecipe(recipeData: CreateGlobalRecipeRequest) {
     const tempId = `temp_${Date.now()}`
 
-    const tempRecipe: Recipe = {
+    const tempRecipe: GlobalRecipe = {
       _id: tempId,
       ...recipeData,
-      recipeType: 'global',
+      recipeType: GlobalRecipe.recipeType.GLOBAL,
       userId: 'current-user',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
@@ -94,7 +92,7 @@ export const useRecipesStore = defineStore('recipes', () => {
         const savedRecipe = await RecipesService.postApiRecipesGlobal(recipeData)
         const index = items.value.findIndex((r: Recipe) => r._id === tempId)
         if (index !== -1) {
-          items.value[index] = { ...savedRecipe, recipeType: 'global' }
+          items.value[index] = savedRecipe
         }
         lastSynced.value = new Date()
       } catch (error: any) {
@@ -121,10 +119,10 @@ export const useRecipesStore = defineStore('recipes', () => {
   async function addGroupRecipe(recipeData: CreateGroupRecipeRequest) {
     const tempId = `temp_${Date.now()}`
 
-    const tempRecipe: Recipe = {
+    const tempRecipe: GroupRecipe = {
       _id: tempId,
       ...recipeData,
-      recipeType: 'group',
+      recipeType: GroupRecipe.recipeType.GROUP,
       groupId: groupsStore.currentGroupId || 'temp-group',
       userId: 'current-user',
       createdAt: new Date().toISOString(),
@@ -138,7 +136,7 @@ export const useRecipesStore = defineStore('recipes', () => {
         const savedRecipe = await RecipesService.postApiRecipesGroup(recipeData)
         const index = items.value.findIndex((r: Recipe) => r._id === tempId)
         if (index !== -1) {
-          items.value[index] = { ...savedRecipe, recipeType: 'group' }
+          items.value[index] = savedRecipe
         }
         lastSynced.value = new Date()
       } catch (error: any) {
@@ -170,12 +168,12 @@ export const useRecipesStore = defineStore('recipes', () => {
       if (isOnline() && !id.startsWith('temp_')) {
         try {
           let updatedRecipe: any
-          if (recipe.recipeType === 'global') {
+          if (recipe.recipeType === GlobalRecipe.recipeType.GLOBAL) {
             updatedRecipe = await RecipesService.putApiRecipesGlobal(id, updates as any)
-            Object.assign(recipe, updatedRecipe, { recipeType: 'global' })
+            Object.assign(recipe, updatedRecipe)
           } else {
             updatedRecipe = await RecipesService.putApiRecipesGroup(id, updates as any)
-            Object.assign(recipe, updatedRecipe, { recipeType: 'group' })
+            Object.assign(recipe, updatedRecipe)
           }
           pendingChanges.value.delete(id)
           lastSynced.value = new Date()
@@ -195,11 +193,13 @@ export const useRecipesStore = defineStore('recipes', () => {
     const index = items.value.findIndex((r: Recipe) => r._id === id)
     if (index !== -1) {
       const recipe = items.value[index]
+      if (!recipe) return
+
       items.value.splice(index, 1)
 
       if (isOnline() && !id.startsWith('temp_')) {
         try {
-          if (recipe.recipeType === 'global') {
+          if (recipe.recipeType === GlobalRecipe.recipeType.GLOBAL) {
             await RecipesService.deleteApiRecipesGlobal(id)
           } else {
             await RecipesService.deleteApiRecipesGroup(id)
@@ -232,28 +232,28 @@ export const useRecipesStore = defineStore('recipes', () => {
         if (action === 'create' && recipe) {
           const { _id, userId, createdAt, updatedAt, ...recipeData } = recipe as any
 
-          if (recipe.recipeType === 'global') {
+          if (recipe.recipeType === GlobalRecipe.recipeType.GLOBAL) {
             const savedRecipe = await RecipesService.postApiRecipesGlobal(recipeData)
             const index = items.value.findIndex((r: Recipe) => r._id === id)
             if (index !== -1) {
-              items.value[index] = { ...savedRecipe, recipeType: 'global' }
+              items.value[index] = savedRecipe
             }
           } else {
             const savedRecipe = await RecipesService.postApiRecipesGroup(recipeData)
             const index = items.value.findIndex((r: Recipe) => r._id === id)
             if (index !== -1) {
-              items.value[index] = { ...savedRecipe, recipeType: 'group' }
+              items.value[index] = savedRecipe
             }
           }
         } else if (action === 'update' && recipe && !id.startsWith('temp_')) {
           const { _id, recipeType, ...updates } = recipe as any
-          if (recipe.recipeType === 'global') {
+          if (recipe.recipeType === GlobalRecipe.recipeType.GLOBAL) {
             await RecipesService.putApiRecipesGlobal(id, updates)
           } else {
             await RecipesService.putApiRecipesGroup(id, updates)
           }
         } else if (action === 'delete' && recipe && !id.startsWith('temp_')) {
-          if (recipe.recipeType === 'global') {
+          if (recipe.recipeType === GlobalRecipe.recipeType.GLOBAL) {
             await RecipesService.deleteApiRecipesGlobal(id)
           } else {
             await RecipesService.deleteApiRecipesGroup(id)
