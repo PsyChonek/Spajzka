@@ -303,6 +303,13 @@
             "type": "string",
             "description": "Barcode"
           },
+          "searchNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Additional names for search"
+          },
           "isActive": {
             "type": "boolean",
             "description": "Whether item is active"
@@ -348,6 +355,13 @@
             "type": "string",
             "description": "Barcode"
           },
+          "searchNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Additional names for search"
+          },
           "createdBy": {
             "type": "string",
             "description": "User ID who created this item"
@@ -380,6 +394,13 @@
           },
           "barcode": {
             "type": "string"
+          },
+          "searchNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Additional names for search"
           }
         },
         "required": [
@@ -404,6 +425,13 @@
           },
           "barcode": {
             "type": "string"
+          },
+          "searchNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Additional names for search"
           }
         },
         "required": [

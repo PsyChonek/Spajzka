@@ -8,6 +8,7 @@ export interface ItemFormData {
   defaultUnit?: string
   category?: string
   icon?: string
+  searchNames?: string[]
   isGlobal?: boolean
 }
 
@@ -49,6 +50,7 @@ const formQuantity = ref<number | undefined>()
 const formDefaultUnit = ref('pcs')
 const formCategory = ref('')
 const formIcon = ref('')
+const formSearchNames = ref('')
 const formIsGlobal = ref(false)
 
 // Input refs for focusing
@@ -66,6 +68,7 @@ watch(() => props.initialData, (newData) => {
     formDefaultUnit.value = newData.defaultUnit || 'pcs'
     formCategory.value = newData.category || ''
     formIcon.value = newData.icon || ''
+    formSearchNames.value = Array.isArray(newData.searchNames) ? newData.searchNames.join(', ') : ''
     formIsGlobal.value = newData.isGlobal || false
   }
 }, { immediate: true })
@@ -104,6 +107,14 @@ const handleSave = () => {
     icon: formIcon.value.trim() || undefined
   }
 
+  // Parse searchNames from comma-separated string
+  if (formSearchNames.value.trim()) {
+    data.searchNames = formSearchNames.value
+      .split(',')
+      .map(name => name.trim())
+      .filter(name => name.length > 0)
+  }
+
   // Include quantity only if pantry fields are shown
   if (props.showPantryFields) {
     data.quantity = formQuantity.value
@@ -125,6 +136,7 @@ const resetForm = () => {
   formDefaultUnit.value = 'pcs'
   formCategory.value = ''
   formIcon.value = ''
+  formSearchNames.value = ''
   formIsGlobal.value = false
 }
 
@@ -189,6 +201,17 @@ const handleDelete = () => {
           outlined
           label="Icon (emoji)"
           placeholder="e.g., 🥛, 🥕, 🍎"
+          class="q-mb-md"
+          :readonly="readonlyItemFields"
+          :disable="readonlyItemFields"
+        />
+
+        <q-input
+          v-model="formSearchNames"
+          outlined
+          label="Additional Search Names"
+          placeholder="e.g., tomato, tomate, rajčica"
+          hint="Comma-separated alternative names for search"
           class="q-mb-md"
           :readonly="readonlyItemFields"
           :disable="readonlyItemFields"

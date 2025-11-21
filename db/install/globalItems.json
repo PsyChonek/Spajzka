@@ -8,6 +8,7 @@
 			"category": "Dairy",
 			"defaultUnit": "L",
 			"icon": "🥛",
+			"searchNames": ["mleko", "mléko", "leche"],
 			"isActive": true,
 			"createdAt": {
 				"$date": "2025-01-01T00:00:00.000Z"
@@ -21,6 +22,7 @@
 			"category": "Bakery",
 			"defaultUnit": "pcs",
 			"icon": "🍞",
+			"searchNames": ["chléb", "chleb", "pan"],
 			"isActive": true,
 			"createdAt": {
 				"$date": "2025-01-01T00:00:00.000Z"
@@ -73,6 +75,7 @@
 			"category": "Vegetables",
 			"defaultUnit": "kg",
 			"icon": "🍅",
+			"searchNames": ["tomato", "rajčata", "rajčice", "tomate"],
 			"isActive": true,
 			"createdAt": {
 				"$date": "2025-01-01T00:00:00.000Z"
@@ -86,6 +89,7 @@
 			"category": "Vegetables",
 			"defaultUnit": "kg",
 			"icon": "🥔",
+			"searchNames": ["potato", "brambory", "krumpir", "patatas"],
 			"isActive": true,
 			"createdAt": {
 				"$date": "2025-01-01T00:00:00.000Z"
@@ -151,6 +155,7 @@
 			"category": "Grains",
 			"defaultUnit": "g",
 			"icon": "🍝",
+			"searchNames": ["těstoviny", "noodles", "macaroni"],
 			"isActive": true,
 			"createdAt": {
 				"$date": "2025-01-01T00:00:00.000Z"

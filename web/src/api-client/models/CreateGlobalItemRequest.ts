@@ -8,5 +8,9 @@ export type CreateGlobalItemRequest = {
     icon?: string;
     defaultUnit?: string;
     barcode?: string;
+    /**
+     * Additional names for search
+     */
+    searchNames?: Array<string>;
 };
 

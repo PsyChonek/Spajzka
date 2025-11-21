@@ -108,7 +108,8 @@ const filteredItems = computed(() => {
   return itemsStore.sortedItems.filter(item =>
     item.name.toLowerCase().includes(query) ||
     (item.defaultUnit && item.defaultUnit.toLowerCase().includes(query)) ||
-    (item.category && item.category.toLowerCase().includes(query))
+    (item.category && item.category.toLowerCase().includes(query)) ||
+    (item.searchNames && item.searchNames.some(name => name.toLowerCase().includes(query)))
   )
 })
 
@@ -152,7 +153,8 @@ const openEditDialog = (item: Item, field: 'name' | 'icon' | 'unit' | 'category'
     name: item.name,
     defaultUnit: item.defaultUnit,
     category: item.category || '',
-    icon: item.icon || ''
+    icon: item.icon || '',
+    searchNames: item.searchNames || []
   }
   showEditDialog.value = true
 }
@@ -164,14 +166,16 @@ const saveNewItem = async (data: ItemFormData) => {
       name: data.name,
       category: data.category || 'Other',
       defaultUnit: data.defaultUnit || 'pcs',
-      icon: data.icon
+      icon: data.icon,
+      searchNames: data.searchNames
     })
   } else {
     await itemsStore.addGroupItem({
       name: data.name,
       category: data.category || 'Other',
       defaultUnit: data.defaultUnit || 'pcs',
-      icon: data.icon
+      icon: data.icon,
+      searchNames: data.searchNames
     })
   }
   searchQuery.value = ''
@@ -183,7 +187,8 @@ const saveEditedItem = async (data: ItemFormData) => {
       name: data.name,
       category: data.category || 'Other',
       defaultUnit: data.defaultUnit || 'pcs',
-      icon: data.icon
+      icon: data.icon,
+      searchNames: data.searchNames
     }
 
     // Update based on item type

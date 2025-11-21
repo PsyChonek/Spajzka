@@ -28,6 +28,10 @@ export type GlobalItem = {
      */
     barcode?: string;
     /**
+     * Additional names for search
+     */
+    searchNames?: Array<string>;
+    /**
      * Whether item is active
      */
     isActive?: boolean;

@@ -83,7 +83,8 @@ const suggestedItems = computed(() => {
       // Include if it matches the query and isn't already in shopping list (exact match, case-insensitive)
       return (
         (itemNameLower.includes(query) ||
-         (item.category && item.category.toLowerCase().trim().includes(query))) &&
+         (item.category && item.category.toLowerCase().trim().includes(query)) ||
+         (item.searchNames && item.searchNames.some(name => name.toLowerCase().includes(query)))) &&
         !shoppingItemNames.includes(itemNameLower)
       )
     })

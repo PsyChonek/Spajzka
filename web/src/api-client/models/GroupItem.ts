@@ -32,6 +32,10 @@ export type GroupItem = {
      */
     barcode?: string;
     /**
+     * Additional names for search
+     */
+    searchNames?: Array<string>;
+    /**
      * User ID who created this item
      */
     createdBy?: string;
