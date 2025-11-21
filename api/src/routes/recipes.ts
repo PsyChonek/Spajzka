@@ -2,7 +2,7 @@ import { Router, Response } from 'express';
 import { getDatabase } from '../config/database';
 import { ObjectId } from 'mongodb';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
-import { requirePermission } from '../rbac/middleware';
+import { requirePermission, requireGlobalPermission } from '../rbac/middleware';
 
 const router = Router();
 
@@ -326,7 +326,7 @@ router.get('/recipes/global', authMiddleware, async (req: AuthRequest, res: Resp
  *       403:
  *         description: Insufficient permissions
  */
-router.post('/recipes/global', authMiddleware, requirePermission('global_recipes:create'), async (req: AuthRequest, res: Response) => {
+router.post('/recipes/global', authMiddleware, requireGlobalPermission('global_recipes:create'), async (req: AuthRequest, res: Response) => {
   try {
     const db = getDatabase();
     const { name, description, icon, servings, ingredients, instructions } = req.body;
@@ -415,7 +415,7 @@ router.post('/recipes/global', authMiddleware, requirePermission('global_recipes
  *       403:
  *         description: Insufficient permissions
  */
-router.put('/recipes/global/:id', authMiddleware, requirePermission('global_recipes:update'), async (req: AuthRequest, res: Response) => {
+router.put('/recipes/global/:id', authMiddleware, requireGlobalPermission('global_recipes:update'), async (req: AuthRequest, res: Response) => {
   try {
     const db = getDatabase();
     const { id } = req.params;
@@ -500,7 +500,7 @@ router.put('/recipes/global/:id', authMiddleware, requirePermission('global_reci
  *       403:
  *         description: Insufficient permissions
  */
-router.delete('/recipes/global/:id', authMiddleware, requirePermission('global_recipes:delete'), async (req: AuthRequest, res: Response) => {
+router.delete('/recipes/global/:id', authMiddleware, requireGlobalPermission('global_recipes:delete'), async (req: AuthRequest, res: Response) => {
   try {
     const db = getDatabase();
     const { id } = req.params;

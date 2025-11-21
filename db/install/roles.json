@@ -67,6 +67,8 @@
 			"permissions": [
 				"group_items:create",
 				"group_recipes:create",
+				"group_recipes:update",
+				"group_recipes:delete",
 				"pantry:create",
 				"pantry:update",
 				"pantry:delete",
