@@ -36,6 +36,7 @@
 			"category": "Dairy",
 			"defaultUnit": "pcs",
 			"icon": "🥚",
+			"searchNames": ["vajíčka", "jaja", "huevos", "jajka"],
 			"isActive": true,
 			"createdAt": {
 				"$date": "2025-01-01T00:00:00.000Z"
@@ -49,6 +50,7 @@
 			"category": "Dairy",
 			"defaultUnit": "g",
 			"icon": "🧈",
+			"searchNames": ["máslo", "maslac", "mantequilla", "masło"],
 			"isActive": true,
 			"createdAt": {
 				"$date": "2025-01-01T00:00:00.000Z"
@@ -62,6 +64,7 @@
 			"category": "Dairy",
 			"defaultUnit": "g",
 			"icon": "🧀",
+			"searchNames": ["sýr", "sir", "queso", "ser"],
 			"isActive": true,
 			"createdAt": {
 				"$date": "2025-01-01T00:00:00.000Z"
@@ -103,6 +106,7 @@
 			"category": "Vegetables",
 			"defaultUnit": "kg",
 			"icon": "🧅",
+			"searchNames": ["cibule", "luk", "cebolla", "cebula"],
 			"isActive": true,
 			"createdAt": {
 				"$date": "2025-01-01T00:00:00.000Z"
@@ -116,6 +120,7 @@
 			"category": "Fruits",
 			"defaultUnit": "kg",
 			"icon": "🍎",
+			"searchNames": ["jablka", "jabuke", "manzanas", "jabłka"],
 			"isActive": true,
 			"createdAt": {
 				"$date": "2025-01-01T00:00:00.000Z"
@@ -129,6 +134,7 @@
 			"category": "Fruits",
 			"defaultUnit": "kg",
 			"icon": "🍌",
+			"searchNames": ["banány", "banane", "plátanos", "banany"],
 			"isActive": true,
 			"createdAt": {
 				"$date": "2025-01-01T00:00:00.000Z"
@@ -142,6 +148,7 @@
 			"category": "Grains",
 			"defaultUnit": "kg",
 			"icon": "🍚",
+			"searchNames": ["rýže", "riža", "arroz", "ryż"],
 			"isActive": true,
 			"createdAt": {
 				"$date": "2025-01-01T00:00:00.000Z"
@@ -169,6 +176,7 @@
 			"category": "Meat",
 			"defaultUnit": "kg",
 			"icon": "🍗",
+			"searchNames": ["kuře", "piletina", "pollo", "kurczak"],
 			"isActive": true,
 			"createdAt": {
 				"$date": "2025-01-01T00:00:00.000Z"
@@ -182,6 +190,7 @@
 			"category": "Meat",
 			"defaultUnit": "kg",
 			"icon": "🥩",
+			"searchNames": ["hovězí", "govedina", "carne de res", "wołowina"],
 			"isActive": true,
 			"createdAt": {
 				"$date": "2025-01-01T00:00:00.000Z"
@@ -195,6 +204,189 @@
 			"category": "Seafood",
 			"defaultUnit": "kg",
 			"icon": "🐟",
+			"searchNames": ["ryba", "riba", "pescado", "ryby"],
+			"isActive": true,
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "000000000000000000000010"
+			},
+			"name": "Sugar",
+			"category": "Pantry",
+			"defaultUnit": "kg",
+			"icon": "🍬",
+			"searchNames": ["cukr", "šećer", "azúcar", "cukier"],
+			"isActive": true,
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "000000000000000000000011"
+			},
+			"name": "Salt",
+			"category": "Pantry",
+			"defaultUnit": "kg",
+			"icon": "🧂",
+			"searchNames": ["sůl", "sol", "sal", "sól"],
+			"isActive": true,
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "000000000000000000000012"
+			},
+			"name": "Flour",
+			"category": "Pantry",
+			"defaultUnit": "kg",
+			"icon": "🌾",
+			"searchNames": ["mouka", "brašno", "harina", "mąka"],
+			"isActive": true,
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "000000000000000000000013"
+			},
+			"name": "Oil",
+			"category": "Pantry",
+			"defaultUnit": "L",
+			"icon": "🫒",
+			"searchNames": ["olej", "ulje", "aceite", "olej"],
+			"isActive": true,
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "000000000000000000000014"
+			},
+			"name": "Coffee",
+			"category": "Beverages",
+			"defaultUnit": "g",
+			"icon": "☕",
+			"searchNames": ["káva", "kava", "café", "kawa"],
+			"isActive": true,
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "000000000000000000000015"
+			},
+			"name": "Tea",
+			"category": "Beverages",
+			"defaultUnit": "g",
+			"icon": "🍵",
+			"searchNames": ["čaj", "čaj", "té", "herbata"],
+			"isActive": true,
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "000000000000000000000016"
+			},
+			"name": "Yogurt",
+			"category": "Dairy",
+			"defaultUnit": "g",
+			"icon": "🥛",
+			"searchNames": ["jogurt", "jogurt", "yogur", "jogurt"],
+			"isActive": true,
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "000000000000000000000017"
+			},
+			"name": "Carrots",
+			"category": "Vegetables",
+			"defaultUnit": "kg",
+			"icon": "🥕",
+			"searchNames": ["mrkev", "mrkva", "zanahorias", "marchew"],
+			"isActive": true,
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "000000000000000000000018"
+			},
+			"name": "Cucumbers",
+			"category": "Vegetables",
+			"defaultUnit": "kg",
+			"icon": "🥒",
+			"searchNames": ["okurky", "krastavci", "pepinos", "ogórki"],
+			"isActive": true,
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "000000000000000000000019"
+			},
+			"name": "Garlic",
+			"category": "Vegetables",
+			"defaultUnit": "pcs",
+			"icon": "🧄",
+			"searchNames": ["česnek", "češnjak", "ajo", "czosnek"],
+			"isActive": true,
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "00000000000000000000001a"
+			},
+			"name": "Oranges",
+			"category": "Fruits",
+			"defaultUnit": "kg",
+			"icon": "🍊",
+			"searchNames": ["pomeranče", "naranče", "naranjas", "pomarańcze"],
+			"isActive": true,
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "00000000000000000000001b"
+			},
+			"name": "Pork",
+			"category": "Meat",
+			"defaultUnit": "kg",
+			"icon": "🥓",
+			"searchNames": ["vepřové", "svinjetina", "cerdo", "wieprzowina"],
+			"isActive": true,
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "00000000000000000000001c"
+			},
+			"name": "Chocolate",
+			"category": "Sweets",
+			"defaultUnit": "g",
+			"icon": "🍫",
+			"searchNames": ["čokoláda", "čokolada", "chocolate", "czekolada"],
 			"isActive": true,
 			"createdAt": {
 				"$date": "2025-01-01T00:00:00.000Z"

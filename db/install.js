@@ -84,6 +84,27 @@ async function installSystemData() {
       console.log(`✓ Global items: ${itemsInserted} inserted, ${itemsUpdated} updated, ${globalItems.length - itemsInserted - itemsUpdated} unchanged`);
     }
 
+    // Install global recipes (upsert to update existing ones)
+    const globalRecipesPath = path.join(__dirname, 'install', 'globalRecipes.json');
+    const globalRecipesData = JSON.parse(fs.readFileSync(globalRecipesPath, 'utf-8'));
+    if (globalRecipesData.recipes && globalRecipesData.recipes.length > 0) {
+      const globalRecipes = globalRecipesData.recipes.map(parseExtendedJSON);
+
+      let recipesInserted = 0;
+      let recipesUpdated = 0;
+      for (const recipe of globalRecipes) {
+        const result = await db.collection('recipes').updateOne(
+          { _id: recipe._id },
+          { $set: recipe },
+          { upsert: true }
+        );
+        if (result.upsertedCount > 0) recipesInserted++;
+        if (result.modifiedCount > 0) recipesUpdated++;
+      }
+
+      console.log(`✓ Global recipes: ${recipesInserted} inserted, ${recipesUpdated} updated, ${globalRecipes.length - recipesInserted - recipesUpdated} unchanged`);
+    }
+
     console.log('System installation completed successfully!');
   } catch (error) {
     console.error('Error installing system data:', error);

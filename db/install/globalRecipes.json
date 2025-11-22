@@ -1,0 +1,633 @@
+{
+	"recipes": [
+		{
+			"_id": {
+				"$oid": "100000000000000000000001"
+			},
+			"name": "Scrambled Eggs with Cheese",
+			"description": "Quick and easy breakfast classic",
+			"icon": "🍳",
+			"recipeType": "global",
+			"userId": {
+				"$oid": "000000000000000000000000"
+			},
+			"servings": 2,
+			"ingredients": [
+				{
+					"itemId": "000000000000000000000003",
+					"itemName": "Eggs",
+					"quantity": 4,
+					"unit": "pcs"
+				},
+				{
+					"itemId": "000000000000000000000005",
+					"itemName": "Cheese",
+					"quantity": 50,
+					"unit": "g"
+				},
+				{
+					"itemId": "000000000000000000000004",
+					"itemName": "Butter",
+					"quantity": 20,
+					"unit": "g"
+				},
+				{
+					"itemId": "000000000000000000000011",
+					"itemName": "Salt",
+					"quantity": 2,
+					"unit": "g"
+				}
+			],
+			"instructions": [
+				"Beat the eggs in a bowl with a pinch of salt",
+				"Melt butter in a non-stick pan over medium heat",
+				"Pour in the eggs and let them sit for a few seconds",
+				"Gently stir with a spatula, creating soft curds",
+				"When eggs are almost set, add grated cheese",
+				"Remove from heat and serve immediately"
+			],
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			},
+			"updatedAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "100000000000000000000002"
+			},
+			"name": "Chicken Rice Bowl",
+			"description": "Simple one-bowl meal with protein and grains",
+			"icon": "🍚",
+			"recipeType": "global",
+			"userId": {
+				"$oid": "000000000000000000000000"
+			},
+			"servings": 4,
+			"ingredients": [
+				{
+					"itemId": "00000000000000000000000d",
+					"itemName": "Chicken",
+					"quantity": 0.5,
+					"unit": "kg"
+				},
+				{
+					"itemId": "00000000000000000000000b",
+					"itemName": "Rice",
+					"quantity": 0.3,
+					"unit": "kg"
+				},
+				{
+					"itemId": "000000000000000000000008",
+					"itemName": "Onions",
+					"quantity": 0.2,
+					"unit": "kg"
+				},
+				{
+					"itemId": "000000000000000000000019",
+					"itemName": "Garlic",
+					"quantity": 3,
+					"unit": "pcs"
+				},
+				{
+					"itemId": "000000000000000000000013",
+					"itemName": "Oil",
+					"quantity": 50,
+					"unit": "ml"
+				},
+				{
+					"itemId": "000000000000000000000011",
+					"itemName": "Salt",
+					"quantity": 5,
+					"unit": "g"
+				}
+			],
+			"instructions": [
+				"Cook rice according to package instructions",
+				"Cut chicken into bite-sized pieces",
+				"Dice onions and mince garlic",
+				"Heat oil in a large pan over medium-high heat",
+				"Cook chicken until golden brown, season with salt",
+				"Add onions and garlic, sauté until fragrant",
+				"Serve chicken mixture over cooked rice"
+			],
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			},
+			"updatedAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "100000000000000000000003"
+			},
+			"name": "Tomato Pasta",
+			"description": "Classic Italian pasta with fresh tomato sauce",
+			"icon": "🍝",
+			"recipeType": "global",
+			"userId": {
+				"$oid": "000000000000000000000000"
+			},
+			"servings": 4,
+			"ingredients": [
+				{
+					"itemId": "00000000000000000000000c",
+					"itemName": "Pasta",
+					"quantity": 400,
+					"unit": "g"
+				},
+				{
+					"itemId": "000000000000000000000006",
+					"itemName": "Tomatoes",
+					"quantity": 0.6,
+					"unit": "kg"
+				},
+				{
+					"itemId": "000000000000000000000019",
+					"itemName": "Garlic",
+					"quantity": 4,
+					"unit": "pcs"
+				},
+				{
+					"itemId": "000000000000000000000008",
+					"itemName": "Onions",
+					"quantity": 0.15,
+					"unit": "kg"
+				},
+				{
+					"itemId": "000000000000000000000013",
+					"itemName": "Oil",
+					"quantity": 60,
+					"unit": "ml"
+				},
+				{
+					"itemId": "000000000000000000000011",
+					"itemName": "Salt",
+					"quantity": 5,
+					"unit": "g"
+				}
+			],
+			"instructions": [
+				"Bring a large pot of salted water to boil for pasta",
+				"Dice tomatoes, onions, and mince garlic",
+				"Heat olive oil in a large pan",
+				"Sauté onions until translucent, add garlic",
+				"Add tomatoes and simmer for 15-20 minutes",
+				"Cook pasta according to package directions",
+				"Season sauce with salt to taste",
+				"Drain pasta and toss with tomato sauce",
+				"Serve hot, optionally top with cheese"
+			],
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			},
+			"updatedAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "100000000000000000000004"
+			},
+			"name": "Beef Stir-Fry with Vegetables",
+			"description": "Quick and healthy stir-fry dinner",
+			"icon": "🥩",
+			"recipeType": "global",
+			"userId": {
+				"$oid": "000000000000000000000000"
+			},
+			"servings": 4,
+			"ingredients": [
+				{
+					"itemId": "00000000000000000000000e",
+					"itemName": "Beef",
+					"quantity": 0.5,
+					"unit": "kg"
+				},
+				{
+					"itemId": "000000000000000000000008",
+					"itemName": "Onions",
+					"quantity": 0.2,
+					"unit": "kg"
+				},
+				{
+					"itemId": "000000000000000000000017",
+					"itemName": "Carrots",
+					"quantity": 0.3,
+					"unit": "kg"
+				},
+				{
+					"itemId": "000000000000000000000019",
+					"itemName": "Garlic",
+					"quantity": 3,
+					"unit": "pcs"
+				},
+				{
+					"itemId": "000000000000000000000013",
+					"itemName": "Oil",
+					"quantity": 40,
+					"unit": "ml"
+				},
+				{
+					"itemId": "000000000000000000000011",
+					"itemName": "Salt",
+					"quantity": 5,
+					"unit": "g"
+				}
+			],
+			"instructions": [
+				"Slice beef into thin strips",
+				"Cut onions into wedges, slice carrots, mince garlic",
+				"Heat oil in a wok or large pan over high heat",
+				"Stir-fry beef until browned, remove and set aside",
+				"Add more oil if needed, stir-fry vegetables until crisp-tender",
+				"Return beef to the pan, season with salt",
+				"Toss everything together for 1-2 minutes",
+				"Serve immediately with rice"
+			],
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			},
+			"updatedAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "100000000000000000000005"
+			},
+			"name": "Baked Fish with Vegetables",
+			"description": "Healthy oven-baked fish dinner",
+			"icon": "🐟",
+			"recipeType": "global",
+			"userId": {
+				"$oid": "000000000000000000000000"
+			},
+			"servings": 4,
+			"ingredients": [
+				{
+					"itemId": "00000000000000000000000f",
+					"itemName": "Fish",
+					"quantity": 0.8,
+					"unit": "kg"
+				},
+				{
+					"itemId": "000000000000000000000006",
+					"itemName": "Tomatoes",
+					"quantity": 0.4,
+					"unit": "kg"
+				},
+				{
+					"itemId": "000000000000000000000008",
+					"itemName": "Onions",
+					"quantity": 0.2,
+					"unit": "kg"
+				},
+				{
+					"itemId": "000000000000000000000019",
+					"itemName": "Garlic",
+					"quantity": 4,
+					"unit": "pcs"
+				},
+				{
+					"itemId": "000000000000000000000013",
+					"itemName": "Oil",
+					"quantity": 50,
+					"unit": "ml"
+				},
+				{
+					"itemId": "000000000000000000000011",
+					"itemName": "Salt",
+					"quantity": 5,
+					"unit": "g"
+				}
+			],
+			"instructions": [
+				"Preheat oven to 180°C (350°F)",
+				"Clean and pat dry fish fillets",
+				"Slice tomatoes, onions, and mince garlic",
+				"Place fish in an oiled baking dish",
+				"Season fish with salt",
+				"Arrange vegetables around and on top of fish",
+				"Drizzle with olive oil",
+				"Bake for 25-30 minutes until fish is cooked through",
+				"Serve hot with bread or rice"
+			],
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			},
+			"updatedAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "100000000000000000000006"
+			},
+			"name": "Pancakes",
+			"description": "Fluffy breakfast pancakes",
+			"icon": "🥞",
+			"recipeType": "global",
+			"userId": {
+				"$oid": "000000000000000000000000"
+			},
+			"servings": 4,
+			"ingredients": [
+				{
+					"itemId": "000000000000000000000012",
+					"itemName": "Flour",
+					"quantity": 0.25,
+					"unit": "kg"
+				},
+				{
+					"itemId": "000000000000000000000003",
+					"itemName": "Eggs",
+					"quantity": 2,
+					"unit": "pcs"
+				},
+				{
+					"itemId": "000000000000000000000001",
+					"itemName": "Milk",
+					"quantity": 0.3,
+					"unit": "L"
+				},
+				{
+					"itemId": "000000000000000000000010",
+					"itemName": "Sugar",
+					"quantity": 30,
+					"unit": "g"
+				},
+				{
+					"itemId": "000000000000000000000004",
+					"itemName": "Butter",
+					"quantity": 30,
+					"unit": "g"
+				},
+				{
+					"itemId": "000000000000000000000011",
+					"itemName": "Salt",
+					"quantity": 2,
+					"unit": "g"
+				}
+			],
+			"instructions": [
+				"Mix flour, sugar, and salt in a large bowl",
+				"In another bowl, whisk eggs and milk together",
+				"Pour wet ingredients into dry ingredients",
+				"Stir until just combined (lumps are okay)",
+				"Melt butter and add to batter",
+				"Heat a non-stick pan over medium heat",
+				"Pour batter to form pancakes",
+				"Cook until bubbles form, then flip",
+				"Cook other side until golden brown",
+				"Serve with your favorite toppings"
+			],
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			},
+			"updatedAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "100000000000000000000007"
+			},
+			"name": "Apple Cinnamon Yogurt Bowl",
+			"description": "Healthy breakfast or snack",
+			"icon": "🍎",
+			"recipeType": "global",
+			"userId": {
+				"$oid": "000000000000000000000000"
+			},
+			"servings": 2,
+			"ingredients": [
+				{
+					"itemId": "000000000000000000000016",
+					"itemName": "Yogurt",
+					"quantity": 400,
+					"unit": "g"
+				},
+				{
+					"itemId": "000000000000000000000009",
+					"itemName": "Apples",
+					"quantity": 0.3,
+					"unit": "kg"
+				},
+				{
+					"itemId": "000000000000000000000010",
+					"itemName": "Sugar",
+					"quantity": 20,
+					"unit": "g"
+				},
+				{
+					"itemName": "Cinnamon",
+					"quantity": 2,
+					"unit": "g"
+				}
+			],
+			"instructions": [
+				"Wash and dice apples into small cubes",
+				"Divide yogurt into serving bowls",
+				"Top with diced apples",
+				"Sprinkle with sugar and cinnamon",
+				"Mix gently or serve layered",
+				"Enjoy immediately"
+			],
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			},
+			"updatedAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "100000000000000000000008"
+			},
+			"name": "Vegetable Soup",
+			"description": "Hearty and healthy vegetable soup",
+			"icon": "🥣",
+			"recipeType": "global",
+			"userId": {
+				"$oid": "000000000000000000000000"
+			},
+			"servings": 6,
+			"ingredients": [
+				{
+					"itemId": "000000000000000000000007",
+					"itemName": "Potatoes",
+					"quantity": 0.5,
+					"unit": "kg"
+				},
+				{
+					"itemId": "000000000000000000000017",
+					"itemName": "Carrots",
+					"quantity": 0.3,
+					"unit": "kg"
+				},
+				{
+					"itemId": "000000000000000000000008",
+					"itemName": "Onions",
+					"quantity": 0.2,
+					"unit": "kg"
+				},
+				{
+					"itemId": "000000000000000000000006",
+					"itemName": "Tomatoes",
+					"quantity": 0.3,
+					"unit": "kg"
+				},
+				{
+					"itemId": "000000000000000000000019",
+					"itemName": "Garlic",
+					"quantity": 3,
+					"unit": "pcs"
+				},
+				{
+					"itemId": "000000000000000000000013",
+					"itemName": "Oil",
+					"quantity": 40,
+					"unit": "ml"
+				},
+				{
+					"itemId": "000000000000000000000011",
+					"itemName": "Salt",
+					"quantity": 8,
+					"unit": "g"
+				},
+				{
+					"itemName": "Water",
+					"quantity": 1.5,
+					"unit": "L"
+				}
+			],
+			"instructions": [
+				"Peel and dice potatoes, carrots, and onions",
+				"Dice tomatoes and mince garlic",
+				"Heat oil in a large pot",
+				"Sauté onions until translucent",
+				"Add garlic and cook for 1 minute",
+				"Add all vegetables and water",
+				"Bring to boil, then reduce heat and simmer for 30 minutes",
+				"Season with salt to taste",
+				"Serve hot with bread"
+			],
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			},
+			"updatedAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "100000000000000000000009"
+			},
+			"name": "Grilled Cheese Sandwich",
+			"description": "Classic comfort food sandwich",
+			"icon": "🥪",
+			"recipeType": "global",
+			"userId": {
+				"$oid": "000000000000000000000000"
+			},
+			"servings": 2,
+			"ingredients": [
+				{
+					"itemId": "000000000000000000000002",
+					"itemName": "Bread",
+					"quantity": 4,
+					"unit": "pcs"
+				},
+				{
+					"itemId": "000000000000000000000005",
+					"itemName": "Cheese",
+					"quantity": 100,
+					"unit": "g"
+				},
+				{
+					"itemId": "000000000000000000000004",
+					"itemName": "Butter",
+					"quantity": 40,
+					"unit": "g"
+				}
+			],
+			"instructions": [
+				"Slice cheese thinly",
+				"Butter one side of each bread slice",
+				"Place cheese between two slices, butter side out",
+				"Heat a pan over medium heat",
+				"Grill sandwich until golden brown on both sides",
+				"Cheese should be melted and gooey",
+				"Cut in half and serve hot"
+			],
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			},
+			"updatedAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "10000000000000000000000a"
+			},
+			"name": "Banana Chocolate Smoothie",
+			"description": "Quick and nutritious smoothie",
+			"icon": "🍌",
+			"recipeType": "global",
+			"userId": {
+				"$oid": "000000000000000000000000"
+			},
+			"servings": 2,
+			"ingredients": [
+				{
+					"itemId": "00000000000000000000000a",
+					"itemName": "Bananas",
+					"quantity": 0.3,
+					"unit": "kg"
+				},
+				{
+					"itemId": "000000000000000000000001",
+					"itemName": "Milk",
+					"quantity": 0.4,
+					"unit": "L"
+				},
+				{
+					"itemId": "000000000000000000000016",
+					"itemName": "Yogurt",
+					"quantity": 100,
+					"unit": "g"
+				},
+				{
+					"itemId": "00000000000000000000001c",
+					"itemName": "Chocolate",
+					"quantity": 30,
+					"unit": "g"
+				},
+				{
+					"itemId": "000000000000000000000010",
+					"itemName": "Sugar",
+					"quantity": 10,
+					"unit": "g"
+				}
+			],
+			"instructions": [
+				"Peel and slice bananas",
+				"Chop chocolate into small pieces",
+				"Add all ingredients to a blender",
+				"Blend until smooth and creamy",
+				"Taste and adjust sweetness if needed",
+				"Pour into glasses and serve immediately"
+			],
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			},
+			"updatedAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		}
+	]
+}
