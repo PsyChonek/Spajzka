@@ -200,7 +200,7 @@ const handleDelete = () => {
           v-model="formIcon"
           outlined
           label="Icon (emoji)"
-          placeholder="e.g., 🥛, 🥕, 🍎"
+          placeholder="📦"
           class="q-mb-md"
           :readonly="readonlyItemFields"
           :disable="readonlyItemFields"

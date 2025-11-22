@@ -6,6 +6,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { useItemsStore } from '@/stores/itemsStore'
 import PageWrapper from '@/components/PageWrapper.vue'
 import SearchInput from '@/components/SearchInput.vue'
+import AddItemDialog, { type ItemFormData } from '@/components/AddItemDialog.vue'
 import { GlobalRecipe, GroupRecipe, type RecipeIngredient } from '@/api-client'
 
 const $q = useQuasar()
@@ -16,6 +17,9 @@ const itemsStore = useItemsStore()
 const searchQuery = ref('')
 const showRecipeDialog = ref(false)
 const editingRecipe = ref<Recipe | null>(null)
+const showAddItemDialog = ref(false)
+const addItemDialogInitialData = ref<Partial<ItemFormData>>({})
+const currentIngredientIndex = ref<number | null>(null)
 
 // Form fields
 const formName = ref('')
@@ -200,19 +204,8 @@ const handleSaveRecipe = async () => {
   handleCloseDialog()
 }
 
-const handleDeleteRecipe = async (recipe: Recipe) => {
-  if (!recipe._id) return
-
-  $q.dialog({
-    title: 'Delete Recipe',
-    message: `Are you sure you want to delete "${recipe.name}"?`,
-    cancel: true,
-    persistent: false
-  }).onOk(async () => {
-    if (recipe._id) {
-      await recipesStore.deleteRecipe(recipe._id)
-    }
-  })
+const deleteRecipe = (recipeId: string) => {
+  recipesStore.deleteRecipe(recipeId)
 }
 
 const isFormValid = () => {
@@ -237,6 +230,9 @@ const removeIngredient = (index: number) => {
 // Item autocomplete for ingredients
 
 const getItemOptions = (index: number, val: string, update: any) => {
+  // Track the current search value
+  currentIngredientSearchValue.value[index] = val
+
   if (val === '') {
     update(() => {
       // Show top items when no search
@@ -259,6 +255,8 @@ const getItemOptions = (index: number, val: string, update: any) => {
 }
 
 const ingredientOptions = ref<any[][]>([])
+const currentIngredientSearchValue = ref<string[]>([]) // Track search value for each ingredient
+const ingredientSelectRefs = ref<any[]>([]) // Track q-select refs for each ingredient
 
 const handleItemSelect = (index: number, val: any) => {
   const ingredient = formIngredients.value[index]
@@ -296,32 +294,88 @@ const canDeleteRecipe = (recipe: Recipe) => {
   if (recipe.recipeType === GlobalRecipe.recipeType.GLOBAL) return canDeleteGlobalRecipe.value
   return true // Group recipes can always be deleted
 }
+
+const canCreateGlobalItem = computed(() => {
+  return authStore.hasGlobalPermission('global_items:create')
+})
+
+// Handle adding new item from ingredient search
+const openAddItemDialog = (searchValue: string, ingredientIndex?: number) => {
+  addItemDialogInitialData.value = {
+    name: searchValue,
+    defaultUnit: 'pcs',
+    category: '',
+    icon: ''
+  }
+  currentIngredientIndex.value = ingredientIndex !== undefined ? ingredientIndex : null
+  showAddItemDialog.value = true
+}
+
+const handleSaveNewItem = async (data: ItemFormData) => {
+  // Create the item as a global or group item
+  if (data.isGlobal && canCreateGlobalItem.value) {
+    await itemsStore.addGlobalItem({
+      name: data.name,
+      category: data.category || 'Other',
+      icon: data.icon || '📦',
+      defaultUnit: data.defaultUnit || 'pcs',
+      searchNames: data.searchNames || []
+    })
+  } else {
+    await itemsStore.addGroupItem({
+      name: data.name,
+      category: data.category || 'Other',
+      icon: data.icon || '📦',
+      defaultUnit: data.defaultUnit || 'pcs',
+      searchNames: data.searchNames || []
+    })
+  }
+
+  // After creating the item, find it and add it to the current ingredient being edited
+  const newItem = itemsStore.sortedItems.find(item => item.name === data.name)
+  if (newItem && currentIngredientIndex.value !== null) {
+    const ingredient = formIngredients.value[currentIngredientIndex.value]
+    if (ingredient) {
+      ingredient.itemId = newItem._id
+      ingredient.itemName = newItem.name
+      ingredient.unit = newItem.defaultUnit || ingredient.unit || 'pcs'
+    }
+
+    // Close the dropdown for this ingredient
+    const selectRef = ingredientSelectRefs.value[currentIngredientIndex.value]
+    if (selectRef) {
+      selectRef.hidePopup()
+    }
+  }
+
+  // Close the dialog
+  showAddItemDialog.value = false
+
+  $q.notify({
+    type: 'positive',
+    message: `Item "${data.name}" created successfully`
+  })
+}
 </script>
 
 <template>
-  <PageWrapper max-width="1400px">
+  <PageWrapper>
     <div class="recipes-view">
-      <!-- Header -->
-      <div class="view-header q-mb-md">
-        <h4 class="text-h4 q-my-none">Recipes</h4>
-      </div>
-
-      <!-- Search and Add Button -->
-      <div class="search-container q-mb-md">
+    <div class="search-container">
         <SearchInput v-model="searchQuery" placeholder="Search recipes..." />
 
         <div v-if="showAddButton" class="add-button-container q-mt-md">
           <q-btn
             color="primary"
             icon="add"
-            label="Add Recipe"
             @click="openAddDialog"
-          />
+          >
+            <span class="q-ml-xs">Create "{{ searchQuery }}" as a new recipe</span>
+          </q-btn>
         </div>
       </div>
 
-      <!-- Table -->
-      <div class="table-container">
+    <div class="table-container q-mt-lg">
         <q-table
           :rows="displayedRecipes"
           :columns="columns"
@@ -333,7 +387,7 @@ const canDeleteRecipe = (recipe: Recipe) => {
         >
           <template v-slot:body-cell-icon="props">
             <q-td :props="props" class="cursor-pointer" @click="openEditDialog(props.row)">
-              <span class="text-h5">{{ props.row.icon || '🍽️' }}</span>
+              <div class="item-icon">{{ props.row.icon || '🍽️' }}</div>
             </q-td>
           </template>
 
@@ -372,26 +426,32 @@ const canDeleteRecipe = (recipe: Recipe) => {
 
           <template v-slot:body-cell-actions="props">
             <q-td :props="props">
-              <q-btn
-                flat
-                dense
-                round
-                icon="edit"
-                @click="openEditDialog(props.row)"
-                :disable="!canEditRecipe(props.row)"
-              >
-                <q-tooltip>Edit Recipe</q-tooltip>
-              </q-btn>
-              <q-btn
-                flat
-                dense
-                round
-                icon="delete"
-                @click="handleDeleteRecipe(props.row)"
-                :disable="!canDeleteRecipe(props.row)"
-              >
-                <q-tooltip>Delete Recipe</q-tooltip>
-              </q-btn>
+              <div class="action-buttons">
+                <q-btn
+                  flat
+                  dense
+                  round
+                  color="primary"
+                  icon="edit"
+                  size="sm"
+                  @click="openEditDialog(props.row)"
+                  :disable="!canEditRecipe(props.row)"
+                >
+                  <q-tooltip>Edit Recipe</q-tooltip>
+                </q-btn>
+                <q-btn
+                  flat
+                  dense
+                  round
+                  color="negative"
+                  icon="delete"
+                  size="sm"
+                  @click="deleteRecipe(props.row._id)"
+                  :disable="!canDeleteRecipe(props.row)"
+                >
+                  <q-tooltip>Delete recipe</q-tooltip>
+                </q-btn>
+              </div>
             </q-td>
           </template>
 
@@ -403,6 +463,16 @@ const canDeleteRecipe = (recipe: Recipe) => {
           </template>
         </q-table>
       </div>
+
+      <!-- Add Item Dialog -->
+      <AddItemDialog
+        v-model="showAddItemDialog"
+        title="Add New Item"
+        :initial-data="addItemDialogInitialData"
+        :show-pantry-fields="false"
+        :show-global-toggle="canCreateGlobalItem"
+        @save="handleSaveNewItem"
+      />
 
       <!-- Recipe Dialog -->
       <q-dialog v-model="showRecipeDialog" persistent>
@@ -491,6 +561,7 @@ const canDeleteRecipe = (recipe: Recipe) => {
             >
               <div class="col-5">
                 <q-select
+                  :ref="el => { if (el) ingredientSelectRefs[index] = el }"
                   v-model="ingredient.itemName"
                   outlined
                   dense
@@ -508,8 +579,8 @@ const canDeleteRecipe = (recipe: Recipe) => {
                 >
                   <template v-slot:option="scope">
                     <q-item v-bind="scope.itemProps" clickable>
-                      <q-item-section avatar v-if="scope.opt.icon">
-                        <span class="text-h6">{{ scope.opt.icon }}</span>
+                      <q-item-section avatar>
+                        <span class="text-h6">{{ scope.opt.icon || '📦' }}</span>
                       </q-item-section>
                       <q-item-section>
                         <q-item-label>{{ scope.opt.name }}</q-item-label>
@@ -522,12 +593,38 @@ const canDeleteRecipe = (recipe: Recipe) => {
                       </q-item-section>
                     </q-item>
                   </template>
+                  <template v-slot:after-options>
+                    <template v-if="currentIngredientSearchValue[index]">
+                      <q-separator />
+                      <q-item clickable @click="openAddItemDialog(currentIngredientSearchValue[index] || '', index)">
+                        <q-item-section avatar>
+                          <q-icon name="add" color="primary" />
+                        </q-item-section>
+                        <q-item-section>
+                          <q-item-label>Add new item</q-item-label>
+                          <q-item-label caption>Create "{{ currentIngredientSearchValue[index] }}" as a new item</q-item-label>
+                        </q-item-section>
+                      </q-item>
+                    </template>
+                  </template>
                   <template v-slot:no-option>
                     <q-item>
                       <q-item-section class="text-grey">
-                        Start typing to search or add custom ingredient
+                        No items found
                       </q-item-section>
                     </q-item>
+                    <template v-if="currentIngredientSearchValue[index]">
+                      <q-separator />
+                      <q-item clickable @click="openAddItemDialog(currentIngredientSearchValue[index] || '', index)">
+                        <q-item-section avatar>
+                          <q-icon name="add" color="primary" />
+                        </q-item-section>
+                        <q-item-section>
+                          <q-item-label>Add new item</q-item-label>
+                          <q-item-label caption>Create "{{ currentIngredientSearchValue[index] }}" as a new item</q-item-label>
+                        </q-item-section>
+                      </q-item>
+                    </template>
                   </template>
                 </q-select>
               </div>
@@ -632,12 +729,6 @@ const canDeleteRecipe = (recipe: Recipe) => {
 </template>
 
 <style scoped>
-.recipes-view {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
 .search-container {
   display: flex;
   flex-direction: column;
@@ -650,12 +741,92 @@ const canDeleteRecipe = (recipe: Recipe) => {
 }
 
 .table-container {
-  flex: 1;
-  overflow: auto;
+  width: 100%;
 }
 
-/* Mobile responsive */
+.action-buttons {
+  display: flex;
+  gap: 2px;
+  justify-content: center;
+}
+
+.item-icon {
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+/* Table layout */
+:deep(.q-table thead),
+:deep(.q-table tbody),
+:deep(.q-table tr) {
+  width: 100%;
+  display: table;
+  table-layout: fixed;
+}
+
+:deep(.q-table th),
+:deep(.q-table td) {
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+/* Override Quasar's dense padding for first column */
+:deep(.q-table--dense th:first-child),
+:deep(.q-table--dense td:first-child) {
+  padding-left: 8px;
+}
+
+/* Center icon column */
+:deep(.q-table .col-icon) {
+  width: 60px;
+  text-align: center;
+}
+
+/* Desktop column widths */
+:deep(.q-table .col-name) {
+  width: auto;
+}
+
+:deep(.q-table .col-type) {
+  width: 100px;
+}
+
+:deep(.q-table .col-servings) {
+  width: 100px;
+}
+
+:deep(.q-table .col-ingredients) {
+  width: 100px;
+}
+
+:deep(.q-table .col-actions) {
+  width: 120px;
+}
+
+/* Mobile styles */
 @media (max-width: 1023px) {
+  /* Column widths for mobile */
+  :deep(.q-table .col-icon) {
+    width: 15%;
+  }
+
+  :deep(.q-table .col-name) {
+    width: 45%;
+  }
+
+  :deep(.q-table .col-type) {
+    width: 20%;
+  }
+
+  :deep(.q-table .col-servings) {
+    width: 20%;
+  }
+
+  /* Fill viewport height */
   .recipes-view {
     display: flex;
     flex-direction: column;
@@ -675,33 +846,14 @@ const canDeleteRecipe = (recipe: Recipe) => {
     flex-direction: column;
   }
 
+  .table-container :deep(.q-table__container) {
+    flex: 1;
+    min-height: 0;
+  }
+
   .table-container :deep(.q-table__middle) {
     flex: 1;
     overflow-y: auto;
   }
-}
-
-.col-icon {
-  width: 60px;
-}
-
-.col-name {
-  min-width: 200px;
-}
-
-.col-type {
-  width: 100px;
-}
-
-.col-servings {
-  width: 100px;
-}
-
-.col-ingredients {
-  width: 100px;
-}
-
-.col-actions {
-  width: 120px;
 }
 </style>

@@ -270,9 +270,10 @@ const canEditItemFields = computed(() => {
           <q-btn
             color="primary"
             icon="add"
-            label="Add Item"
             @click="openAddDialog"
-          />
+          >
+            <span class="q-ml-xs">Create "{{ searchQuery }}" as a new item</span>
+          </q-btn>
         </div>
       </div>
 
@@ -292,7 +293,7 @@ const canEditItemFields = computed(() => {
               class="cursor-pointer"
               @click="openEditDialog(props.row, 'icon')"
             >
-              <div class="item-icon">{{ props.row.icon || '📋' }}</div>
+              <div class="item-icon">{{ props.row.icon || '📦' }}</div>
             </q-td>
           </template>
           <template v-slot:body-cell-name="props">

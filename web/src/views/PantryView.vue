@@ -296,9 +296,10 @@ const handleDeleteFromDialog = () => {
         <q-btn
           color="primary"
           icon="add"
-          label="Add Item"
           @click="openAddDialog"
-        />
+        >
+          <span class="q-ml-xs">Create "{{ searchQuery }}" as a new item</span>
+        </q-btn>
       </div>
     </div>
 
