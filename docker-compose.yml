@@ -17,7 +17,7 @@ services:
   mongodb-init:
     build:
       context: ./db
-      dockerfile: Dockerfile.init
+      dockerfile: Dockerfile
     container_name: spajzka-mongodb-init
     depends_on:
       - mongodb
