@@ -11,6 +11,7 @@ import pantryRouter from './routes/pantry';
 import shoppingRouter from './routes/shopping';
 import groupsRouter from './routes/groups';
 import recipesRouter from './routes/recipes';
+import rolesRouter from './routes/roles';
 
 // Load environment variables
 dotenv.config();
@@ -46,6 +47,7 @@ app.use('/api', pantryRouter);
 app.use('/api', shoppingRouter);
 app.use('/api', groupsRouter);
 app.use('/api', recipesRouter);
+app.use('/api', rolesRouter);
 
 // Root endpoint
 app.get('/', (req: Request, res: Response) => {

@@ -24,6 +24,10 @@ export type User = {
      */
     globalPermissions?: Array<string>;
     /**
+     * Array of all permissions from all groups the user is a member of
+     */
+    groupPermissions?: Array<string>;
+    /**
      * Account creation timestamp
      */
     createdAt?: string;

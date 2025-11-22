@@ -322,6 +322,19 @@ const memberColumns = computed(() => {
   }
   return allMemberColumns
 })
+
+const currentUserRole = computed(() => {
+  if (!groupsStore.currentGroup) return null
+  const userId = authStore.user?._id
+  if (!userId) return null
+  const currentMember = members.value.find(m => m._id === userId)
+  return currentMember?.role || null
+})
+
+const currentUserPermissions = computed(() => {
+  // Return group permissions from the user object (already fetched via /auth/me)
+  return authStore.user?.groupPermissions || []
+})
 </script>
 
 <template>
@@ -435,6 +448,43 @@ const memberColumns = computed(() => {
                 </q-td>
               </template>
             </q-table>
+          </q-card-section>
+        </q-card>
+
+        <!-- Group Permissions -->
+        <q-card class="q-mb-lg">
+          <q-card-section>
+            <div class="text-h6 q-mb-md">Your Permissions</div>
+            <q-list bordered separator>
+              <q-item>
+                <q-item-section avatar>
+                  <q-icon name="shield" color="primary" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label>Group Permissions</q-item-label>
+                  <q-item-label caption>
+                    <div v-if="currentUserPermissions.length > 0" class="permissions-list">
+                      <q-chip
+                        v-for="permission in currentUserPermissions"
+                        :key="permission"
+                        size="sm"
+                        color="primary"
+                        text-color="white"
+                        icon="check_circle"
+                        class="q-ma-xs"
+                      >
+                        {{ permission }}
+                      </q-chip>
+                    </div>
+                    <span v-else class="text-grey-6">No group permissions</span>
+                  </q-item-label>
+                </q-item-section>
+              </q-item>
+            </q-list>
+
+            <div class="text-caption text-grey-6 q-mt-sm q-px-md">
+              These permissions are based on your role: {{ currentUserRole || 'N/A' }}
+            </div>
           </q-card-section>
         </q-card>
 
@@ -642,5 +692,12 @@ const memberColumns = computed(() => {
 
 :deep(.q-table thead th) {
   padding: 8px 8px;
+}
+
+.permissions-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
 }
 </style>

@@ -60,6 +60,13 @@
             },
             "description": "Array of global permissions the user has"
           },
+          "groupPermissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Array of all permissions from all groups the user is a member of"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time",
@@ -739,6 +746,34 @@
           "ingredients",
           "instructions"
         ]
+      },
+      "Role": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "description": "Role ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "Role display name"
+          },
+          "description": {
+            "type": "string",
+            "description": "Role description"
+          },
+          "isGlobal": {
+            "type": "boolean",
+            "description": "Whether this is a global role or group role"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Array of permissions for this role"
+          }
+        }
       },
       "ShoppingItem": {
         "type": "object",
@@ -2357,6 +2392,75 @@
           },
           "403": {
             "description": "Insufficient permissions"
+          }
+        }
+      }
+    },
+    "/api/roles": {
+      "get": {
+        "summary": "Get all roles",
+        "description": "Retrieve all available roles with their permissions",
+        "tags": [
+          "Roles"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of roles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Role"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/roles/{id}": {
+      "get": {
+        "summary": "Get role by ID",
+        "description": "Retrieve a specific role with its permissions",
+        "tags": [
+          "Roles"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Role ID (e.g., admin, moderator, member, system_moderator)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Role details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Role"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Role not found"
           }
         }
       }

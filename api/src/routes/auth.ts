@@ -31,6 +31,11 @@ const router = Router();
  *           items:
  *             type: string
  *           description: Array of global permissions the user has
+ *         groupPermissions:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: Array of all permissions from all groups the user is a member of
  *         createdAt:
  *           type: string
  *           format: date-time
@@ -437,12 +442,26 @@ router.get('/auth/me', authMiddleware, async (req: AuthRequest, res: Response) =
       globalPermissions = roles.flatMap((r: any) => r.permissions);
     }
 
+    // Get user's group permissions - combine all permissions from all groups
+    const groupPermissionsSet = new Set<string>();
+    for (const group of groups) {
+      const member = group.members.find((m: any) => m.userId.toString() === req.userId);
+      if (member && member.role) {
+        const role = await db.collection('roles').findOne({ _id: member.role, isGlobal: false });
+        if (role && role.permissions) {
+          role.permissions.forEach((perm: string) => groupPermissionsSet.add(perm));
+        }
+      }
+    }
+    const groupPermissions = Array.from(groupPermissionsSet);
+
     res.json({
       _id: user._id.toString(),
       name: user.name,
       email: user.email,
       isAnonymous: user.isAnonymous || false,
       globalPermissions,
+      groupPermissions,
       activeGroupId: activeGroupId?.toString(),
       personalGroupId: user.personalGroupId?.toString(),
       createdAt: user.createdAt
