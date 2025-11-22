@@ -3,6 +3,10 @@ import { ref, computed, watch, onUnmounted } from 'vue'
 import { useRecipesStore, type Recipe } from '@/stores/recipesStore'
 import PageWrapper from '@/components/PageWrapper.vue'
 import SearchInput from '@/components/SearchInput.vue'
+import RecipeCard from '@/components/RecipeCard.vue'
+import IngredientsList from '@/components/IngredientsList.vue'
+import InstructionsList from '@/components/InstructionsList.vue'
+import ServingsAdjuster from '@/components/ServingsAdjuster.vue'
 
 const recipesStore = useRecipesStore()
 
@@ -79,15 +83,6 @@ const servingsMultiplier = computed(() => {
   return adjustedServings.value / selectedRecipe.value.servings
 })
 
-const adjustedIngredients = computed(() => {
-  if (!selectedRecipe.value?.ingredients) return []
-
-  return selectedRecipe.value.ingredients.map(ingredient => ({
-    ...ingredient,
-    quantity: Number((ingredient.quantity * servingsMultiplier.value).toFixed(2))
-  }))
-})
-
 // Actions
 const selectRecipe = (recipe: Recipe) => {
   selectedRecipe.value = recipe
@@ -141,14 +136,6 @@ const previousStep = () => {
     currentInstructionStep.value--
   }
 }
-
-const getInstructionOpacity = (index: number) => {
-  return index === currentInstructionStep.value ? 1 : 0.4
-}
-
-const isCurrentStep = (index: number) => {
-  return index === currentInstructionStep.value
-}
 </script>
 
 <template>
@@ -161,31 +148,12 @@ const isCurrentStep = (index: number) => {
         </div>
 
         <div class="recipes-list q-mt-lg">
-          <q-card
+          <RecipeCard
             v-for="recipe in displayedRecipes"
             :key="recipe._id"
-            class="recipe-card q-mb-md cursor-pointer"
-            @click="selectRecipe(recipe)"
-          >
-            <q-card-section class="row items-center">
-              <div class="recipe-icon q-mr-md">{{ recipe.icon || '🍽️' }}</div>
-              <div class="col">
-                <div class="text-h6">{{ recipe.name }}</div>
-                <div v-if="recipe.description" class="text-caption text-grey-7">
-                  {{ recipe.description }}
-                </div>
-                <div class="text-caption q-mt-xs">
-                  <q-badge color="primary" class="q-mr-xs">
-                    {{ recipe.servings }} servings
-                  </q-badge>
-                  <q-badge color="secondary">
-                    {{ recipe.ingredients?.length || 0 }} ingredients
-                  </q-badge>
-                </div>
-              </div>
-              <q-icon name="chevron_right" size="md" color="grey-6" />
-            </q-card-section>
-          </q-card>
+            :recipe="recipe"
+            @click="selectRecipe"
+          />
 
           <div v-if="displayedRecipes.length === 0" class="text-center q-mt-xl">
             <q-icon size="4em" name="restaurant_menu" color="grey-5" />
@@ -219,41 +187,11 @@ const isCurrentStep = (index: number) => {
         <div class="controls-row-container">
           <div class="controls-row row items-center">
             <!-- Servings Adjustment -->
-            <div class="servings-compact row items-center">
-              <q-btn
-                flat
-                round
-                dense
-                icon="remove"
-                color="primary"
-                size="sm"
-                @click="adjustedServings = Math.max(1, adjustedServings - 1)"
-                :disable="adjustedServings <= 1"
-              />
-              <div class="servings-number q-mx-xs">{{ adjustedServings }}</div>
-              <q-btn
-                flat
-                round
-                dense
-                icon="add"
-                color="primary"
-                size="sm"
-                @click="adjustedServings++"
-              />
-              <q-btn
-                flat
-                dense
-                round
-                icon="refresh"
-                color="grey-7"
-                size="sm"
-                @click="adjustedServings = selectedRecipe.servings"
-                v-if="adjustedServings !== selectedRecipe.servings"
-                class="q-ml-xs"
-              >
-                <q-tooltip>Reset to {{ selectedRecipe.servings }} servings</q-tooltip>
-              </q-btn>
-            </div>
+            <ServingsAdjuster
+              :servings="adjustedServings"
+              :original-servings="selectedRecipe.servings"
+              @update:servings="adjustedServings = $event"
+            />
 
             <q-space />
 
@@ -271,94 +209,29 @@ const isCurrentStep = (index: number) => {
 
         <!-- Content Container -->
         <div class="content-container">
-        <!-- Ingredients Section -->
-        <div class="ingredients-section q-mb-xl">
-          <div class="section-title text-h6 q-mb-md">
-            Ingredients
-            <span v-if="servingsMultiplier !== 1" class="text-caption text-grey-7">
-              (scaled {{ servingsMultiplier > 1 ? 'up' : 'down' }} by {{ servingsMultiplier.toFixed(2) }}x)
-            </span>
-          </div>
-          <q-list bordered separator>
-            <q-item
-              v-for="(ingredient, index) in adjustedIngredients"
-              :key="index"
-              clickable
-              @click="toggleIngredient(index)"
-            >
-              <q-item-section avatar>
-                <q-checkbox
-                  :model-value="checkedIngredients.has(index)"
-                  @update:model-value="toggleIngredient(index)"
-                  color="primary"
-                />
-              </q-item-section>
-              <q-item-section>
-                <q-item-label :class="{ 'text-strike': checkedIngredients.has(index) }">
-                  {{ ingredient.itemName }}
-                </q-item-label>
-              </q-item-section>
-              <q-item-section side>
-                <q-item-label caption>
-                  {{ ingredient.quantity }} {{ ingredient.unit }}
-                </q-item-label>
-              </q-item-section>
-            </q-item>
-          </q-list>
-        </div>
-
-        <!-- Instructions Section -->
-        <div class="instructions-section">
-          <div class="section-title text-h6 q-mb-md">Instructions</div>
-
-          <!-- Step Navigation -->
-          <div class="step-navigation q-mb-md">
-            <q-btn
-              flat
-              round
-              dense
-              icon="chevron_left"
-              @click="previousStep"
-              :disable="currentInstructionStep === 0"
-            />
-            <div class="step-indicator">
-              Step {{ currentInstructionStep + 1 }} of {{ selectedRecipe.instructions?.length || 0 }}
-            </div>
-            <q-btn
-              flat
-              round
-              dense
-              icon="chevron_right"
-              @click="nextStep"
-              :disable="currentInstructionStep === (selectedRecipe.instructions?.length || 0) - 1"
+          <!-- Ingredients Section -->
+          <div class="q-mb-xl">
+            <IngredientsList
+              :ingredients="selectedRecipe.ingredients || []"
+              :checked-ingredients="checkedIngredients"
+              :servings-multiplier="servingsMultiplier"
+              :show-checkboxes="true"
+              @toggle-ingredient="toggleIngredient"
             />
           </div>
 
-          <!-- Instructions List -->
-          <div class="instructions-list">
-            <q-card
-              v-for="(instruction, index) in selectedRecipe.instructions"
-              :key="index"
-              class="instruction-card q-mb-md"
-              :class="{ 'current-step': isCurrentStep(index) }"
-              :style="{ opacity: getInstructionOpacity(index) }"
-              @click="setCurrentStep(index)"
-            >
-              <q-card-section class="row items-start">
-                <div class="step-number q-mr-md">{{ index + 1 }}</div>
-                <div class="col">
-                  <div class="instruction-text">{{ instruction }}</div>
-                </div>
-                <q-checkbox
-                  :model-value="checkedInstructions.has(index)"
-                  @update:model-value="toggleInstruction(index)"
-                  color="primary"
-                  @click.stop
-                />
-              </q-card-section>
-            </q-card>
-          </div>
-        </div>
+          <!-- Instructions Section -->
+          <InstructionsList
+            :instructions="selectedRecipe.instructions || []"
+            :checked-instructions="checkedInstructions"
+            :current-step="currentInstructionStep"
+            :show-checkboxes="true"
+            :show-navigation="true"
+            @toggle-instruction="toggleInstruction"
+            @set-current-step="setCurrentStep"
+            @next-step="nextStep"
+            @previous-step="previousStep"
+          />
         </div>
       </div>
     </div>
@@ -387,20 +260,6 @@ const isCurrentStep = (index: number) => {
 
 .recipes-list {
   width: 100%;
-}
-
-.recipe-card {
-  transition: all 0.2s ease;
-}
-
-.recipe-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.recipe-icon {
-  font-size: 3rem;
-  line-height: 1;
 }
 
 /* Cooking Screen */
@@ -447,95 +306,9 @@ const isCurrentStep = (index: number) => {
   margin: 0 auto;
 }
 
-.section-title {
-  font-weight: 600;
-  color: var(--q-primary);
-}
-
-/* Servings Adjustment */
-.servings-compact {
-  flex-shrink: 0;
-}
-
-.servings-number {
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: var(--q-primary);
-  min-width: 30px;
-  text-align: center;
-}
-
-/* Ingredients */
-.ingredients-section {
-  animation: fadeIn 0.3s ease;
-}
-
-/* Instructions */
-.instructions-section {
-  animation: fadeIn 0.3s ease 0.1s backwards;
-}
-
-.step-navigation {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-}
-
-.step-indicator {
-  font-weight: 600;
-  font-size: 1.1rem;
-}
-
-.instructions-list {
-  width: 100%;
-}
-
-.instruction-card {
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border-left: 4px solid transparent;
-}
-
-.instruction-card.current-step {
-  border-left-color: var(--q-primary);
-  background-color: rgba(var(--q-primary-rgb), 0.05);
-}
-
-.instruction-card:hover {
-  transform: translateX(4px);
-}
-
-.step-number {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--q-primary);
-  min-width: 40px;
-  text-align: center;
-}
-
-.instruction-text {
-  font-size: 1.1rem;
-  line-height: 1.6;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 
 /* Mobile responsive */
 @media (max-width: 599px) {
-  .recipe-icon {
-    font-size: 2rem;
-  }
-
   .recipe-icon-large {
     font-size: 2.5rem;
   }
@@ -543,15 +316,6 @@ const isCurrentStep = (index: number) => {
   .cooking-header {
     flex-direction: column;
     align-items: flex-start;
-  }
-
-  .step-number {
-    font-size: 1.2rem;
-    min-width: 30px;
-  }
-
-  .instruction-text {
-    font-size: 1rem;
   }
 }
 </style>

@@ -25,6 +25,13 @@ const features = [
     description: 'Create and manage your personal and group recipes with ingredients and instructions',
     route: '/recipes',
     color: 'accent'
+  },
+    {
+    icon: 'restaurant',
+    title: 'Cook',
+    description: 'Find and cook recipes based on your pantry items',
+    route: '/cook',
+    color: 'orange'
   }
 ]
 

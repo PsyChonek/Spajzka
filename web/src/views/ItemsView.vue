@@ -246,6 +246,12 @@ const canDeleteItem = (item: Item) => {
   return true // Group items can always be deleted by group members
 }
 
+// Check if currently editing item can be deleted
+const canDeleteCurrentItem = computed(() => {
+  if (!editingItem.value) return false
+  return canDeleteItem(editingItem.value)
+})
+
 // Check if currently editing item can have its fields edited
 const canEditItemFields = computed(() => {
   if (!editingItem.value) return false
@@ -403,7 +409,7 @@ const canEditItemFields = computed(() => {
         :initial-data="initialFormData"
         :readonly-item-fields="!canEditItemFields"
         :focus-field="focusField"
-        :show-delete-button="true"
+        :show-delete-button="canDeleteCurrentItem"
         @save="saveEditedItem"
         @delete="handleDeleteFromDialog"
       />
