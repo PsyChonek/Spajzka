@@ -40,31 +40,48 @@ async function installSystemData() {
 
     const db = client.db(DB_NAME);
 
-    // Check if already installed
-    const rolesCount = await db.collection('roles').countDocuments();
-    if (rolesCount > 0) {
-      console.log('System data already installed, skipping...');
-      return;
-    }
+    console.log('Installing/updating system data...');
 
-    console.log('Installing system data...');
-
-    // Install roles
+    // Install roles (upsert to update existing ones)
     const rolesPath = path.join(__dirname, 'install', 'roles.json');
     const rolesData = JSON.parse(fs.readFileSync(rolesPath, 'utf-8'));
     if (rolesData.roles && rolesData.roles.length > 0) {
       const roles = rolesData.roles.map(parseExtendedJSON);
-      await db.collection('roles').insertMany(roles);
-      console.log(`✓ Installed ${roles.length} roles`);
+
+      let rolesInserted = 0;
+      let rolesUpdated = 0;
+      for (const role of roles) {
+        const result = await db.collection('roles').updateOne(
+          { _id: role._id },
+          { $set: role },
+          { upsert: true }
+        );
+        if (result.upsertedCount > 0) rolesInserted++;
+        if (result.modifiedCount > 0) rolesUpdated++;
+      }
+
+      console.log(`✓ Roles: ${rolesInserted} inserted, ${rolesUpdated} updated, ${roles.length - rolesInserted - rolesUpdated} unchanged`);
     }
 
-    // Install global items
+    // Install global items (upsert to update existing ones)
     const globalItemsPath = path.join(__dirname, 'install', 'globalItems.json');
     const globalItemsData = JSON.parse(fs.readFileSync(globalItemsPath, 'utf-8'));
     if (globalItemsData.globalItems && globalItemsData.globalItems.length > 0) {
       const globalItems = globalItemsData.globalItems.map(parseExtendedJSON);
-      await db.collection('globalItems').insertMany(globalItems);
-      console.log(`✓ Installed ${globalItems.length} global items`);
+
+      let itemsInserted = 0;
+      let itemsUpdated = 0;
+      for (const item of globalItems) {
+        const result = await db.collection('globalItems').updateOne(
+          { _id: item._id },
+          { $set: item },
+          { upsert: true }
+        );
+        if (result.upsertedCount > 0) itemsInserted++;
+        if (result.modifiedCount > 0) itemsUpdated++;
+      }
+
+      console.log(`✓ Global items: ${itemsInserted} inserted, ${itemsUpdated} updated, ${globalItems.length - itemsInserted - itemsUpdated} unchanged`);
     }
 
     console.log('System installation completed successfully!');
