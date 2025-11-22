@@ -807,6 +807,14 @@ const handleSaveNewItem = async (data: ItemFormData) => {
   width: 120px;
 }
 
+/* Ensure text wraps in name column (for description) */
+:deep(.q-table .col-name) {
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
 /* Mobile styles */
 @media (max-width: 1023px) {
   /* Column widths for mobile */
