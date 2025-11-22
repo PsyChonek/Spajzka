@@ -1,27 +1,58 @@
-# Production MongoDB Dockerfile
-FROM mongo:7.0
+# Production database initialization container
+# Runs install, seed (optional), and migrate operations
+FROM node:20-alpine
 
-# Install Node.js for running scripts
-RUN apt-get update && apt-get install -y curl && \
-    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
-    apt-get install -y nodejs && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
 
-# Set environment variables
-ENV MONGO_INITDB_DATABASE=spajzka
+# Copy package files
+COPY package*.json ./
 
-# Copy install data and scripts
-COPY install /docker-entrypoint-initdb.d/install
-COPY install.js /docker-entrypoint-initdb.d/
-COPY seed.js /docker-entrypoint-initdb.d/
-COPY seed /docker-entrypoint-initdb.d/seed
-COPY migrate.js /docker-entrypoint-initdb.d/
+# Install dependencies
+RUN npm install
 
-# Create init script that runs install, then seed (in dev), then migration
-COPY init-db.sh /docker-entrypoint-initdb.d/
+# Copy all scripts and data
+COPY install.js ./
+COPY seed.js ./
+COPY migrate.js ./
+COPY install/ ./install/
+COPY seed/ ./seed/
+COPY migrations/ ./migrations/
 
-# Make init script executable
-RUN chmod +x /docker-entrypoint-initdb.d/init-db.sh
+# Create startup script that waits for MongoDB and runs initialization
+RUN echo '#!/bin/sh' > /app/start.sh && \
+    echo 'set -e' >> /app/start.sh && \
+    echo '' >> /app/start.sh && \
+    echo 'echo "=== Spajzka Database Initialization ==="' >> /app/start.sh && \
+    echo '' >> /app/start.sh && \
+    echo '# Wait for MongoDB to be ready' >> /app/start.sh && \
+    echo 'echo "Waiting for MongoDB to be ready..."' >> /app/start.sh && \
+    echo 'until nc -z mongodb 27017; do' >> /app/start.sh && \
+    echo '  sleep 2' >> /app/start.sh && \
+    echo 'done' >> /app/start.sh && \
+    echo 'sleep 2' >> /app/start.sh && \
+    echo 'echo "MongoDB is ready!"' >> /app/start.sh && \
+    echo '' >> /app/start.sh && \
+    echo '# Run installation (system data: roles, global items)' >> /app/start.sh && \
+    echo 'echo "1. Installing system data..."' >> /app/start.sh && \
+    echo 'node install.js' >> /app/start.sh && \
+    echo '' >> /app/start.sh && \
+    echo '# Run seed only in development' >> /app/start.sh && \
+    echo 'if [ "$NODE_ENV" = "development" ]; then' >> /app/start.sh && \
+    echo '  echo "2. Seeding development data..."' >> /app/start.sh && \
+    echo '  node seed.js' >> /app/start.sh && \
+    echo 'else' >> /app/start.sh && \
+    echo '  echo "2. Skipping seed data (production mode)"' >> /app/start.sh && \
+    echo 'fi' >> /app/start.sh && \
+    echo '' >> /app/start.sh && \
+    echo '# Run migrations' >> /app/start.sh && \
+    echo 'echo "3. Running migrations..."' >> /app/start.sh && \
+    echo 'node migrate.js' >> /app/start.sh && \
+    echo '' >> /app/start.sh && \
+    echo 'echo "=== Database initialization complete! ==="' >> /app/start.sh && \
+    chmod +x /app/start.sh
 
-# Expose MongoDB port
-EXPOSE 27017
+# Install netcat for MongoDB readiness check
+RUN apk add --no-cache netcat-openbsd
+
+# Run the startup script
+CMD ["/app/start.sh"]
