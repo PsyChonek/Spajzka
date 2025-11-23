@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import { ref, computed, watch, onUnmounted } from 'vue'
+import { ref, computed, watch, onUnmounted, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useRecipesStore, type Recipe } from '@/stores/recipesStore'
 import PageWrapper from '@/components/PageWrapper.vue'
-import SearchInput from '@/components/SearchInput.vue'
-import RecipeCard from '@/components/RecipeCard.vue'
 import IngredientsList from '@/components/IngredientsList.vue'
 import InstructionsList from '@/components/InstructionsList.vue'
 import ServingsAdjuster from '@/components/ServingsAdjuster.vue'
 
+const route = useRoute()
+const router = useRouter()
 const recipesStore = useRecipesStore()
 
-const searchQuery = ref('')
 const selectedRecipe = ref<Recipe | null>(null)
 const checkedIngredients = ref<Set<number>>(new Set())
 const checkedInstructions = ref<Set<number>>(new Set())
@@ -61,23 +61,22 @@ watch(selectedRecipe, (newValue) => {
   }
 })
 
+onMounted(() => {
+  // If a recipeId is provided in the route, automatically select that recipe
+  const recipeId = route.params.recipeId as string
+  if (recipeId) {
+    const recipe = recipesStore.items.find(r => r._id === recipeId)
+    if (recipe) {
+      selectRecipe(recipe)
+    }
+  }
+})
+
 onUnmounted(() => {
   releaseWakeLock()
 })
 
 // Computed
-const displayedRecipes = computed(() => {
-  const allRecipes = recipesStore.sortedItems
-
-  if (!searchQuery.value) return allRecipes
-
-  const query = searchQuery.value.toLowerCase()
-  return allRecipes.filter(recipe =>
-    recipe.name.toLowerCase().includes(query) ||
-    (recipe.description && recipe.description.toLowerCase().includes(query))
-  )
-})
-
 const servingsMultiplier = computed(() => {
   if (!selectedRecipe.value || !selectedRecipe.value.servings) return 1
   return adjustedServings.value / selectedRecipe.value.servings
@@ -93,11 +92,8 @@ const selectRecipe = (recipe: Recipe) => {
 }
 
 const goBack = () => {
-  selectedRecipe.value = null
-  searchQuery.value = ''
-  checkedIngredients.value.clear()
-  checkedInstructions.value.clear()
-  currentInstructionStep.value = 0
+  // Navigate back to recipes
+  router.push('/recipes')
 }
 
 const toggleIngredient = (index: number) => {
@@ -141,29 +137,8 @@ const previousStep = () => {
 <template>
   <PageWrapper>
     <div class="cook-view">
-      <!-- Recipe Selection Screen -->
-      <div v-if="!selectedRecipe" class="recipe-selection">
-        <div class="search-container">
-          <SearchInput v-model="searchQuery" placeholder="Search recipes to cook..." />
-        </div>
-
-        <div class="recipes-list q-mt-lg">
-          <RecipeCard
-            v-for="recipe in displayedRecipes"
-            :key="recipe._id"
-            :recipe="recipe"
-            @click="selectRecipe"
-          />
-
-          <div v-if="displayedRecipes.length === 0" class="text-center q-mt-xl">
-            <q-icon size="4em" name="restaurant_menu" color="grey-5" />
-            <div class="text-h6 text-grey-6 q-mt-md">No recipes found</div>
-          </div>
-        </div>
-      </div>
-
       <!-- Cooking Screen -->
-      <div v-else class="cooking-screen">
+      <div v-if="selectedRecipe" class="cooking-screen">
         <!-- Header with back button -->
         <div class="cooking-header q-mb-md">
           <q-btn
@@ -234,6 +209,19 @@ const previousStep = () => {
           />
         </div>
       </div>
+
+      <!-- No Recipe Selected -->
+      <div v-else class="no-recipe-selected">
+        <q-icon size="4em" name="soup_kitchen" color="grey-5" />
+        <div class="text-h6 text-grey-6 q-mt-md">No recipe selected</div>
+        <q-btn
+          class="q-mt-md"
+          color="primary"
+          label="Go to Recipes"
+          icon="restaurant_menu"
+          @click="router.push('/recipes')"
+        />
+      </div>
     </div>
   </PageWrapper>
 </template>
@@ -245,21 +233,14 @@ const previousStep = () => {
   flex-direction: column;
 }
 
-/* Recipe Selection */
-.recipe-selection {
-  width: 100%;
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-.search-container {
+/* No Recipe Selected */
+.no-recipe-selected {
   display: flex;
   flex-direction: column;
   align-items: center;
-}
-
-.recipes-list {
-  width: 100%;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
 }
 
 /* Cooking Screen */

@@ -33,6 +33,11 @@ const routes: RouteRecordRaw[] = [
     component: () => import('../views/CookView.vue')
   },
   {
+    path: '/cook/:recipeId',
+    name: 'CookRecipe',
+    component: () => import('../views/CookView.vue')
+  },
+  {
     path: '/groups',
     name: 'Groups',
     component: () => import('../views/GroupsView.vue')

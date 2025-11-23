@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useQuasar } from 'quasar'
+import { useRouter } from 'vue-router'
 import { useRecipesStore, type Recipe } from '@/stores/recipesStore'
 import { useAuthStore } from '@/stores/authStore'
 import PageWrapper from '@/components/PageWrapper.vue'
@@ -9,6 +10,7 @@ import RecipeDialog, { type RecipeFormData } from '@/components/RecipeDialog.vue
 import { GlobalRecipe } from '@/api-client'
 
 const $q = useQuasar()
+const router = useRouter()
 const recipesStore = useRecipesStore()
 const authStore = useAuthStore()
 
@@ -159,6 +161,10 @@ const canDeleteRecipe = (recipe: Recipe) => {
   return true // Group recipes can always be deleted
 }
 
+const openRecipe = (recipeId: string) => {
+  router.push(`/cook/${recipeId}`)
+}
+
 </script>
 
 <template>
@@ -220,6 +226,17 @@ const canDeleteRecipe = (recipe: Recipe) => {
           <template v-slot:body-cell-actions="props">
             <q-td :props="props">
               <div class="action-buttons">
+                <q-btn
+                  flat
+                  dense
+                  round
+                  color="positive"
+                  icon="soup_kitchen"
+                  size="sm"
+                  @click="openRecipe(props.row._id)"
+                >
+                  <q-tooltip>Cook this recipe</q-tooltip>
+                </q-btn>
                 <q-btn
                   flat
                   dense
@@ -340,7 +357,7 @@ const canDeleteRecipe = (recipe: Recipe) => {
 }
 
 :deep(.q-table .col-actions) {
-  width: 120px;
+  width: 150px;
 }
 
 /* Ensure text wraps in name column (for description) */
