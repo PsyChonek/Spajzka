@@ -43,72 +43,6 @@ const canDeleteGlobalRecipe = computed(() => {
   return authStore.hasGlobalPermission('global_recipes:delete')
 })
 
-const allColumns = [
-  {
-    name: 'icon',
-    label: '',
-    align: 'center' as const,
-    field: (row: Recipe) => row.icon || '🍽️',
-    sortable: false,
-    classes: 'col-icon',
-    headerClasses: 'col-icon'
-  },
-  {
-    name: 'name',
-    required: true,
-    label: 'Name',
-    align: 'left' as const,
-    field: (row: Recipe) => row.name,
-    sortable: true,
-    classes: 'col-name',
-    headerClasses: 'col-name'
-  },
-  {
-    name: 'type',
-    label: 'Type',
-    align: 'left' as const,
-    field: (row: Recipe) => row.recipeType,
-    sortable: true,
-    classes: 'col-type',
-    headerClasses: 'col-type'
-  },
-  {
-    name: 'servings',
-    label: 'Servings',
-    align: 'center' as const,
-    field: (row: Recipe) => row.servings,
-    sortable: true,
-    classes: 'col-servings',
-    headerClasses: 'col-servings'
-  },
-  {
-    name: 'ingredients',
-    label: 'Ingredients',
-    align: 'center' as const,
-    field: (row: Recipe) => row.ingredients?.length || 0,
-    sortable: true,
-    hideOnMobile: true,
-    classes: 'col-ingredients',
-    headerClasses: 'col-ingredients'
-  },
-  {
-    name: 'actions',
-    label: 'Actions',
-    align: 'center' as const,
-    field: '',
-    sortable: false,
-    hideOnMobile: true,
-    classes: 'col-actions',
-    headerClasses: 'col-actions'
-  }
-]
-
-const columns = computed(() => {
-  if ($q.screen.lt.md) {
-    return allColumns.filter(col => !col.hideOnMobile)
-  }
-  return allColumns
-})
 
 // Dialog actions
 const openAddDialog = () => {
@@ -170,108 +104,86 @@ const openRecipe = (recipeId: string) => {
 <template>
   <PageWrapper>
     <div class="recipes-view">
-    <div class="search-container">
+      <div class="search-container">
         <SearchInput v-model="searchQuery" placeholder="Search recipes..." @add="openAddDialog" />
       </div>
 
-    <div class="table-container q-mt-lg">
-        <q-table
-          :rows="displayedRecipes"
-          :columns="columns"
-          row-key="_id"
-          :rows-per-page-options="[10, 25, 50]"
-          dense
-          flat
-          bordered
+      <div class="recipes-grid q-mt-lg">
+        <q-card
+          v-for="recipe in displayedRecipes"
+          :key="recipe._id"
+          class="recipe-card"
         >
-          <template v-slot:body-cell-icon="props">
-            <q-td :props="props" class="cursor-pointer" @click="openEditDialog(props.row)">
-              <div class="item-icon">{{ props.row.icon || '🍽️' }}</div>
-            </q-td>
-          </template>
-
-          <template v-slot:body-cell-name="props">
-            <q-td :props="props" class="cursor-pointer" @click="openEditDialog(props.row)">
-              <div class="text-weight-medium">{{ props.row.name }}</div>
-              <div v-if="props.row.description" class="text-caption text-grey-7">
-                {{ props.row.description }}
-              </div>
-            </q-td>
-          </template>
-
-          <template v-slot:body-cell-type="props">
-            <q-td :props="props">
-              <q-badge
-                v-if="props.row.recipeType === GlobalRecipe.recipeType.GLOBAL"
-                color="primary"
-                label="Global"
-              >
-                <q-tooltip>
-                  This recipe is visible to all users
-                </q-tooltip>
-              </q-badge>
-              <q-badge
-                v-else
-                color="secondary"
-                outline
-                label="Group"
-              >
-                <q-tooltip>
-                  This recipe is shared with your group
-                </q-tooltip>
-              </q-badge>
-            </q-td>
-          </template>
-
-          <template v-slot:body-cell-actions="props">
-            <q-td :props="props">
-              <div class="action-buttons">
-                <q-btn
-                  flat
-                  dense
-                  round
-                  color="positive"
-                  icon="soup_kitchen"
-                  size="sm"
-                  @click="openRecipe(props.row._id)"
-                >
-                  <q-tooltip>Cook this recipe</q-tooltip>
-                </q-btn>
-                <q-btn
-                  flat
-                  dense
-                  round
+          <q-card-section class="recipe-content">
+            <div class="recipe-header">
+              <div class="recipe-icon">{{ recipe.icon || '🍽️' }}</div>
+              <div class="recipe-info">
+                <div class="recipe-name text-weight-medium">{{ recipe.name }}</div>
+                <q-badge
+                  v-if="recipe.recipeType === GlobalRecipe.recipeType.GLOBAL"
                   color="primary"
-                  icon="edit"
-                  size="sm"
-                  @click="openEditDialog(props.row)"
-                  :disable="!canEditRecipe(props.row)"
+                  label="Global"
+                  class="q-mt-xs"
                 >
-                  <q-tooltip>Edit Recipe</q-tooltip>
-                </q-btn>
-                <q-btn
-                  flat
-                  dense
-                  round
-                  color="negative"
-                  icon="delete"
-                  size="sm"
-                  @click="deleteRecipe(props.row._id)"
-                  :disable="!canDeleteRecipe(props.row)"
+                  <q-tooltip>This recipe is visible to all users</q-tooltip>
+                </q-badge>
+                <q-badge
+                  v-else
+                  color="secondary"
+                  outline
+                  label="Group"
+                  class="q-mt-xs"
                 >
-                  <q-tooltip>Delete recipe</q-tooltip>
-                </q-btn>
+                  <q-tooltip>This recipe is shared with your group</q-tooltip>
+                </q-badge>
               </div>
-            </q-td>
-          </template>
-
-          <template v-slot:no-data>
-            <div class="full-width row flex-center q-gutter-sm q-py-lg">
-              <q-icon size="2em" name="restaurant_menu" />
-              <span class="text-h6">No recipes yet</span>
             </div>
-          </template>
-        </q-table>
+
+            <div class="action-buttons q-mt-md">
+              <q-btn
+                flat
+                dense
+                round
+                color="positive"
+                icon="soup_kitchen"
+                size="md"
+                @click="recipe._id && openRecipe(recipe._id)"
+                :disable="!recipe._id"
+              >
+                <q-tooltip>Cook this recipe</q-tooltip>
+              </q-btn>
+              <q-btn
+                flat
+                dense
+                round
+                color="primary"
+                icon="edit"
+                size="md"
+                @click="openEditDialog(recipe)"
+                :disable="!canEditRecipe(recipe)"
+              >
+                <q-tooltip>Edit Recipe</q-tooltip>
+              </q-btn>
+              <q-btn
+                flat
+                dense
+                round
+                color="negative"
+                icon="delete"
+                size="md"
+                @click="recipe._id && deleteRecipe(recipe._id)"
+                :disable="!canDeleteRecipe(recipe) || !recipe._id"
+              >
+                <q-tooltip>Delete recipe</q-tooltip>
+              </q-btn>
+            </div>
+          </q-card-section>
+        </q-card>
+
+        <div v-if="displayedRecipes.length === 0" class="no-recipes">
+          <q-icon size="3em" name="restaurant_menu" />
+          <span class="text-h6 q-mt-md">No recipes yet</span>
+        </div>
       </div>
 
       <!-- Recipe Dialog -->
@@ -287,134 +199,110 @@ const openRecipe = (recipeId: string) => {
 </template>
 
 <style scoped>
+.recipes-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
 .search-container {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-.table-container {
-  width: 100%;
+.recipes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+  padding: 0.5rem;
+}
+
+.recipe-card {
+  transition: all 0.2s ease;
+}
+
+.recipe-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.recipe-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.recipe-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.recipe-icon {
+  font-size: 3rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.recipe-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.recipe-name {
+  font-size: 1.1rem;
+  line-height: 1.3;
+  word-wrap: break-word;
+  word-break: break-word;
 }
 
 .action-buttons {
   display: flex;
-  gap: 2px;
+  gap: 0.5rem;
   justify-content: center;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
 }
 
-.item-icon {
-  font-size: 1.5rem;
+.no-recipes {
+  grid-column: 1 / -1;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  height: 100%;
-}
-
-/* Table layout */
-:deep(.q-table thead),
-:deep(.q-table tbody),
-:deep(.q-table tr) {
-  width: 100%;
-  display: table;
-  table-layout: fixed;
-}
-
-:deep(.q-table th),
-:deep(.q-table td) {
-  padding: 8px;
-  box-sizing: border-box;
-}
-
-/* Override Quasar's dense padding for first column */
-:deep(.q-table--dense th:first-child),
-:deep(.q-table--dense td:first-child) {
-  padding-left: 8px;
-}
-
-/* Center icon column */
-:deep(.q-table .col-icon) {
-  width: 60px;
-  text-align: center;
-}
-
-/* Desktop column widths */
-:deep(.q-table .col-name) {
-  width: auto;
-}
-
-:deep(.q-table .col-type) {
-  width: 100px;
-}
-
-:deep(.q-table .col-servings) {
-  width: 100px;
-}
-
-:deep(.q-table .col-ingredients) {
-  width: 100px;
-}
-
-:deep(.q-table .col-actions) {
-  width: 150px;
-}
-
-/* Ensure text wraps in name column (for description) */
-:deep(.q-table .col-name) {
-  word-wrap: break-word;
-  word-break: break-word;
-  overflow-wrap: break-word;
-  white-space: normal;
+  padding: 3rem;
+  color: rgba(0, 0, 0, 0.4);
 }
 
 /* Mobile styles */
-@media (max-width: 1023px) {
-  /* Column widths for mobile */
-  :deep(.q-table .col-icon) {
-    width: 15%;
+@media (max-width: 599px) {
+  .recipes-grid {
+    grid-template-columns: 1fr;
   }
 
-  :deep(.q-table .col-name) {
-    width: 45%;
+  .recipe-icon {
+    font-size: 2.5rem;
   }
 
-  :deep(.q-table .col-type) {
-    width: 20%;
+  .recipe-name {
+    font-size: 1rem;
   }
+}
 
-  :deep(.q-table .col-servings) {
-    width: 20%;
+/* Tablet styles */
+@media (min-width: 600px) and (max-width: 1023px) {
+  .recipes-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   }
+}
 
-  /* Fill viewport height */
-  .recipes-view {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-  }
-
-  .table-container {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-  }
-
-  .table-container :deep(.q-table) {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .table-container :deep(.q-table__container) {
-    flex: 1;
-    min-height: 0;
-  }
-
-  .table-container :deep(.q-table__middle) {
-    flex: 1;
-    overflow-y: auto;
+/* Large screens */
+@media (min-width: 1024px) {
+  .recipes-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   }
 }
 </style>
