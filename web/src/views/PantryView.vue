@@ -102,18 +102,6 @@ const filteredItems = computed(() => {
   )
 })
 
-const showAddButton = computed(() => {
-  if (!searchQuery.value) return false
-
-  // Show button if no items match, or if no exact match exists
-  const query = searchQuery.value.toLowerCase().trim()
-  const hasExactMatch = filteredItems.value.some(item =>
-    (item.name || '').toLowerCase().trim() === query
-  )
-
-  return !hasExactMatch
-})
-
 // Suggest items from master Items list
 const suggestedItems = computed(() => {
   if (!searchQuery.value) {
@@ -283,7 +271,7 @@ const handleDeleteFromDialog = () => {
   <PageWrapper>
     <div class="items-view">
     <div class="search-container">
-      <SearchInput v-model="searchQuery" />
+      <SearchInput v-model="searchQuery" @add="openAddDialog" />
 
       <!-- Suggestions from Items list -->
       <ItemSuggestions
@@ -291,16 +279,6 @@ const handleDeleteFromDialog = () => {
         class="q-mt-md"
         @add-item="addFromSuggestion"
       />
-
-      <div v-if="showAddButton" class="add-button-container q-mt-md">
-        <q-btn
-          color="primary"
-          icon="add"
-          @click="openAddDialog"
-        >
-          <span class="q-ml-xs">Create "{{ searchQuery }}" as a new item</span>
-        </q-btn>
-      </div>
     </div>
 
     <div class="table-container q-mt-lg">
@@ -418,11 +396,6 @@ const handleDeleteFromDialog = () => {
   display: flex;
   flex-direction: column;
   align-items: center;
-}
-
-.add-button-container {
-  display: flex;
-  justify-content: center;
 }
 
 .table-container {

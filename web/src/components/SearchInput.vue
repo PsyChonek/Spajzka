@@ -10,6 +10,7 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{
   'update:modelValue': [value: string]
+  'add': []
 }>()
 
 const searchValue = computed({
@@ -28,6 +29,16 @@ const searchValue = computed({
   >
     <template v-slot:prepend>
       <q-icon name="search" />
+    </template>
+    <template v-slot:append>
+      <q-btn
+        round
+        dense
+        flat
+        icon="add"
+        color="primary"
+        @click="emit('add')"
+      />
     </template>
   </q-input>
 </template>

@@ -29,18 +29,6 @@ const displayedRecipes = computed(() => {
   )
 })
 
-const showAddButton = computed(() => {
-  if (!searchQuery.value) return false
-
-  // Show button if no recipes match, or if no exact match exists
-  const query = searchQuery.value.toLowerCase().trim()
-  const hasExactMatch = displayedRecipes.value.some(recipe =>
-    (recipe.name || '').toLowerCase().trim() === query
-  )
-
-  return !hasExactMatch
-})
-
 const canCreateGlobalRecipe = computed(() => {
   return authStore.hasGlobalPermission('global_recipes:create')
 })
@@ -177,17 +165,7 @@ const canDeleteRecipe = (recipe: Recipe) => {
   <PageWrapper>
     <div class="recipes-view">
     <div class="search-container">
-        <SearchInput v-model="searchQuery" placeholder="Search recipes..." />
-
-        <div v-if="showAddButton" class="add-button-container q-mt-md">
-          <q-btn
-            color="primary"
-            icon="add"
-            @click="openAddDialog"
-          >
-            <span class="q-ml-xs">Create "{{ searchQuery }}" as a new recipe</span>
-          </q-btn>
-        </div>
+        <SearchInput v-model="searchQuery" placeholder="Search recipes..." @add="openAddDialog" />
       </div>
 
     <div class="table-container q-mt-lg">
@@ -296,11 +274,6 @@ const canDeleteRecipe = (recipe: Recipe) => {
   display: flex;
   flex-direction: column;
   align-items: center;
-}
-
-.add-button-container {
-  display: flex;
-  justify-content: center;
 }
 
 .table-container {
