@@ -2,8 +2,9 @@
 import { ref } from 'vue'
 import { GroupsService } from '@/api-client'
 import { useGroupsStore } from '@/stores/groupsStore'
-import { Notify } from 'quasar'
+import { Notify, useQuasar } from 'quasar'
 
+const $q = useQuasar()
 const groupsStore = useGroupsStore()
 
 // Dialog states
@@ -110,8 +111,8 @@ const joinGroup = async () => {
     </q-card-section>
 
     <!-- Create Group Dialog -->
-    <q-dialog v-model="showCreateDialog">
-      <q-card style="width: 100%; max-width: 400px">
+    <q-dialog v-model="showCreateDialog" :full-width="$q.screen.lt.sm" :maximized="$q.screen.lt.sm">
+      <q-card :style="$q.screen.lt.sm ? 'max-height: 100vh' : 'width: 100%; max-width: 400px'">
         <q-card-section>
           <div class="text-h6">Create New Group</div>
         </q-card-section>
@@ -141,8 +142,8 @@ const joinGroup = async () => {
     </q-dialog>
 
     <!-- Join Group Dialog -->
-    <q-dialog v-model="showJoinDialog">
-      <q-card style="width: 100%; max-width: 400px">
+    <q-dialog v-model="showJoinDialog" :full-width="$q.screen.lt.sm" :maximized="$q.screen.lt.sm">
+      <q-card :style="$q.screen.lt.sm ? 'max-height: 100vh' : 'width: 100%; max-width: 400px'">
         <q-card-section>
           <div class="text-h6">Join Group</div>
         </q-card-section>

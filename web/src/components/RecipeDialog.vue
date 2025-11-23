@@ -244,15 +244,15 @@ const removeInstruction = (index: number) => {
 
 <template>
   <div>
-    <q-dialog :model-value="modelValue" @update:model-value="emit('update:modelValue', $event)" persistent>
-      <q-card style="width: 100%; max-width: 600px; max-height: 80vh">
+    <q-dialog :model-value="modelValue" @update:model-value="emit('update:modelValue', $event)" persistent :full-width="$q.screen.lt.sm" :maximized="$q.screen.lt.sm">
+      <q-card :style="$q.screen.lt.sm ? 'height: 100vh; max-height: 100vh; display: flex; flex-direction: column' : 'width: 100%; max-width: 600px; max-height: 80vh'">
         <q-card-section>
           <div class="text-h6">
             {{ readOnly ? 'View Recipe' : (editingRecipe ? 'Edit Recipe' : 'Add New Recipe') }}
           </div>
         </q-card-section>
 
-        <q-card-section class="q-pt-none" style="max-height: 60vh; overflow-y: auto">
+        <q-card-section class="q-pt-none" :style="$q.screen.lt.sm ? 'flex: 1; overflow-y: auto' : 'max-height: 60vh; overflow-y: auto'">
           <!-- Basic Information -->
           <div class="text-subtitle1 text-weight-medium q-mb-sm">Basic Information</div>
 

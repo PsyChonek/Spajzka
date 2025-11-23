@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, watch, nextTick } from 'vue'
-import type { QInput } from 'quasar'
+import { useQuasar, type QInput } from 'quasar'
+
+const $q = useQuasar()
 
 export interface ItemFormData {
   name: string
@@ -154,13 +156,13 @@ const handleDelete = () => {
 </script>
 
 <template>
-  <q-dialog :model-value="modelValue" @update:model-value="emit('update:modelValue', $event)">
-    <q-card style="width: 100%; max-width: 400px">
+  <q-dialog :model-value="modelValue" @update:model-value="emit('update:modelValue', $event)" :full-width="$q.screen.lt.sm" :maximized="$q.screen.lt.sm">
+    <q-card :style="$q.screen.lt.sm ? 'height: 100vh; max-height: 100vh; display: flex; flex-direction: column' : 'width: 100%; max-width: 400px'">
       <q-card-section>
         <div class="text-h6">{{ title }}</div>
       </q-card-section>
 
-      <q-card-section class="q-pt-none">
+      <q-card-section class="q-pt-none" :style="$q.screen.lt.sm ? 'flex: 1; overflow-y: auto' : ''">
         <!-- Base fields (always shown) -->
         <q-input
           ref="nameInputRef"

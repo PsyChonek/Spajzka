@@ -496,13 +496,13 @@ const currentUserPermissions = computed(() => {
       </div>
 
       <!-- Edit Group Dialog -->
-      <q-dialog v-model="showEditDialog">
-        <q-card style="width: 100%; max-width: 400px">
+      <q-dialog v-model="showEditDialog" :full-width="$q.screen.lt.sm" :maximized="$q.screen.lt.sm">
+        <q-card :style="$q.screen.lt.sm ? 'height: 100vh; max-height: 100vh; display: flex; flex-direction: column' : 'width: 100%; max-width: 400px'">
           <q-card-section>
             <div class="text-h6">Edit Group</div>
           </q-card-section>
 
-          <q-card-section class="q-pt-none">
+          <q-card-section class="q-pt-none" :style="$q.screen.lt.sm ? 'flex: 1; overflow-y: auto' : ''">
             <q-input
               v-model="editGroupName"
               outlined
@@ -526,13 +526,13 @@ const currentUserPermissions = computed(() => {
       </q-dialog>
 
       <!-- Invite Code Dialog -->
-      <q-dialog v-model="showInviteDialog">
-        <q-card style="width: 100%; max-width: 400px">
+      <q-dialog v-model="showInviteDialog" :full-width="$q.screen.lt.sm" :maximized="$q.screen.lt.sm">
+        <q-card :style="$q.screen.lt.sm ? 'height: 100vh; max-height: 100vh; display: flex; flex-direction: column' : 'width: 100%; max-width: 400px'">
           <q-card-section>
             <div class="text-h6">Invite Code</div>
           </q-card-section>
 
-          <q-card-section class="q-pt-none">
+          <q-card-section class="q-pt-none" :style="$q.screen.lt.sm ? 'flex: 1; overflow-y: auto' : ''">
             <div class="q-mb-md">
               <div class="text-caption text-grey-7 q-mb-sm">Share this code with others to invite them:</div>
               <div class="invite-code-display">
@@ -589,14 +589,14 @@ const currentUserPermissions = computed(() => {
       </q-dialog>
 
       <!-- Authentication Required Dialog -->
-      <q-dialog v-model="showAuthRequiredDialog" persistent>
-        <q-card style="width: 100%; max-width: 400px">
+      <q-dialog v-model="showAuthRequiredDialog" persistent :full-width="$q.screen.lt.sm" :maximized="$q.screen.lt.sm">
+        <q-card :style="$q.screen.lt.sm ? 'height: 100vh; max-height: 100vh; display: flex; flex-direction: column' : 'width: 100%; max-width: 400px'">
           <q-card-section class="text-center q-pt-lg">
             <q-icon name="lock" size="60px" color="orange" class="q-mb-md" />
             <div class="text-h6">Authentication Required</div>
           </q-card-section>
 
-          <q-card-section class="q-pt-none text-center">
+          <q-card-section class="q-pt-none text-center" :style="$q.screen.lt.sm ? 'flex: 1; overflow-y: auto' : ''">
             <p class="text-body1 q-mb-md">
               Groups feature requires you to be logged in to sync data across devices and share with other users.
             </p>

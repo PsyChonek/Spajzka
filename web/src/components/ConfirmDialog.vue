@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import { useQuasar } from 'quasar'
+
+const $q = useQuasar()
+
 export type ConfirmDialogType = 'warning' | 'danger' | 'info'
 
 interface Props {
@@ -62,8 +66,10 @@ const handleCancel = () => {
     :model-value="modelValue"
     @update:model-value="emit('update:modelValue', $event)"
     persistent
+    :full-width="$q.screen.lt.sm"
+    :maximized="$q.screen.lt.sm"
   >
-    <q-card style="width: 100%; max-width: 400px">
+    <q-card :style="$q.screen.lt.sm ? 'max-height: 100vh' : 'width: 100%; max-width: 400px'">
       <q-card-section class="row items-center q-pb-none">
         <q-icon
           :name="getIcon()"

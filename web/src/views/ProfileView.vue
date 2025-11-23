@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useQuasar } from 'quasar'
 import { useAuthStore } from '@/stores/authStore'
 import PageWrapper from '@/components/PageWrapper.vue'
 
+const $q = useQuasar()
 const authStore = useAuthStore()
 
 // Form mode
@@ -436,8 +438,8 @@ const changePassword = async () => {
       </div>
 
       <!-- Edit Profile Dialog -->
-      <q-dialog v-model="showProfileDialog">
-        <q-card style="width: 100%; max-width: 400px">
+      <q-dialog v-model="showProfileDialog" :full-width="$q.screen.lt.sm" :maximized="$q.screen.lt.sm">
+        <q-card :style="$q.screen.lt.sm ? 'max-height: 100vh' : 'width: 100%; max-width: 400px'">
           <q-card-section>
             <div class="text-h6">Edit Profile</div>
           </q-card-section>
@@ -484,8 +486,8 @@ const changePassword = async () => {
       </q-dialog>
 
       <!-- Change Password Dialog -->
-      <q-dialog v-model="showPasswordDialog">
-        <q-card style="width: 100%; max-width: 400px">
+      <q-dialog v-model="showPasswordDialog" :full-width="$q.screen.lt.sm" :maximized="$q.screen.lt.sm">
+        <q-card :style="$q.screen.lt.sm ? 'max-height: 100vh' : 'width: 100%; max-width: 400px'">
           <q-card-section>
             <div class="text-h6">Change Password</div>
           </q-card-section>
