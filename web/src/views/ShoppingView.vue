@@ -36,8 +36,21 @@ const columns = computed(() => [
     sortable: false,
     classes: 'col-name',
     headerClasses: 'col-name'
+  },
+  {
+    name: 'quantity',
+    label: 'Quantity',
+    align: 'center' as const,
+    field: (row: ShoppingItem) => row.quantity || 1,
+    sortable: false,
+    classes: 'col-quantity',
+    headerClasses: 'col-quantity'
   }
 ])
+
+const neededItemsCount = computed(() => {
+  return shoppingStore.activeItems.length
+})
 
 const filteredItems = computed(() => {
   let filtered = shoppingStore.sortedItems
@@ -130,6 +143,35 @@ const toggleItem = (item: ShoppingItem) => {
     shoppingStore.toggleItem(item._id)
   }
 }
+
+const incrementQuantity = async (item: ShoppingItem) => {
+  if (item._id) {
+    const newQuantity = (item.quantity || 1) + 1
+    await shoppingStore.updateItem(item._id, { quantity: newQuantity })
+  }
+}
+
+const decrementQuantity = async (item: ShoppingItem) => {
+  if (item._id && (item.quantity || 1) > 1) {
+    const newQuantity = (item.quantity || 1) - 1
+    await shoppingStore.updateItem(item._id, { quantity: newQuantity })
+  }
+}
+
+const updateQuantity = async (item: ShoppingItem, newValue: number | string) => {
+  if (!item._id) return
+
+  const quantity = typeof newValue === 'string' ? parseInt(newValue, 10) : newValue
+
+  // Ensure quantity is at least 1
+  if (isNaN(quantity) || quantity < 1) {
+    // Reset to current value if invalid
+    item.quantity = item.quantity || 1
+    return
+  }
+
+  await shoppingStore.updateItem(item._id, { quantity })
+}
 </script>
 
 <template>
@@ -144,6 +186,13 @@ const toggleItem = (item: ShoppingItem) => {
         class="q-mt-md"
         @add-item="addFromSuggestion"
       />
+    </div>
+
+    <!-- Needed Items Count -->
+    <div v-if="!searchQuery && neededItemsCount > 0" class="needed-items-count q-mt-md">
+      <q-chip color="primary" text-color="white" icon="shopping_cart">
+        {{ neededItemsCount }} item{{ neededItemsCount !== 1 ? 's' : '' }} needed
+      </q-chip>
     </div>
 
     <div class="table-container q-mt-lg">
@@ -180,6 +229,42 @@ const toggleItem = (item: ShoppingItem) => {
             </span>
           </q-td>
         </template>
+        <template v-slot:body-cell-quantity="props">
+          <q-td :props="props" class="quantity-cell">
+            <div class="quantity-controls">
+              <q-btn
+                flat
+                dense
+                round
+                size="sm"
+                icon="remove"
+                color="negative"
+                @click.stop="decrementQuantity(props.row)"
+                :disable="(props.row.quantity || 1) <= 1"
+              />
+              <q-input
+                :model-value="props.row.quantity || 1"
+                @update:model-value="(val) => val !== null && updateQuantity(props.row, val)"
+                type="number"
+                min="1"
+                dense
+                borderless
+                input-class="quantity-input"
+                class="quantity-input-wrapper"
+                @click.stop
+              />
+              <q-btn
+                flat
+                dense
+                round
+                size="sm"
+                icon="add"
+                color="positive"
+                @click.stop="incrementQuantity(props.row)"
+              />
+            </div>
+          </q-td>
+        </template>
         <template v-slot:no-data>
           <div class="full-width row flex-center q-gutter-sm q-py-lg">
             <q-icon size="2em" name="inbox" />
@@ -208,6 +293,11 @@ const toggleItem = (item: ShoppingItem) => {
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+.needed-items-count {
+  display: flex;
+  justify-content: center;
 }
 
 .table-container {
@@ -279,6 +369,51 @@ const toggleItem = (item: ShoppingItem) => {
   width: auto;
 }
 
+/* Quantity column */
+:deep(.q-table .col-quantity) {
+  width: 140px;
+  text-align: center;
+}
+
+.quantity-cell {
+  padding: 4px !important;
+}
+
+.quantity-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.quantity-input-wrapper {
+  width: 50px;
+  min-width: 50px;
+}
+
+.quantity-input-wrapper :deep(.q-field__control) {
+  height: 28px;
+  min-height: 28px;
+}
+
+.quantity-input-wrapper :deep(input) {
+  text-align: center;
+  font-weight: 500;
+  font-size: 0.95rem;
+  padding: 0;
+}
+
+/* Hide number input spinners */
+.quantity-input-wrapper :deep(input::-webkit-outer-spin-button),
+.quantity-input-wrapper :deep(input::-webkit-inner-spin-button) {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.quantity-input-wrapper :deep(input[type=number]) {
+  -moz-appearance: textfield;
+}
+
 /* Mobile: Expand table to fill viewport height */
 @media (max-width: 1023px) {
   .shopping-list-view {
@@ -313,6 +448,10 @@ const toggleItem = (item: ShoppingItem) => {
   /* Mobile column widths */
   :deep(.q-table .col-icon) {
     width: 60px;
+  }
+
+  :deep(.q-table .col-quantity) {
+    width: 120px;
   }
 }
 </style>
