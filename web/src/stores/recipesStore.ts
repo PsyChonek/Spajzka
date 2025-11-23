@@ -48,13 +48,20 @@ export const useRecipesStore = defineStore('recipes', () => {
 
     loading.value = true
     try {
-      const response = await RecipesService.getApiRecipes()
+      const response = await RecipesService.getApiRecipes() as any
 
-      // Combine global and group recipes
-      const allRecipes: Recipe[] = [
-        ...(response.globalRecipes || []),
-        ...(response.groupRecipes || [])
-      ]
+      // Handle new API response format (array of recipes) or old format (object with globalRecipes/groupRecipes)
+      let allRecipes: Recipe[]
+      if (Array.isArray(response)) {
+        // New format: all recipes are group recipes
+        allRecipes = response
+      } else {
+        // Old format: combine global and group recipes
+        allRecipes = [
+          ...(response.globalRecipes || []),
+          ...(response.groupRecipes || [])
+        ]
+      }
 
       items.value = allRecipes
       lastSynced.value = new Date()

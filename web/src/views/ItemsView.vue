@@ -46,15 +46,6 @@ const allColumns = [
     headerClasses: 'col-name'
   },
   {
-    name: 'type',
-    label: 'Type',
-    align: 'left' as const,
-    field: (row: Item) => row.type,
-    sortable: true,
-    classes: 'col-type',
-    headerClasses: 'col-type'
-  },
-  {
     name: 'defaultUnit',
     label: 'Unit',
     align: 'left' as const,
@@ -254,8 +245,7 @@ const cancelDelete = () => {
 
 const deleteDialogMessage = computed(() => {
   if (!deletingItem.value) return ''
-  const itemTypeLabel = deletingItem.value.type === 'global' ? 'global item' : 'group item'
-  return `Are you sure you want to delete "<strong>${deletingItem.value.name}</strong>"?<br><br>This ${itemTypeLabel} will be removed from all pantry and shopping lists.`
+  return `Are you sure you want to delete "<strong>${deletingItem.value.name}</strong>"?<br><br>This item will be removed from all pantry and shopping lists.`
 })
 
 const canEditItem = (item: Item) => {
@@ -349,29 +339,6 @@ const canEditItemFields = computed(() => {
               {{ props.row.category || '-' }}
             </q-td>
           </template>
-          <template v-slot:body-cell-type="props">
-            <q-td :props="props">
-              <q-badge
-                v-if="props.row.type === 'global'"
-                color="primary"
-                label="Global"
-              >
-                <q-tooltip>
-                  This item is shared across all users
-                </q-tooltip>
-              </q-badge>
-              <q-badge
-                v-else
-                color="secondary"
-                outline
-                label="Group"
-              >
-                <q-tooltip>
-                  This item is only visible to your group
-                </q-tooltip>
-              </q-badge>
-            </q-td>
-          </template>
           <template v-slot:body-cell-tags="props">
             <q-td :props="props">
               <div v-if="props.row.tags && props.row.tags.length > 0" class="row q-gutter-xs">
@@ -446,7 +413,7 @@ const canEditItemFields = computed(() => {
       <!-- Edit Item Dialog -->
       <AddItemDialog
         v-model="showEditDialog"
-        :title="`Edit Item${editingItem ? ` (${editingItem.type === 'global' ? 'Global' : 'Group'})` : ''}`"
+        title="Edit Item"
         :initial-data="initialFormData"
         :readonly-item-fields="!canEditItemFields"
         :focus-field="focusField"
@@ -527,10 +494,6 @@ const canEditItemFields = computed(() => {
   width: auto;
 }
 
-:deep(.q-table .col-type) {
-  width: 100px;
-}
-
 :deep(.q-table .col-unit) {
   width: 80px;
 }
@@ -549,17 +512,13 @@ const canEditItemFields = computed(() => {
 
 /* Mobile styles */
 @media (max-width: 1023px) {
-  /* Column widths for mobile (4 columns: icon, name, type, unit) */
+  /* Column widths for mobile (3 columns: icon, name, unit) */
   :deep(.q-table .col-icon) {
     width: 12%;
   }
 
   :deep(.q-table .col-name) {
-    width: 38%;
-  }
-
-  :deep(.q-table .col-type) {
-    width: 25%;
+    width: 63%;
   }
 
   :deep(.q-table .col-unit) {

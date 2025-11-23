@@ -8,9 +8,9 @@ export type Tag = {
      */
     _id?: string;
     /**
-     * User ID who owns this tag
+     * Group ID this tag belongs to
      */
-    userId: string;
+    groupId: string;
     /**
      * Tag name
      */

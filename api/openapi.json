@@ -349,6 +349,10 @@
             "type": "string",
             "description": "Group ID this item belongs to"
           },
+          "globalItemRef": {
+            "type": "string",
+            "description": "Reference to global item if this is a copy"
+          },
           "name": {
             "type": "string",
             "description": "Item name"
@@ -907,9 +911,9 @@
             "type": "string",
             "description": "Tag ID"
           },
-          "userId": {
+          "groupId": {
             "type": "string",
-            "description": "User ID who owns this tag"
+            "description": "Group ID this tag belongs to"
           },
           "name": {
             "type": "string",
@@ -934,7 +938,7 @@
         },
         "required": [
           "name",
-          "userId"
+          "groupId"
         ]
       },
       "CreateTagRequest": {
@@ -1752,7 +1756,7 @@
     "/api/items": {
       "get": {
         "summary": "Get all items",
-        "description": "Get both global items and group items for user's group",
+        "description": "Get group items for user's active group (global items are hidden and accessed through group items)",
         "tags": [
           "Items"
         ],
@@ -1761,26 +1765,25 @@
             "bearerAuth": []
           }
         ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "includeGlobal",
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "Include global items (requires global_items:view permission)"
+          }
+        ],
         "responses": {
           "200": {
-            "description": "Combined list of items",
+            "description": "List of items",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "globalItems": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/GlobalItem"
-                      }
-                    },
-                    "groupItems": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/GroupItem"
-                      }
-                    }
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GroupItem"
                   }
                 }
               }
@@ -2195,7 +2198,7 @@
     "/api/recipes": {
       "get": {
         "summary": "Get all recipes",
-        "description": "Get both global recipes and group recipes for user's group",
+        "description": "Get group recipes for user's active group (global recipes are hidden and accessed through group recipes)",
         "tags": [
           "Recipes"
         ],
@@ -2204,26 +2207,25 @@
             "bearerAuth": []
           }
         ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "includeGlobal",
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "Include global recipes (requires global_recipes:view permission)"
+          }
+        ],
         "responses": {
           "200": {
-            "description": "Combined list of recipes",
+            "description": "List of recipes",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "globalRecipes": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/GlobalRecipe"
-                      }
-                    },
-                    "groupRecipes": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/GroupRecipe"
-                      }
-                    }
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GroupRecipe"
                   }
                 }
               }
@@ -2709,8 +2711,8 @@
     },
     "/api/tags": {
       "get": {
-        "summary": "Get user tags",
-        "description": "Get all tags for the authenticated user",
+        "summary": "Get tags for user's groups",
+        "description": "Get all tags for groups the authenticated user is a member of",
         "tags": [
           "Tags"
         ],
@@ -2721,7 +2723,7 @@
         ],
         "responses": {
           "200": {
-            "description": "List of user tags",
+            "description": "List of tags from user's groups",
             "content": {
               "application/json": {
                 "schema": {
@@ -2737,7 +2739,7 @@
       },
       "post": {
         "summary": "Create tag",
-        "description": "Create a new user tag",
+        "description": "Create a new tag for the user's active group",
         "tags": [
           "Tags"
         ],
@@ -2773,7 +2775,7 @@
     "/api/tags/{id}": {
       "put": {
         "summary": "Update tag",
-        "description": "Update a user tag",
+        "description": "Update a tag (must be in the same group as the user)",
         "tags": [
           "Tags"
         ],
@@ -2810,7 +2812,7 @@
       },
       "delete": {
         "summary": "Delete tag",
-        "description": "Delete a user tag",
+        "description": "Delete a tag (must be in the same group as the user)",
         "tags": [
           "Tags"
         ],

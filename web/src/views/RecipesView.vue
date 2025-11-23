@@ -147,23 +147,6 @@ const openRecipe = (recipeId: string) => {
               <div class="recipe-icon">{{ recipe.icon || '🍽️' }}</div>
               <div class="recipe-info">
                 <div class="recipe-name text-weight-medium">{{ recipe.name }}</div>
-                <q-badge
-                  v-if="recipe.recipeType === GlobalRecipe.recipeType.GLOBAL"
-                  color="primary"
-                  label="Global"
-                  class="q-mt-xs"
-                >
-                  <q-tooltip>This recipe is visible to all users</q-tooltip>
-                </q-badge>
-                <q-badge
-                  v-else
-                  color="secondary"
-                  outline
-                  label="Group"
-                  class="q-mt-xs"
-                >
-                  <q-tooltip>This recipe is shared with your group</q-tooltip>
-                </q-badge>
               </div>
             </div>
 

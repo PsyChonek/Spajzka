@@ -153,6 +153,48 @@ router.post('/groups', authMiddleware, async (req: AuthRequest, res: Response) =
     const result = await db.collection('groups').insertOne(newGroup);
     const createdGroup = await db.collection('groups').findOne({ _id: result.insertedId });
 
+    // Copy all active global items to this group with references
+    const globalItems = await db.collection('globalItems').find({ isActive: true }).toArray();
+    const groupItems = globalItems.map(globalItem => ({
+      groupId: result.insertedId,
+      globalItemRef: globalItem._id,
+      name: globalItem.name,
+      category: globalItem.category,
+      icon: globalItem.icon || null,
+      defaultUnit: globalItem.defaultUnit || null,
+      barcode: globalItem.barcode || null,
+      searchNames: globalItem.searchNames || [],
+      tags: globalItem.tags || [],
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }));
+
+    if (groupItems.length > 0) {
+      await db.collection('groupItems').insertMany(groupItems);
+      console.log(`Created ${groupItems.length} group items for new group: ${name}`);
+    }
+
+    // Copy all global recipes to this group with references
+    const globalRecipes = await db.collection('recipes').find({ recipeType: 'global' }).toArray();
+    const groupRecipes = globalRecipes.map(globalRecipe => ({
+      groupId: result.insertedId,
+      globalRecipeRef: globalRecipe._id,
+      name: globalRecipe.name,
+      description: globalRecipe.description || null,
+      icon: globalRecipe.icon || null,
+      recipeType: 'group',
+      servings: globalRecipe.servings || 1,
+      ingredients: globalRecipe.ingredients || [],
+      instructions: globalRecipe.instructions || [],
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }));
+
+    if (groupRecipes.length > 0) {
+      await db.collection('recipes').insertMany(groupRecipes);
+      console.log(`Created ${groupRecipes.length} group recipes for new group: ${name}`);
+    }
+
     res.status(201).json({
       ...createdGroup,
       _id: createdGroup!._id.toString(),

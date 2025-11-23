@@ -59,6 +59,9 @@ const router = Router();
  *         groupId:
  *           type: string
  *           description: Group ID this item belongs to
+ *         globalItemRef:
+ *           type: string
+ *           description: Reference to global item if this is a copy
  *         name:
  *           type: string
  *           description: Item name
@@ -153,31 +156,31 @@ const router = Router();
  * /api/items:
  *   get:
  *     summary: Get all items
- *     description: Get both global items and group items for user's group
+ *     description: Get group items for user's active group (global items are hidden and accessed through group items)
  *     tags:
  *       - Items
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: includeGlobal
+ *         schema:
+ *           type: boolean
+ *         description: Include global items (requires global_items:view permission)
  *     responses:
  *       200:
- *         description: Combined list of items
+ *         description: List of items
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 globalItems:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/GlobalItem'
- *                 groupItems:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/GroupItem'
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/GroupItem'
  */
 router.get('/items', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const db = getDatabase();
+    const includeGlobal = req.query.includeGlobal === 'true';
 
     // Get user to find their active group
     const user = await db.collection('users').findOne({ _id: new ObjectId(req.userId) });
@@ -227,30 +230,57 @@ router.get('/items', authMiddleware, async (req: AuthRequest, res: Response) => 
       );
     }
 
-    // Get active global items
-    const globalItems = await db.collection('globalItems')
-      .find({ isActive: true })
-      .toArray();
-
     // Get group items for the active group
     const groupItems = await db.collection('groupItems')
       .find({ groupId: groupId })
       .toArray();
 
-    res.json({
-      globalItems: globalItems.map(item => ({
-        ...item,
-        _id: item._id.toString(),
-        type: 'global'
-      })),
-      groupItems: groupItems.map(item => ({
-        ...item,
-        _id: item._id.toString(),
-        groupId: item.groupId.toString(),
-        createdBy: item.createdBy?.toString(),
-        type: 'group'
-      }))
-    });
+    // If user has permission and requests global items, include them
+    if (includeGlobal) {
+      // Check if user has permission to view global items
+      const userRole = await db.collection('users').findOne(
+        { _id: new ObjectId(req.userId) },
+        { projection: { roleId: 1 } }
+      );
+
+      if (userRole?.roleId) {
+        const role = await db.collection('roles').findOne({ _id: userRole.roleId });
+        const hasPermission = role?.globalPermissions?.includes('global_items:view');
+
+        if (hasPermission) {
+          const globalItems = await db.collection('globalItems')
+            .find({ isActive: true })
+            .toArray();
+
+          res.json({
+            groupItems: groupItems.map(item => ({
+              ...item,
+              _id: item._id.toString(),
+              groupId: item.groupId.toString(),
+              globalItemRef: item.globalItemRef?.toString(),
+              createdBy: item.createdBy?.toString(),
+              type: 'group'
+            })),
+            globalItems: globalItems.map(item => ({
+              ...item,
+              _id: item._id.toString(),
+              type: 'global'
+            }))
+          });
+          return;
+        }
+      }
+    }
+
+    // Default response: only group items
+    res.json(groupItems.map(item => ({
+      ...item,
+      _id: item._id.toString(),
+      groupId: item.groupId.toString(),
+      globalItemRef: item.globalItemRef?.toString(),
+      createdBy: item.createdBy?.toString(),
+      type: 'group'
+    })));
   } catch (error) {
     console.error('Error fetching items:', error);
     res.status(500).json({
@@ -355,6 +385,27 @@ router.post('/items/global', authMiddleware, requireGlobalPermission('global_ite
     const result = await db.collection('globalItems').insertOne(newItem);
     const createdItem = await db.collection('globalItems').findOne({ _id: result.insertedId });
 
+    // Sync this new global item to all existing groups
+    const allGroups = await db.collection('groups').find({}).toArray();
+    const groupItemsToCreate = allGroups.map(group => ({
+      groupId: group._id,
+      globalItemRef: result.insertedId,
+      name: newItem.name,
+      category: newItem.category,
+      icon: newItem.icon,
+      defaultUnit: newItem.defaultUnit,
+      barcode: newItem.barcode,
+      searchNames: newItem.searchNames,
+      tags: newItem.tags,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }));
+
+    if (groupItemsToCreate.length > 0) {
+      await db.collection('groupItems').insertMany(groupItemsToCreate);
+      console.log(`Synced new global item "${newItem.name}" to ${groupItemsToCreate.length} groups`);
+    }
+
     res.status(201).json({
       ...createdItem,
       _id: createdItem!._id.toString(),
@@ -437,6 +488,34 @@ router.put('/items/global/:id', authMiddleware, requireGlobalPermission('global_
         message: 'Global item not found',
         code: 'NOT_FOUND'
       });
+    }
+
+    // Update all group items that reference this global item and haven't been customized
+    // We'll consider an item "not customized" if it still has the same name and category
+    const groupItemUpdateData: any = {
+      updatedAt: new Date()
+    };
+
+    if (name !== undefined) groupItemUpdateData.name = name.trim();
+    if (category !== undefined) groupItemUpdateData.category = category.trim();
+    if (icon !== undefined) groupItemUpdateData.icon = icon;
+    if (defaultUnit !== undefined) groupItemUpdateData.defaultUnit = defaultUnit;
+    if (barcode !== undefined) groupItemUpdateData.barcode = barcode;
+    if (searchNames !== undefined) {
+      groupItemUpdateData.searchNames = Array.isArray(searchNames) ? searchNames.map((n: string) => n.trim()).filter(Boolean) : [];
+    }
+    if (tags !== undefined) {
+      groupItemUpdateData.tags = Array.isArray(tags) ? tags.map((t: string) => new ObjectId(t)) : [];
+    }
+
+    // Update all group items that reference this global item
+    const updateResult = await db.collection('groupItems').updateMany(
+      { globalItemRef: new ObjectId(id) },
+      { $set: groupItemUpdateData }
+    );
+
+    if (updateResult.modifiedCount > 0) {
+      console.log(`Updated ${updateResult.modifiedCount} group items referencing global item "${result.name}"`);
     }
 
     res.json({
@@ -702,16 +781,28 @@ router.put('/items/group/:id', authMiddleware, requirePermission('group_items:up
       });
     }
 
-    // Get user's group
-    const userGroup = await db.collection('groups').findOne({
-      'members.userId': new ObjectId(req.userId)
-    });
-
-    if (!userGroup) {
+    // Get user to find their active group
+    const user = await db.collection('users').findOne({ _id: new ObjectId(req.userId) });
+    if (!user) {
       return res.status(404).json({
-        message: 'User has no group',
-        code: 'NO_GROUP'
+        message: 'User not found',
+        code: 'NOT_FOUND'
       });
+    }
+
+    // Use active group or find user's first group
+    let groupId = user.activeGroupId;
+    if (!groupId) {
+      const userGroup = await db.collection('groups').findOne({
+        'members.userId': new ObjectId(req.userId)
+      });
+      if (!userGroup) {
+        return res.status(404).json({
+          message: 'User has no group',
+          code: 'NO_GROUP'
+        });
+      }
+      groupId = userGroup._id;
     }
 
     const updateData: any = {
@@ -731,7 +822,7 @@ router.put('/items/group/:id', authMiddleware, requirePermission('group_items:up
     }
 
     const result = await db.collection('groupItems').findOneAndUpdate(
-      { _id: new ObjectId(id), groupId: userGroup._id },
+      { _id: new ObjectId(id), groupId: groupId },
       { $set: updateData },
       { returnDocument: 'after' }
     );
@@ -792,23 +883,39 @@ router.delete('/items/group/:id', authMiddleware, requirePermission('group_items
       });
     }
 
-    // Get user's group
-    const userGroup = await db.collection('groups').findOne({
-      'members.userId': new ObjectId(req.userId)
+    // Get user to find their active group
+    const user = await db.collection('users').findOne({
+      _id: new ObjectId(req.userId)
     });
 
-    if (!userGroup) {
+    if (!user) {
       return res.status(404).json({
-        message: 'User has no group',
-        code: 'NO_GROUP'
+        message: 'User not found',
+        code: 'USER_NOT_FOUND'
       });
+    }
+
+    // Use active group or find user's first group
+    let groupId = user.activeGroupId;
+    if (!groupId) {
+      const userGroup = await db.collection('groups').findOne({
+        'members.userId': new ObjectId(req.userId)
+      });
+
+      if (!userGroup) {
+        return res.status(404).json({
+          message: 'User has no group',
+          code: 'NO_GROUP'
+        });
+      }
+      groupId = userGroup._id;
     }
 
     const itemId = new ObjectId(id);
 
     const result = await db.collection('groupItems').deleteOne({
       _id: itemId,
-      groupId: userGroup._id
+      groupId: groupId
     });
 
     if (result.deletedCount === 0) {
@@ -823,12 +930,12 @@ router.delete('/items/group/:id', authMiddleware, requirePermission('group_items
       db.collection('pantry').deleteMany({
         itemId: itemId,
         itemType: 'group',
-        groupId: userGroup._id
+        groupId: groupId
       }),
       db.collection('shopping').deleteMany({
         itemId: itemId,
         itemType: 'group',
-        groupId: userGroup._id
+        groupId: groupId
       })
     ]);
 

@@ -62,9 +62,19 @@ export const useItemsStore = defineStore('items', () => {
 
     loading.value = true
     try {
-      const response = await ItemsService.getApiItems()
-      globalItems.value = (response.globalItems || []).map(item => ({ ...item, type: 'global' as const }))
-      groupItems.value = (response.groupItems || []).map(item => ({ ...item, type: 'group' as const }))
+      const response = await ItemsService.getApiItems() as any
+
+      // Handle new API response format (array of items) or old format (object with globalItems/groupItems)
+      if (Array.isArray(response)) {
+        // New format: all items are group items
+        groupItems.value = response.map(item => ({ ...item, type: 'group' as const }))
+        globalItems.value = []
+      } else {
+        // Old format: split into global and group items
+        globalItems.value = (response.globalItems || []).map((item: any) => ({ ...item, type: 'global' as const }))
+        groupItems.value = (response.groupItems || []).map((item: any) => ({ ...item, type: 'group' as const }))
+      }
+
       lastSynced.value = new Date()
       pendingChanges.value.clear()
     } catch (error: any) {

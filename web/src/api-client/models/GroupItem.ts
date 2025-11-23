@@ -12,6 +12,10 @@ export type GroupItem = {
      */
     groupId: string;
     /**
+     * Reference to global item if this is a copy
+     */
+    globalItemRef?: string;
+    /**
      * Item name
      */
     name: string;

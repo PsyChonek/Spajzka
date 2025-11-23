@@ -15,9 +15,9 @@ const router = Router();
  *         _id:
  *           type: string
  *           description: Tag ID
- *         userId:
+ *         groupId:
  *           type: string
- *           description: User ID who owns this tag
+ *           description: Group ID this tag belongs to
  *         name:
  *           type: string
  *           description: Tag name
@@ -35,7 +35,7 @@ const router = Router();
  *           format: date-time
  *       required:
  *         - name
- *         - userId
+ *         - groupId
  *     CreateTagRequest:
  *       type: object
  *       properties:
@@ -55,15 +55,15 @@ const router = Router();
  * @openapi
  * /api/tags:
  *   get:
- *     summary: Get user tags
- *     description: Get all tags for the authenticated user
+ *     summary: Get tags for user's groups
+ *     description: Get all tags for groups the authenticated user is a member of
  *     tags:
  *       - Tags
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: List of user tags
+ *         description: List of tags from user's groups
  *         content:
  *           application/json:
  *             schema:
@@ -74,15 +74,24 @@ const router = Router();
 router.get('/tags', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const db = getDatabase();
+
+    // Get all groups the user is a member of
+    const groups = await db.collection('groups')
+      .find({ 'members.userId': new ObjectId(req.userId) })
+      .toArray();
+
+    const groupIds = groups.map(g => g._id);
+
+    // Get all tags for these groups
     const tags = await db.collection('tags')
-      .find({ userId: new ObjectId(req.userId) })
+      .find({ groupId: { $in: groupIds } })
       .sort({ name: 1 })
       .toArray();
 
     res.json(tags.map(tag => ({
       ...tag,
       _id: tag._id.toString(),
-      userId: tag.userId.toString()
+      groupId: tag.groupId.toString()
     })));
   } catch (error) {
     console.error('Error fetching tags:', error);
@@ -98,7 +107,7 @@ router.get('/tags', authMiddleware, async (req: AuthRequest, res: Response) => {
  * /api/tags:
  *   post:
  *     summary: Create tag
- *     description: Create a new user tag
+ *     description: Create a new tag for the user's active group
  *     tags:
  *       - Tags
  *     security:
@@ -129,21 +138,53 @@ router.post('/tags', authMiddleware, async (req: AuthRequest, res: Response) => 
       });
     }
 
-    // Check for duplicate tag name for this user
+    // Get user to find active group
+    const user = await db.collection('users').findOne({ _id: new ObjectId(req.userId) });
+    let groupId = user?.activeGroupId;
+
+    // If no active group set, find user's first NON-PERSONAL group
+    if (!groupId) {
+      // First try to find a non-personal group
+      const nonPersonalGroup = await db.collection('groups').findOne({
+        'members.userId': new ObjectId(req.userId),
+        isPersonal: { $ne: true }
+      });
+
+      if (nonPersonalGroup) {
+        groupId = nonPersonalGroup._id;
+      } else {
+        // Fall back to personal group if no other group exists
+        const personalGroup = await db.collection('groups').findOne({
+          'members.userId': new ObjectId(req.userId),
+          isPersonal: true
+        });
+
+        if (!personalGroup) {
+          return res.status(404).json({
+            message: 'User has no group',
+            code: 'NO_GROUP'
+          });
+        }
+
+        groupId = personalGroup._id;
+      }
+    }
+
+    // Check for duplicate tag name for this group
     const existingTag = await db.collection('tags').findOne({
-      userId: new ObjectId(req.userId),
+      groupId: new ObjectId(groupId),
       name: name.trim()
     });
 
     if (existingTag) {
       return res.status(400).json({
-        message: 'Tag with this name already exists',
+        message: 'Tag with this name already exists in this group',
         code: 'DUPLICATE_TAG'
       });
     }
 
     const newTag = {
-      userId: new ObjectId(req.userId),
+      groupId: new ObjectId(groupId),
       name: name.trim(),
       color: color?.trim() || '#6200EA', // Default purple color
       icon: icon?.trim() || null,
@@ -157,7 +198,7 @@ router.post('/tags', authMiddleware, async (req: AuthRequest, res: Response) => 
     res.status(201).json({
       ...createdTag,
       _id: createdTag!._id.toString(),
-      userId: createdTag!.userId.toString()
+      groupId: createdTag!.groupId.toString()
     });
   } catch (error) {
     console.error('Error creating tag:', error);
@@ -173,7 +214,7 @@ router.post('/tags', authMiddleware, async (req: AuthRequest, res: Response) => 
  * /api/tags/{id}:
  *   put:
  *     summary: Update tag
- *     description: Update a user tag
+ *     description: Update a tag (must be in the same group as the user)
  *     tags:
  *       - Tags
  *     security:
@@ -207,17 +248,40 @@ router.put('/tags/:id', authMiddleware, async (req: AuthRequest, res: Response) 
       });
     }
 
-    // Check for duplicate tag name for this user (excluding current tag)
+    // Get the tag to verify group membership
+    const tag = await db.collection('tags').findOne({ _id: new ObjectId(id) });
+
+    if (!tag) {
+      return res.status(404).json({
+        message: 'Tag not found',
+        code: 'NOT_FOUND'
+      });
+    }
+
+    // Verify user is a member of the tag's group
+    const group = await db.collection('groups').findOne({
+      _id: tag.groupId,
+      'members.userId': new ObjectId(req.userId)
+    });
+
+    if (!group) {
+      return res.status(403).json({
+        message: 'You do not have permission to update this tag',
+        code: 'FORBIDDEN'
+      });
+    }
+
+    // Check for duplicate tag name in this group (excluding current tag)
     if (name) {
       const existingTag = await db.collection('tags').findOne({
-        userId: new ObjectId(req.userId),
+        groupId: tag.groupId,
         name: name.trim(),
         _id: { $ne: new ObjectId(id) }
       });
 
       if (existingTag) {
         return res.status(400).json({
-          message: 'Tag with this name already exists',
+          message: 'Tag with this name already exists in this group',
           code: 'DUPLICATE_TAG'
         });
       }
@@ -232,10 +296,7 @@ router.put('/tags/:id', authMiddleware, async (req: AuthRequest, res: Response) 
     if (icon !== undefined) updateData.icon = icon?.trim() || null;
 
     const result = await db.collection('tags').findOneAndUpdate(
-      {
-        _id: new ObjectId(id),
-        userId: new ObjectId(req.userId)
-      },
+      { _id: new ObjectId(id) },
       { $set: updateData },
       { returnDocument: 'after' }
     );
@@ -250,7 +311,7 @@ router.put('/tags/:id', authMiddleware, async (req: AuthRequest, res: Response) 
     res.json({
       ...result,
       _id: result._id.toString(),
-      userId: result.userId.toString()
+      groupId: result.groupId.toString()
     });
   } catch (error) {
     console.error('Error updating tag:', error);
@@ -266,7 +327,7 @@ router.put('/tags/:id', authMiddleware, async (req: AuthRequest, res: Response) 
  * /api/tags/{id}:
  *   delete:
  *     summary: Delete tag
- *     description: Delete a user tag
+ *     description: Delete a tag (must be in the same group as the user)
  *     tags:
  *       - Tags
  *     security:
@@ -295,10 +356,30 @@ router.delete('/tags/:id', authMiddleware, async (req: AuthRequest, res: Respons
 
     const tagId = new ObjectId(id);
 
-    const result = await db.collection('tags').deleteOne({
-      _id: tagId,
-      userId: new ObjectId(req.userId)
+    // Get the tag to verify group membership
+    const tag = await db.collection('tags').findOne({ _id: tagId });
+
+    if (!tag) {
+      return res.status(404).json({
+        message: 'Tag not found',
+        code: 'NOT_FOUND'
+      });
+    }
+
+    // Verify user is a member of the tag's group
+    const group = await db.collection('groups').findOne({
+      _id: tag.groupId,
+      'members.userId': new ObjectId(req.userId)
     });
+
+    if (!group) {
+      return res.status(403).json({
+        message: 'You do not have permission to delete this tag',
+        code: 'FORBIDDEN'
+      });
+    }
+
+    const result = await db.collection('tags').deleteOne({ _id: tagId });
 
     if (result.deletedCount === 0) {
       return res.status(404).json({

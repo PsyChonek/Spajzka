@@ -9,9 +9,9 @@ import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class TagsService {
     /**
-     * Get user tags
-     * Get all tags for the authenticated user
-     * @returns Tag List of user tags
+     * Get tags for user's groups
+     * Get all tags for groups the authenticated user is a member of
+     * @returns Tag List of tags from user's groups
      * @throws ApiError
      */
     public static getApiTags(): CancelablePromise<Array<Tag>> {
@@ -22,7 +22,7 @@ export class TagsService {
     }
     /**
      * Create tag
-     * Create a new user tag
+     * Create a new tag for the user's active group
      * @param requestBody
      * @returns Tag Tag created
      * @throws ApiError
@@ -39,7 +39,7 @@ export class TagsService {
     }
     /**
      * Update tag
-     * Update a user tag
+     * Update a tag (must be in the same group as the user)
      * @param id
      * @param requestBody
      * @returns any Tag updated
@@ -61,7 +61,7 @@ export class TagsService {
     }
     /**
      * Delete tag
-     * Delete a user tag
+     * Delete a tag (must be in the same group as the user)
      * @param id
      * @returns void
      * @throws ApiError

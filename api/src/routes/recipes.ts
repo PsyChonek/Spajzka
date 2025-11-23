@@ -202,31 +202,31 @@ const router = Router();
  * /api/recipes:
  *   get:
  *     summary: Get all recipes
- *     description: Get both global recipes and group recipes for user's group
+ *     description: Get group recipes for user's active group (global recipes are hidden and accessed through group recipes)
  *     tags:
  *       - Recipes
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: includeGlobal
+ *         schema:
+ *           type: boolean
+ *         description: Include global recipes (requires global_recipes:view permission)
  *     responses:
  *       200:
- *         description: Combined list of recipes
+ *         description: List of recipes
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 globalRecipes:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/GlobalRecipe'
- *                 groupRecipes:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/GroupRecipe'
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/GroupRecipe'
  */
 router.get('/recipes', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const db = getDatabase();
+    const includeGlobal = req.query.includeGlobal === 'true';
 
     // Get user to find their active group
     const user = await db.collection('users').findOne({ _id: new ObjectId(req.userId) });
@@ -236,13 +236,6 @@ router.get('/recipes', authMiddleware, async (req: AuthRequest, res: Response) =
         code: 'NOT_FOUND'
       });
     }
-
-    // Get global recipes
-    const globalRecipes = await db.collection('recipes')
-      .find({
-        recipeType: 'global'
-      })
-      .toArray();
 
     // Get group recipes if user has an active group
     let groupRecipes: any[] = [];
@@ -255,19 +248,59 @@ router.get('/recipes', authMiddleware, async (req: AuthRequest, res: Response) =
         .toArray();
     }
 
-    res.json({
-      globalRecipes: globalRecipes.map(recipe => ({
-        ...recipe,
-        _id: recipe._id.toString(),
-        userId: recipe.userId.toString()
-      })),
-      groupRecipes: groupRecipes.map(recipe => ({
-        ...recipe,
-        _id: recipe._id.toString(),
-        groupId: recipe.groupId.toString(),
-        userId: recipe.userId.toString()
-      }))
-    });
+    // If user has permission and requests global recipes, include them
+    if (includeGlobal) {
+      // Check if user has permission to view global recipes
+      const userWithRole = await db.collection('users').findOne(
+        { _id: new ObjectId(req.userId) },
+        { projection: { globalRoles: 1 } }
+      );
+
+      if (userWithRole?.globalRoles) {
+        let hasPermission = false;
+        for (const roleId of userWithRole.globalRoles) {
+          const role = await db.collection('roles').findOne({ _id: roleId });
+          if (role?.permissions?.includes('global_recipes:view')) {
+            hasPermission = true;
+            break;
+          }
+        }
+
+        if (hasPermission) {
+          const globalRecipes = await db.collection('recipes')
+            .find({ recipeType: 'global' })
+            .toArray();
+
+          res.json({
+            groupRecipes: groupRecipes.map(recipe => ({
+              ...recipe,
+              _id: recipe._id.toString(),
+              groupId: recipe.groupId.toString(),
+              userId: recipe.userId?.toString(),
+              globalRecipeRef: recipe.globalRecipeRef?.toString(),
+              type: 'group'
+            })),
+            globalRecipes: globalRecipes.map(recipe => ({
+              ...recipe,
+              _id: recipe._id.toString(),
+              userId: recipe.userId?.toString(),
+              type: 'global'
+            }))
+          });
+          return;
+        }
+      }
+    }
+
+    // Default response: only group recipes
+    res.json(groupRecipes.map(recipe => ({
+      ...recipe,
+      _id: recipe._id.toString(),
+      groupId: recipe.groupId.toString(),
+      userId: recipe.userId?.toString(),
+      globalRecipeRef: recipe.globalRecipeRef?.toString(),
+      type: 'group'
+    })));
   } catch (error) {
     console.error('Error fetching recipes:', error);
     res.status(500).json({
@@ -309,7 +342,7 @@ router.get('/recipes/global', authMiddleware, async (req: AuthRequest, res: Resp
     res.json(globalRecipes.map(recipe => ({
       ...recipe,
       _id: recipe._id.toString(),
-      userId: recipe.userId.toString()
+      userId: recipe.userId?.toString()
     })));
   } catch (error) {
     console.error('Error fetching global recipes:', error);
@@ -397,7 +430,7 @@ router.post('/recipes/global', authMiddleware, requireGlobalPermission('global_r
     res.status(201).json({
       ...createdRecipe,
       _id: createdRecipe!._id.toString(),
-      userId: createdRecipe!.userId.toString()
+      userId: createdRecipe!.userId?.toString()
     });
   } catch (error) {
     console.error('Error creating global recipe:', error);
@@ -491,7 +524,7 @@ router.put('/recipes/global/:id', authMiddleware, requireGlobalPermission('globa
     res.json({
       ...result,
       _id: result._id.toString(),
-      userId: result.userId.toString()
+      userId: result.userId?.toString()
     });
   } catch (error) {
     console.error('Error updating global recipe:', error);
@@ -602,7 +635,7 @@ router.get('/recipes/group', authMiddleware, async (req: AuthRequest, res: Respo
       ...recipe,
       _id: recipe._id.toString(),
       groupId: recipe.groupId.toString(),
-      userId: recipe.userId.toString()
+      userId: recipe.userId?.toString()
     })));
   } catch (error) {
     console.error('Error fetching group recipes:', error);
@@ -701,7 +734,7 @@ router.post('/recipes/group', authMiddleware, requirePermission('group_recipes:c
       ...createdRecipe,
       _id: createdRecipe!._id.toString(),
       groupId: createdRecipe!.groupId.toString(),
-      userId: createdRecipe!.userId.toString()
+      userId: createdRecipe!.userId?.toString()
     });
   } catch (error) {
     console.error('Error creating group recipe:', error);
@@ -806,7 +839,7 @@ router.put('/recipes/group/:id', authMiddleware, requirePermission('group_recipe
       ...result,
       _id: result._id.toString(),
       groupId: result.groupId.toString(),
-      userId: result.userId.toString()
+      userId: result.userId?.toString()
     });
   } catch (error) {
     console.error('Error updating group recipe:', error);

@@ -12,17 +12,20 @@ import { request as __request } from '../core/request';
 export class RecipesService {
     /**
      * Get all recipes
-     * Get both global recipes and group recipes for user's group
-     * @returns any Combined list of recipes
+     * Get group recipes for user's active group (global recipes are hidden and accessed through group recipes)
+     * @param includeGlobal Include global recipes (requires global_recipes:view permission)
+     * @returns GroupRecipe List of recipes
      * @throws ApiError
      */
-    public static getApiRecipes(): CancelablePromise<{
-        globalRecipes?: Array<GlobalRecipe>;
-        groupRecipes?: Array<GroupRecipe>;
-    }> {
+    public static getApiRecipes(
+        includeGlobal?: boolean,
+    ): CancelablePromise<Array<GroupRecipe>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/recipes',
+            query: {
+                'includeGlobal': includeGlobal,
+            },
         });
     }
     /**

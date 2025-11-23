@@ -12,17 +12,20 @@ import { request as __request } from '../core/request';
 export class ItemsService {
     /**
      * Get all items
-     * Get both global items and group items for user's group
-     * @returns any Combined list of items
+     * Get group items for user's active group (global items are hidden and accessed through group items)
+     * @param includeGlobal Include global items (requires global_items:view permission)
+     * @returns GroupItem List of items
      * @throws ApiError
      */
-    public static getApiItems(): CancelablePromise<{
-        globalItems?: Array<GlobalItem>;
-        groupItems?: Array<GroupItem>;
-    }> {
+    public static getApiItems(
+        includeGlobal?: boolean,
+    ): CancelablePromise<Array<GroupItem>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/items',
+            query: {
+                'includeGlobal': includeGlobal,
+            },
         });
     }
     /**

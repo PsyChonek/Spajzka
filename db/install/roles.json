@@ -6,9 +6,11 @@
 			"description": "Can manage global items and recipes visible to all users",
 			"isGlobal": true,
 			"permissions": [
+				"global_items:view",
 				"global_items:create",
 				"global_items:update",
 				"global_items:delete",
+				"global_recipes:view",
 				"global_recipes:create",
 				"global_recipes:update",
 				"global_recipes:delete"
