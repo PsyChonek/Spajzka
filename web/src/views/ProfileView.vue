@@ -439,12 +439,12 @@ const changePassword = async () => {
 
       <!-- Edit Profile Dialog -->
       <q-dialog v-model="showProfileDialog" :full-width="$q.screen.lt.sm" :maximized="$q.screen.lt.sm">
-        <q-card :style="$q.screen.lt.sm ? 'max-height: 100vh' : 'width: 100%; max-width: 400px'">
+        <q-card :style="$q.screen.lt.sm ? 'height: 100vh; max-height: 100vh; display: flex; flex-direction: column' : 'width: 100%; max-width: 400px'">
           <q-card-section>
             <div class="text-h6">Edit Profile</div>
           </q-card-section>
 
-          <q-card-section class="q-pt-none">
+          <q-card-section class="q-pt-none" :style="$q.screen.lt.sm ? 'flex: 1; overflow-y: auto' : ''">
             <q-form @submit.prevent="updateProfile" class="q-gutter-md">
               <q-input
                 v-model="profileName"
@@ -487,12 +487,12 @@ const changePassword = async () => {
 
       <!-- Change Password Dialog -->
       <q-dialog v-model="showPasswordDialog" :full-width="$q.screen.lt.sm" :maximized="$q.screen.lt.sm">
-        <q-card :style="$q.screen.lt.sm ? 'max-height: 100vh' : 'width: 100%; max-width: 400px'">
+        <q-card :style="$q.screen.lt.sm ? 'height: 100vh; max-height: 100vh; display: flex; flex-direction: column' : 'width: 100%; max-width: 400px'">
           <q-card-section>
             <div class="text-h6">Change Password</div>
           </q-card-section>
 
-          <q-card-section class="q-pt-none">
+          <q-card-section class="q-pt-none" :style="$q.screen.lt.sm ? 'flex: 1; overflow-y: auto' : ''">
             <q-form @submit.prevent="changePassword" class="q-gutter-md">
               <q-input
                 v-model="oldPassword"

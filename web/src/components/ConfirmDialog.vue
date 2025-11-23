@@ -69,7 +69,7 @@ const handleCancel = () => {
     :full-width="$q.screen.lt.sm"
     :maximized="$q.screen.lt.sm"
   >
-    <q-card :style="$q.screen.lt.sm ? 'max-height: 100vh' : 'width: 100%; max-width: 400px'">
+    <q-card :style="$q.screen.lt.sm ? 'height: 100vh; max-height: 100vh; display: flex; flex-direction: column' : 'width: 100%; max-width: 400px'">
       <q-card-section class="row items-center q-pb-none">
         <q-icon
           :name="getIcon()"
@@ -80,7 +80,7 @@ const handleCancel = () => {
         <div class="text-h6">{{ title }}</div>
       </q-card-section>
 
-      <q-card-section class="q-pt-sm">
+      <q-card-section class="q-pt-sm" :style="$q.screen.lt.sm ? 'flex: 1; overflow-y: auto' : ''">
         <div class="text-body1" v-html="message"></div>
       </q-card-section>
 

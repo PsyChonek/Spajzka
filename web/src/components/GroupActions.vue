@@ -112,12 +112,12 @@ const joinGroup = async () => {
 
     <!-- Create Group Dialog -->
     <q-dialog v-model="showCreateDialog" :full-width="$q.screen.lt.sm" :maximized="$q.screen.lt.sm">
-      <q-card :style="$q.screen.lt.sm ? 'max-height: 100vh' : 'width: 100%; max-width: 400px'">
+      <q-card :style="$q.screen.lt.sm ? 'height: 100vh; max-height: 100vh; display: flex; flex-direction: column' : 'width: 100%; max-width: 400px'">
         <q-card-section>
           <div class="text-h6">Create New Group</div>
         </q-card-section>
 
-        <q-card-section class="q-pt-none">
+        <q-card-section class="q-pt-none" :style="$q.screen.lt.sm ? 'flex: 1; overflow-y: auto' : ''">
           <q-input
             v-model="newGroupName"
             outlined
@@ -143,12 +143,12 @@ const joinGroup = async () => {
 
     <!-- Join Group Dialog -->
     <q-dialog v-model="showJoinDialog" :full-width="$q.screen.lt.sm" :maximized="$q.screen.lt.sm">
-      <q-card :style="$q.screen.lt.sm ? 'max-height: 100vh' : 'width: 100%; max-width: 400px'">
+      <q-card :style="$q.screen.lt.sm ? 'height: 100vh; max-height: 100vh; display: flex; flex-direction: column' : 'width: 100%; max-width: 400px'">
         <q-card-section>
           <div class="text-h6">Join Group</div>
         </q-card-section>
 
-        <q-card-section class="q-pt-none">
+        <q-card-section class="q-pt-none" :style="$q.screen.lt.sm ? 'flex: 1; overflow-y: auto' : ''">
           <q-input
             v-model="joinInviteCode"
             outlined

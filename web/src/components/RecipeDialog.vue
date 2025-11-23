@@ -326,112 +326,118 @@ const removeInstruction = (index: number) => {
           <div
             v-for="(ingredient, index) in formIngredients"
             :key="index"
-            class="row q-col-gutter-sm q-mb-sm"
+            class="q-mb-sm"
           >
-            <div class="col-5">
-              <q-select
-                :ref="el => { if (el) ingredientSelectRefs[index] = el }"
-                v-model="ingredient.itemName"
-                outlined
-                dense
-                use-input
-                input-debounce="300"
-                label="Ingredient *"
-                placeholder="Start typing to search items..."
-                :options="ingredientOptions[index] || []"
-                option-label="name"
-                @filter="(val, update) => getItemOptions(index, val, update)"
-                @update:model-value="(val) => handleItemSelect(index, val)"
-                new-value-mode="add-unique"
-                fill-input
-                hide-selected
-              >
-                <template v-slot:option="scope">
-                  <q-item v-bind="scope.itemProps" clickable>
-                    <q-item-section avatar>
-                      <span class="text-h6">{{ scope.opt.icon || '📦' }}</span>
-                    </q-item-section>
-                    <q-item-section>
-                      <q-item-label>{{ scope.opt.name }}</q-item-label>
-                      <q-item-label caption v-if="scope.opt.category">
-                        {{ scope.opt.category }}
-                      </q-item-label>
-                    </q-item-section>
-                    <q-item-section side v-if="scope.opt.defaultUnit">
-                      <q-item-label caption class="text-weight-medium">{{ scope.opt.defaultUnit }}</q-item-label>
-                    </q-item-section>
-                  </q-item>
-                </template>
-                <template v-slot:after-options>
-                  <template v-if="currentIngredientSearchValue[index]">
-                    <q-separator />
-                    <q-item clickable @click="openAddItemDialog(currentIngredientSearchValue[index] || '', index)">
+            <!-- Ingredient dropdown on its own row -->
+            <div class="row q-col-gutter-sm q-mb-xs">
+              <div class="col-12">
+                <q-select
+                  :ref="el => { if (el) ingredientSelectRefs[index] = el }"
+                  v-model="ingredient.itemName"
+                  outlined
+                  dense
+                  use-input
+                  input-debounce="300"
+                  label="Ingredient *"
+                  placeholder="Start typing to search items..."
+                  :options="ingredientOptions[index] || []"
+                  option-label="name"
+                  @filter="(val, update) => getItemOptions(index, val, update)"
+                  @update:model-value="(val) => handleItemSelect(index, val)"
+                  new-value-mode="add-unique"
+                  fill-input
+                  hide-selected
+                >
+                  <template v-slot:option="scope">
+                    <q-item v-bind="scope.itemProps" clickable>
                       <q-item-section avatar>
-                        <q-icon name="add" color="primary" />
+                        <span class="text-h6">{{ scope.opt.icon || '📦' }}</span>
                       </q-item-section>
                       <q-item-section>
-                        <q-item-label>Add new item</q-item-label>
-                        <q-item-label caption>Create "{{ currentIngredientSearchValue[index] }}" as a new item</q-item-label>
+                        <q-item-label>{{ scope.opt.name }}</q-item-label>
+                        <q-item-label caption v-if="scope.opt.category">
+                          {{ scope.opt.category }}
+                        </q-item-label>
+                      </q-item-section>
+                      <q-item-section side v-if="scope.opt.defaultUnit">
+                        <q-item-label caption class="text-weight-medium">{{ scope.opt.defaultUnit }}</q-item-label>
                       </q-item-section>
                     </q-item>
                   </template>
-                </template>
-                <template v-slot:no-option>
-                  <q-item>
-                    <q-item-section class="text-grey">
-                      No items found
-                    </q-item-section>
-                  </q-item>
-                  <template v-if="currentIngredientSearchValue[index]">
-                    <q-separator />
-                    <q-item clickable @click="openAddItemDialog(currentIngredientSearchValue[index] || '', index)">
-                      <q-item-section avatar>
-                        <q-icon name="add" color="primary" />
-                      </q-item-section>
-                      <q-item-section>
-                        <q-item-label>Add new item</q-item-label>
-                        <q-item-label caption>Create "{{ currentIngredientSearchValue[index] }}" as a new item</q-item-label>
+                  <template v-slot:after-options>
+                    <template v-if="currentIngredientSearchValue[index]">
+                      <q-separator />
+                      <q-item clickable @click="openAddItemDialog(currentIngredientSearchValue[index] || '', index)">
+                        <q-item-section avatar>
+                          <q-icon name="add" color="primary" />
+                        </q-item-section>
+                        <q-item-section>
+                          <q-item-label>Add new item</q-item-label>
+                          <q-item-label caption>Create "{{ currentIngredientSearchValue[index] }}" as a new item</q-item-label>
+                        </q-item-section>
+                      </q-item>
+                    </template>
+                  </template>
+                  <template v-slot:no-option>
+                    <q-item>
+                      <q-item-section class="text-grey">
+                        No items found
                       </q-item-section>
                     </q-item>
+                    <template v-if="currentIngredientSearchValue[index]">
+                      <q-separator />
+                      <q-item clickable @click="openAddItemDialog(currentIngredientSearchValue[index] || '', index)">
+                        <q-item-section avatar>
+                          <q-icon name="add" color="primary" />
+                        </q-item-section>
+                        <q-item-section>
+                          <q-item-label>Add new item</q-item-label>
+                          <q-item-label caption>Create "{{ currentIngredientSearchValue[index] }}" as a new item</q-item-label>
+                        </q-item-section>
+                      </q-item>
+                    </template>
                   </template>
-                </template>
-              </q-select>
+                </q-select>
+              </div>
             </div>
-            <div class="col-3">
-              <q-input
-                v-model.number="ingredient.quantity"
-                outlined
-                dense
-                label="Quantity"
-                type="number"
-                min="0"
-                step="0.1"
-                :readonly="readOnly"
-                :disable="readOnly"
-              />
-            </div>
-            <div class="col-3">
-              <q-input
-                v-model="ingredient.unit"
-                outlined
-                dense
-                label="Unit"
-                placeholder="kg, pcs"
-                :readonly="readOnly"
-                :disable="readOnly"
-              />
-            </div>
-            <div v-if="!readOnly" class="col-1 flex items-center">
-              <q-btn
-                flat
-                dense
-                round
-                icon="remove"
-                size="sm"
-                color="negative"
-                @click="removeIngredient(index)"
-                :disable="formIngredients.length === 1"
-              />
+            <!-- Quantity, Unit, and Remove button on second row -->
+            <div class="row q-col-gutter-sm">
+              <div class="col-5">
+                <q-input
+                  v-model.number="ingredient.quantity"
+                  outlined
+                  dense
+                  label="Quantity"
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  :readonly="readOnly"
+                  :disable="readOnly"
+                />
+              </div>
+              <div class="col-6">
+                <q-input
+                  v-model="ingredient.unit"
+                  outlined
+                  dense
+                  label="Unit"
+                  placeholder="kg, pcs"
+                  :readonly="readOnly"
+                  :disable="readOnly"
+                />
+              </div>
+              <div v-if="!readOnly" class="col-1 flex items-center">
+                <q-btn
+                  flat
+                  dense
+                  round
+                  icon="remove"
+                  size="sm"
+                  color="negative"
+                  @click="removeIngredient(index)"
+                  :disable="formIngredients.length === 1"
+                />
+              </div>
             </div>
           </div>
 
