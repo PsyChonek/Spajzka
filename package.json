@@ -27,7 +27,21 @@
     "db:migrate": "cd db && node migrate.js",
     "db:init": "npm run db:install && npm run db:seed && npm run db:migrate",
     "docker:db:init": "docker-compose -f docker-compose.dev.yml up mongodb-init",
-    "docker:db:init:prod": "docker-compose up mongodb-init"
+    "docker:db:init:prod": "docker-compose up mongodb-init",
+    "test": "cd tests && npm test",
+    "test:ui": "cd tests && npm run test:ui",
+    "test:headed": "cd tests && npm run test:headed",
+    "test:debug": "cd tests && npm run test:debug",
+    "test:chromium": "cd tests && npm run test:chromium",
+    "test:firefox": "cd tests && npm run test:firefox",
+    "test:webkit": "cd tests && npm run test:webkit",
+    "test:mobile": "cd tests && npm run test:mobile",
+    "test:auth": "cd tests && npm run test:auth",
+    "test:pantry": "cd tests && npm run test:pantry",
+    "test:shopping": "cd tests && npm run test:shopping",
+    "test:recipes": "cd tests && npm run test:recipes",
+    "test:offline": "cd tests && npm run test:offline",
+    "test:report": "cd tests && npm run report"
   },
   "repository": {
     "type": "git",
