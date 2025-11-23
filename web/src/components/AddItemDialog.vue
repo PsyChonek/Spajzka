@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, nextTick } from 'vue'
 import { useQuasar, type QInput } from 'quasar'
+import TagSelector from './TagSelector.vue'
 
 const $q = useQuasar()
 
@@ -11,6 +12,7 @@ export interface ItemFormData {
   category?: string
   icon?: string
   searchNames?: string[]
+  tags?: string[]
   isGlobal?: boolean
 }
 
@@ -53,6 +55,7 @@ const formDefaultUnit = ref('pcs')
 const formCategory = ref('')
 const formIcon = ref('')
 const formSearchNames = ref('')
+const formTags = ref<string[]>([])
 const formIsGlobal = ref(false)
 
 // Input refs for focusing
@@ -71,6 +74,7 @@ watch(() => props.initialData, (newData) => {
     formCategory.value = newData.category || ''
     formIcon.value = newData.icon || ''
     formSearchNames.value = Array.isArray(newData.searchNames) ? newData.searchNames.join(', ') : ''
+    formTags.value = newData.tags || []
     formIsGlobal.value = newData.isGlobal || false
   }
 }, { immediate: true })
@@ -127,6 +131,9 @@ const handleSave = () => {
     data.isGlobal = formIsGlobal.value
   }
 
+  // Include tags
+  data.tags = formTags.value
+
   emit('save', data)
   emit('update:modelValue', false)
   resetForm()
@@ -138,6 +145,7 @@ const resetForm = () => {
   formDefaultUnit.value = 'pcs'
   formCategory.value = ''
   formIcon.value = ''
+  formTags.value = []
   formSearchNames.value = ''
   formIsGlobal.value = false
 }
@@ -217,6 +225,14 @@ const handleDelete = () => {
           class="q-mb-md"
           :readonly="readonlyItemFields"
           :disable="readonlyItemFields"
+        />
+
+        <!-- Tags -->
+        <TagSelector
+          v-model="formTags"
+          label="Tags"
+          class="q-mb-md"
+          :readonly="readonlyItemFields"
         />
 
         <!-- Global item toggle -->

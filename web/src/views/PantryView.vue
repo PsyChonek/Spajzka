@@ -9,6 +9,7 @@ import PageWrapper from '@/components/PageWrapper.vue'
 import ItemSuggestions from '@/components/ItemSuggestions.vue'
 import AddItemDialog, { type ItemFormData } from '@/components/AddItemDialog.vue'
 import SearchInput from '@/components/SearchInput.vue'
+import TagFilter from '@/components/TagFilter.vue'
 
 const $q = useQuasar()
 const pantryStore = usePantryStore()
@@ -18,6 +19,7 @@ const authStore = useAuthStore()
 // Note: No need to fetch items on mount - the router guard handles this
 
 const searchQuery = ref('')
+const selectedTagIds = ref<string[]>([])
 const showAddDialog = ref(false)
 const showEditDialog = ref(false)
 const editingItem = ref<PantryItem | null>(null)
@@ -92,14 +94,27 @@ const columns = computed(() => {
 })
 
 const filteredItems = computed(() => {
-  if (!searchQuery.value) {
-    return pantryStore.sortedItems
+  let filtered = pantryStore.sortedItems
+
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    filtered = filtered.filter(item =>
+      (item.name || '').toLowerCase().includes(query)
+    )
   }
 
-  const query = searchQuery.value.toLowerCase()
-  return pantryStore.sortedItems.filter(item =>
-    (item.name || '').toLowerCase().includes(query)
-  )
+  // Filter by tags
+  if (selectedTagIds.value.length > 0) {
+    filtered = filtered.filter(pantryItem => {
+      // Find the underlying item by itemId
+      const underlyingItem = itemsStore.sortedItems.find((item: any) => item._id === pantryItem.itemId)
+      if (!underlyingItem || !underlyingItem.tags || underlyingItem.tags.length === 0) return false
+      // Item must have at least one of the selected tags
+      return underlyingItem.tags.some((tagId: string) => selectedTagIds.value.includes(tagId))
+    })
+  }
+
+  return filtered
 })
 
 // Suggest items from master Items list
@@ -281,6 +296,10 @@ const handleDeleteFromDialog = () => {
       />
     </div>
 
+    <div class="filter-container q-mt-md">
+      <TagFilter v-model="selectedTagIds" />
+    </div>
+
     <div class="table-container q-mt-lg">
       <q-table
         :rows="filteredItems"
@@ -396,6 +415,11 @@ const handleDeleteFromDialog = () => {
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+.filter-container {
+  display: flex;
+  justify-content: center;
 }
 
 .table-container {

@@ -7,12 +7,16 @@ import { useAuthStore } from '@/stores/authStore'
 import AddItemDialog, { type ItemFormData } from '@/components/AddItemDialog.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import SearchInput from '@/components/SearchInput.vue'
+import TagFilter from '@/components/TagFilter.vue'
+import { useTagsStore } from '@/stores/tagsStore'
 
 const $q = useQuasar()
 const itemsStore = useItemsStore()
 const authStore = useAuthStore()
+const tagsStore = useTagsStore()
 
 const searchQuery = ref('')
+const selectedTagIds = ref<string[]>([])
 const showAddDialog = ref(false)
 const showEditDialog = ref(false)
 const showDeleteDialog = ref(false)
@@ -70,6 +74,16 @@ const allColumns = [
     headerClasses: 'col-category'
   },
   {
+    name: 'tags',
+    label: 'Tags',
+    align: 'left' as const,
+    field: (row: Item) => row.tags || [],
+    sortable: false,
+    hideOnMobile: true,
+    classes: 'col-tags',
+    headerClasses: 'col-tags'
+  },
+  {
     name: 'createdAt',
     label: 'Created',
     align: 'left' as const,
@@ -100,18 +114,38 @@ const columns = computed(() => {
 })
 
 const filteredItems = computed(() => {
-  if (!searchQuery.value) {
-    return itemsStore.sortedItems
+  let items = itemsStore.sortedItems
+
+  // Filter by search query
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    items = items.filter(item =>
+      item.name.toLowerCase().includes(query) ||
+      (item.defaultUnit && item.defaultUnit.toLowerCase().includes(query)) ||
+      (item.category && item.category.toLowerCase().includes(query)) ||
+      (item.searchNames && item.searchNames.some(name => name.toLowerCase().includes(query)))
+    )
   }
 
-  const query = searchQuery.value.toLowerCase()
-  return itemsStore.sortedItems.filter(item =>
-    item.name.toLowerCase().includes(query) ||
-    (item.defaultUnit && item.defaultUnit.toLowerCase().includes(query)) ||
-    (item.category && item.category.toLowerCase().includes(query)) ||
-    (item.searchNames && item.searchNames.some(name => name.toLowerCase().includes(query)))
-  )
+  // Filter by tags
+  if (selectedTagIds.value.length > 0) {
+    items = items.filter(item => {
+      if (!item.tags || item.tags.length === 0) return false
+      // Item must have at least one of the selected tags
+      return item.tags.some(tagId => selectedTagIds.value.includes(tagId))
+    })
+  }
+
+  return items
 })
+
+function getContrastColor(hexColor: string): string {
+  const r = parseInt(hexColor.slice(1, 3), 16)
+  const g = parseInt(hexColor.slice(3, 5), 16)
+  const b = parseInt(hexColor.slice(5, 7), 16)
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+  return luminance > 0.5 ? '#000000' : '#FFFFFF'
+}
 
 const canCreateGlobalItems = computed(() => {
   return authStore.hasGlobalPermission('global_items:create')
@@ -142,7 +176,8 @@ const openEditDialog = (item: Item, field: 'name' | 'icon' | 'unit' | 'category'
     defaultUnit: item.defaultUnit,
     category: item.category || '',
     icon: item.icon || '',
-    searchNames: item.searchNames || []
+    searchNames: item.searchNames || [],
+    tags: item.tags || []
   }
   showEditDialog.value = true
 }
@@ -155,7 +190,8 @@ const saveNewItem = async (data: ItemFormData) => {
       category: data.category || 'Other',
       defaultUnit: data.defaultUnit || 'pcs',
       icon: data.icon,
-      searchNames: data.searchNames
+      searchNames: data.searchNames,
+      tags: data.tags
     })
   } else {
     await itemsStore.addGroupItem({
@@ -163,7 +199,8 @@ const saveNewItem = async (data: ItemFormData) => {
       category: data.category || 'Other',
       defaultUnit: data.defaultUnit || 'pcs',
       icon: data.icon,
-      searchNames: data.searchNames
+      searchNames: data.searchNames,
+      tags: data.tags
     })
   }
   searchQuery.value = ''
@@ -176,7 +213,8 @@ const saveEditedItem = async (data: ItemFormData) => {
       category: data.category || 'Other',
       defaultUnit: data.defaultUnit || 'pcs',
       icon: data.icon,
-      searchNames: data.searchNames
+      searchNames: data.searchNames,
+      tags: data.tags
     }
 
     // Update based on item type
@@ -261,6 +299,10 @@ const canEditItemFields = computed(() => {
         <SearchInput v-model="searchQuery" @add="openAddDialog" />
       </div>
 
+      <div class="filter-container q-mt-md">
+        <TagFilter v-model="selectedTagIds" />
+      </div>
+
       <div class="table-container q-mt-lg">
         <q-table
           :rows="filteredItems"
@@ -328,6 +370,27 @@ const canEditItemFields = computed(() => {
                   This item is only visible to your group
                 </q-tooltip>
               </q-badge>
+            </q-td>
+          </template>
+          <template v-slot:body-cell-tags="props">
+            <q-td :props="props">
+              <div v-if="props.row.tags && props.row.tags.length > 0" class="row q-gutter-xs">
+                <q-chip
+                  v-for="tagId in props.row.tags"
+                  :key="tagId"
+                  dense
+                  size="sm"
+                  :style="{
+                    backgroundColor: tagsStore.getTagById(tagId)?.color || '#6200EA',
+                    color: getContrastColor(tagsStore.getTagById(tagId)?.color || '#6200EA'),
+                    padding: '6px 12px'
+                  }"
+                >
+                  <span v-if="tagsStore.getTagById(tagId)?.icon" style="margin-right: 6px">{{ tagsStore.getTagById(tagId)?.icon }}</span>
+                  <span>{{ tagsStore.getTagById(tagId)?.name }}</span>
+                </q-chip>
+              </div>
+              <span v-else class="text-grey-6">-</span>
             </q-td>
           </template>
           <template v-slot:body-cell-actions="props">

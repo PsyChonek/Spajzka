@@ -39,6 +39,10 @@ export type GroupItem = {
      * User ID who created this item
      */
     createdBy?: string;
+    /**
+     * Tag IDs associated with this item
+     */
+    tags?: Array<string>;
     createdAt?: string;
 };
 

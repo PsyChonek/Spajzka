@@ -1,0 +1,106 @@
+{
+	"tags": [
+		{
+			"_id": {
+				"$oid": "68eb80b11d2eacda726c0f01"
+			},
+			"userId": {
+				"$oid": "68eb80b11d2eacda726c0b8c"
+			},
+			"name": "Oblíbené",
+			"color": "#FF5252",
+			"icon": "❤️",
+			"createdAt": {
+				"$date": "2025-10-12T10:19:29.105Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:19:29.105Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb80b11d2eacda726c0f02"
+			},
+			"userId": {
+				"$oid": "68eb80b11d2eacda726c0b8c"
+			},
+			"name": "Nejím",
+			"color": "#9C27B0",
+			"icon": "🚫",
+			"createdAt": {
+				"$date": "2025-10-12T10:19:29.105Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:19:29.105Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb80b11d2eacda726c0f03"
+			},
+			"userId": {
+				"$oid": "68eb80b11d2eacda726c0b8c"
+			},
+			"name": "Zdravé",
+			"color": "#4CAF50",
+			"icon": "🥗",
+			"createdAt": {
+				"$date": "2025-10-12T10:19:29.105Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:19:29.105Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb80b11d2eacda726c0f04"
+			},
+			"userId": {
+				"$oid": "68eb80b11d2eacda726c0b8c"
+			},
+			"name": "Rychlé",
+			"color": "#FF9800",
+			"icon": "⚡",
+			"createdAt": {
+				"$date": "2025-10-12T10:19:29.105Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:19:29.105Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb80b11d2eacda726c0f05"
+			},
+			"userId": {
+				"$oid": "68eb80b11d2eacda726c0b8c"
+			},
+			"name": "Vegetariánské",
+			"color": "#8BC34A",
+			"icon": "🌱",
+			"createdAt": {
+				"$date": "2025-10-12T10:19:29.105Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:19:29.105Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "68eb80b11d2eacda726c0f06"
+			},
+			"userId": {
+				"$oid": "68eb80b11d2eacda726c0b8c"
+			},
+			"name": "Dezerty",
+			"color": "#E91E63",
+			"icon": "🍰",
+			"createdAt": {
+				"$date": "2025-10-12T10:19:29.105Z"
+			},
+			"updatedAt": {
+				"$date": "2025-10-12T10:19:29.105Z"
+			}
+		}
+	]
+}

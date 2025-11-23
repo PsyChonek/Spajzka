@@ -12,6 +12,7 @@ import shoppingRouter from './routes/shopping';
 import groupsRouter from './routes/groups';
 import recipesRouter from './routes/recipes';
 import rolesRouter from './routes/roles';
+import tagsRouter from './routes/tags';
 
 // Load environment variables
 dotenv.config();
@@ -48,6 +49,7 @@ app.use('/api', shoppingRouter);
 app.use('/api', groupsRouter);
 app.use('/api', recipesRouter);
 app.use('/api', rolesRouter);
+app.use('/api', tagsRouter);
 
 // Root endpoint
 app.get('/', (req: Request, res: Response) => {

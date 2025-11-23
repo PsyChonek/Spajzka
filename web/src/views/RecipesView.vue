@@ -7,29 +7,53 @@ import { useAuthStore } from '@/stores/authStore'
 import PageWrapper from '@/components/PageWrapper.vue'
 import SearchInput from '@/components/SearchInput.vue'
 import RecipeDialog, { type RecipeFormData } from '@/components/RecipeDialog.vue'
+import TagFilter from '@/components/TagFilter.vue'
 import { GlobalRecipe } from '@/api-client'
+import { useTagsStore } from '@/stores/tagsStore'
 
 const $q = useQuasar()
 const router = useRouter()
 const recipesStore = useRecipesStore()
 const authStore = useAuthStore()
+const tagsStore = useTagsStore()
 
 const searchQuery = ref('')
+const selectedTagIds = ref<string[]>([])
 const showRecipeDialog = ref(false)
 const editingRecipe = ref<Recipe | null>(null)
 
 // Computed
 const displayedRecipes = computed(() => {
-  const allRecipes = recipesStore.sortedItems
+  let recipes = recipesStore.sortedItems
 
-  if (!searchQuery.value) return allRecipes
+  // Filter by search query
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    recipes = recipes.filter(recipe =>
+      recipe.name.toLowerCase().includes(query) ||
+      (recipe.description && recipe.description.toLowerCase().includes(query))
+    )
+  }
 
-  const query = searchQuery.value.toLowerCase()
-  return allRecipes.filter(recipe =>
-    recipe.name.toLowerCase().includes(query) ||
-    (recipe.description && recipe.description.toLowerCase().includes(query))
-  )
+  // Filter by tags
+  if (selectedTagIds.value.length > 0) {
+    recipes = recipes.filter(recipe => {
+      if (!recipe.tags || recipe.tags.length === 0) return false
+      // Recipe must have at least one of the selected tags
+      return recipe.tags.some(tagId => selectedTagIds.value.includes(tagId))
+    })
+  }
+
+  return recipes
 })
+
+function getContrastColor(hexColor: string): string {
+  const r = parseInt(hexColor.slice(1, 3), 16)
+  const g = parseInt(hexColor.slice(3, 5), 16)
+  const b = parseInt(hexColor.slice(5, 7), 16)
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+  return luminance > 0.5 ? '#000000' : '#FFFFFF'
+}
 
 const canCreateGlobalRecipe = computed(() => {
   return authStore.hasGlobalPermission('global_recipes:create')
@@ -108,6 +132,10 @@ const openRecipe = (recipeId: string) => {
         <SearchInput v-model="searchQuery" placeholder="Search recipes..." @add="openAddDialog" />
       </div>
 
+      <div class="filter-container q-mt-md">
+        <TagFilter v-model="selectedTagIds" />
+      </div>
+
       <div class="recipes-grid q-mt-lg">
         <q-card
           v-for="recipe in displayedRecipes"
@@ -137,6 +165,24 @@ const openRecipe = (recipeId: string) => {
                   <q-tooltip>This recipe is shared with your group</q-tooltip>
                 </q-badge>
               </div>
+            </div>
+
+            <!-- Tags -->
+            <div v-if="recipe.tags && recipe.tags.length > 0" class="recipe-tags q-mt-sm">
+              <q-chip
+                v-for="tagId in recipe.tags"
+                :key="tagId"
+                dense
+                size="sm"
+                :style="{
+                  backgroundColor: tagsStore.getTagById(tagId)?.color || '#6200EA',
+                  color: getContrastColor(tagsStore.getTagById(tagId)?.color || '#6200EA'),
+                  padding: '6px 12px'
+                }"
+              >
+                <span v-if="tagsStore.getTagById(tagId)?.icon" style="margin-right: 6px">{{ tagsStore.getTagById(tagId)?.icon }}</span>
+                <span>{{ tagsStore.getTagById(tagId)?.name }}</span>
+              </q-chip>
             </div>
 
             <div class="action-buttons q-mt-md">

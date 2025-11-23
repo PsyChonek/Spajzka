@@ -10,5 +10,9 @@ export type CreateGlobalRecipeRequest = {
     servings: number;
     ingredients: Array<RecipeIngredient>;
     instructions: Array<string>;
+    /**
+     * Tag IDs to associate with this recipe
+     */
+    tags?: Array<string>;
 };
 

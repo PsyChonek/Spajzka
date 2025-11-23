@@ -7,6 +7,7 @@ import PageWrapper from '@/components/PageWrapper.vue'
 import ItemSuggestions from '@/components/ItemSuggestions.vue'
 import AddItemDialog, { type ItemFormData } from '@/components/AddItemDialog.vue'
 import SearchInput from '@/components/SearchInput.vue'
+import TagFilter from '@/components/TagFilter.vue'
 
 const shoppingStore = useShoppingStore()
 const itemsStore = useItemsStore()
@@ -14,6 +15,7 @@ const itemsStore = useItemsStore()
 // Note: No need to fetch items on mount - the router guard handles this
 
 const searchQuery = ref('')
+const selectedTagIds = ref<string[]>([])
 const showAddDialog = ref(false)
 const initialFormData = ref<Partial<ItemFormData>>({})
 
@@ -60,6 +62,17 @@ const filteredItems = computed(() => {
     filtered = filtered.filter(item =>
       item.name?.toLowerCase().includes(query) ?? false
     )
+  }
+
+  // Filter by tags
+  if (selectedTagIds.value.length > 0) {
+    filtered = filtered.filter(shoppingItem => {
+      // Find the underlying item by itemId
+      const underlyingItem = itemsStore.sortedItems.find((item: any) => item._id === shoppingItem.itemId)
+      if (!underlyingItem || !underlyingItem.tags || underlyingItem.tags.length === 0) return false
+      // Item must have at least one of the selected tags
+      return underlyingItem.tags.some((tagId: string) => selectedTagIds.value.includes(tagId))
+    })
   }
 
   return filtered
@@ -188,6 +201,10 @@ const updateQuantity = async (item: ShoppingItem, newValue: number | string) => 
       />
     </div>
 
+    <div class="filter-container q-mt-md">
+      <TagFilter v-model="selectedTagIds" />
+    </div>
+
     <!-- Needed Items Count -->
     <div v-if="!searchQuery && neededItemsCount > 0" class="needed-items-count q-mt-md">
       <q-chip color="primary" text-color="white" icon="shopping_cart">
@@ -293,6 +310,11 @@ const updateQuantity = async (item: ShoppingItem, newValue: number | string) => 
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+.filter-container {
+  display: flex;
+  justify-content: center;
 }
 
 .needed-items-count {

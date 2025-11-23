@@ -12,5 +12,9 @@ export type CreateGlobalItemRequest = {
      * Additional names for search
      */
     searchNames?: Array<string>;
+    /**
+     * Tag IDs to associate with this item
+     */
+    tags?: Array<string>;
 };
 

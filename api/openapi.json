@@ -321,6 +321,13 @@
             "type": "boolean",
             "description": "Whether item is active"
           },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tag IDs associated with this item"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -373,6 +380,13 @@
             "type": "string",
             "description": "User ID who created this item"
           },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tag IDs associated with this item"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -408,6 +422,13 @@
               "type": "string"
             },
             "description": "Additional names for search"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tag IDs to associate with this item"
           }
         },
         "required": [
@@ -439,6 +460,13 @@
               "type": "string"
             },
             "description": "Additional names for search"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tag IDs to associate with this item"
           }
         },
         "required": [
@@ -589,6 +617,13 @@
             },
             "description": "Step-by-step instructions"
           },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tag IDs associated with this recipe"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -658,6 +693,13 @@
             },
             "description": "Step-by-step instructions"
           },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tag IDs associated with this recipe"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -703,6 +745,13 @@
             "items": {
               "type": "string"
             }
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tag IDs to associate with this recipe"
           }
         },
         "required": [
@@ -738,6 +787,13 @@
             "items": {
               "type": "string"
             }
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tag IDs to associate with this recipe"
           }
         },
         "required": [
@@ -842,6 +898,62 @@
         "required": [
           "itemId",
           "itemType"
+        ]
+      },
+      "Tag": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "description": "Tag ID"
+          },
+          "userId": {
+            "type": "string",
+            "description": "User ID who owns this tag"
+          },
+          "name": {
+            "type": "string",
+            "description": "Tag name"
+          },
+          "color": {
+            "type": "string",
+            "description": "Tag color (hex code)"
+          },
+          "icon": {
+            "type": "string",
+            "description": "Optional emoji icon"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "name",
+          "userId"
+        ]
+      },
+      "CreateTagRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "color": {
+            "type": "string",
+            "description": "Tag color (hex code)"
+          },
+          "icon": {
+            "type": "string",
+            "description": "Optional emoji icon"
+          }
+        },
+        "required": [
+          "name"
         ]
       }
     },
@@ -2591,6 +2703,135 @@
         "responses": {
           "204": {
             "description": "Item deleted"
+          }
+        }
+      }
+    },
+    "/api/tags": {
+      "get": {
+        "summary": "Get user tags",
+        "description": "Get all tags for the authenticated user",
+        "tags": [
+          "Tags"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of user tags",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Tag"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create tag",
+        "description": "Create a new user tag",
+        "tags": [
+          "Tags"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTagRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Tag created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Tag"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tags/{id}": {
+      "put": {
+        "summary": "Update tag",
+        "description": "Update a user tag",
+        "tags": [
+          "Tags"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTagRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tag updated"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete tag",
+        "description": "Delete a user tag",
+        "tags": [
+          "Tags"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Tag deleted"
           }
         }
       }

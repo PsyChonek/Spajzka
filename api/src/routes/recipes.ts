@@ -63,6 +63,11 @@ const router = Router();
  *           items:
  *             type: string
  *           description: Step-by-step instructions
+ *         tags:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: Tag IDs associated with this recipe
  *         createdAt:
  *           type: string
  *           format: date-time
@@ -113,6 +118,11 @@ const router = Router();
  *           items:
  *             type: string
  *           description: Step-by-step instructions
+ *         tags:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: Tag IDs associated with this recipe
  *         createdAt:
  *           type: string
  *           format: date-time
@@ -146,6 +156,11 @@ const router = Router();
  *           type: array
  *           items:
  *             type: string
+ *         tags:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: Tag IDs to associate with this recipe
  *       required:
  *         - name
  *         - servings
@@ -170,6 +185,11 @@ const router = Router();
  *           type: array
  *           items:
  *             type: string
+ *         tags:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: Tag IDs to associate with this recipe
  *       required:
  *         - name
  *         - servings
@@ -329,7 +349,7 @@ router.get('/recipes/global', authMiddleware, async (req: AuthRequest, res: Resp
 router.post('/recipes/global', authMiddleware, requireGlobalPermission('global_recipes:create'), async (req: AuthRequest, res: Response) => {
   try {
     const db = getDatabase();
-    const { name, description, icon, servings, ingredients, instructions } = req.body;
+    const { name, description, icon, servings, ingredients, instructions, tags } = req.body;
 
     if (!name || !servings || !ingredients || !instructions) {
       return res.status(400).json({
@@ -366,6 +386,7 @@ router.post('/recipes/global', authMiddleware, requireGlobalPermission('global_r
         unit: ing.unit.trim()
       })),
       instructions: instructions.map((inst: string) => inst.trim()),
+      tags: Array.isArray(tags) ? tags.map((t: string) => new ObjectId(t)) : [],
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -419,7 +440,7 @@ router.put('/recipes/global/:id', authMiddleware, requireGlobalPermission('globa
   try {
     const db = getDatabase();
     const { id } = req.params;
-    const { name, description, icon, servings, ingredients, instructions } = req.body;
+    const { name, description, icon, servings, ingredients, instructions, tags } = req.body;
 
     if (!ObjectId.isValid(id)) {
       return res.status(400).json({
@@ -446,6 +467,9 @@ router.put('/recipes/global/:id', authMiddleware, requireGlobalPermission('globa
     }
     if (instructions !== undefined) {
       updateData.instructions = instructions.map((inst: string) => inst.trim());
+    }
+    if (tags !== undefined) {
+      updateData.tags = Array.isArray(tags) ? tags.map((t: string) => new ObjectId(t)) : [];
     }
 
     const result = await db.collection('recipes').findOneAndUpdate(
@@ -618,7 +642,7 @@ router.get('/recipes/group', authMiddleware, async (req: AuthRequest, res: Respo
 router.post('/recipes/group', authMiddleware, requirePermission('group_recipes:create'), async (req: AuthRequest, res: Response) => {
   try {
     const db = getDatabase();
-    const { name, description, icon, servings, ingredients, instructions } = req.body;
+    const { name, description, icon, servings, ingredients, instructions, tags } = req.body;
 
     if (!name || !servings || !ingredients || !instructions) {
       return res.status(400).json({
@@ -665,6 +689,7 @@ router.post('/recipes/group', authMiddleware, requirePermission('group_recipes:c
         unit: ing.unit.trim()
       })),
       instructions: instructions.map((inst: string) => inst.trim()),
+      tags: Array.isArray(tags) ? tags.map((t: string) => new ObjectId(t)) : [],
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -719,7 +744,7 @@ router.put('/recipes/group/:id', authMiddleware, requirePermission('group_recipe
   try {
     const db = getDatabase();
     const { id } = req.params;
-    const { name, description, icon, servings, ingredients, instructions } = req.body;
+    const { name, description, icon, servings, ingredients, instructions, tags } = req.body;
 
     if (!ObjectId.isValid(id)) {
       return res.status(400).json({
@@ -755,6 +780,9 @@ router.put('/recipes/group/:id', authMiddleware, requirePermission('group_recipe
     }
     if (instructions !== undefined) {
       updateData.instructions = instructions.map((inst: string) => inst.trim());
+    }
+    if (tags !== undefined) {
+      updateData.tags = Array.isArray(tags) ? tags.map((t: string) => new ObjectId(t)) : [];
     }
 
     const result = await db.collection('recipes').findOneAndUpdate(

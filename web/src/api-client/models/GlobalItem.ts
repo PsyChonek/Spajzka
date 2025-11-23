@@ -35,6 +35,10 @@ export type GlobalItem = {
      * Whether item is active
      */
     isActive?: boolean;
+    /**
+     * Tag IDs associated with this item
+     */
+    tags?: Array<string>;
     createdAt?: string;
 };
 

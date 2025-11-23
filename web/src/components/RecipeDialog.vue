@@ -6,6 +6,7 @@ import { useItemsStore } from '@/stores/itemsStore'
 import { useAuthStore } from '@/stores/authStore'
 import { GlobalRecipe, GroupRecipe, type RecipeIngredient } from '@/api-client'
 import AddItemDialog, { type ItemFormData } from './AddItemDialog.vue'
+import TagSelector from './TagSelector.vue'
 
 interface Props {
   modelValue: boolean
@@ -33,6 +34,7 @@ export interface RecipeFormData {
   servings: number
   ingredients: RecipeIngredient[]
   instructions: string[]
+  tags?: string[]
   recipeType?: GlobalRecipe.recipeType | GroupRecipe.recipeType
 }
 
@@ -48,6 +50,7 @@ const formServings = ref(4)
 const formRecipeType = ref<GlobalRecipe.recipeType | GroupRecipe.recipeType>(GlobalRecipe.recipeType.GLOBAL)
 const formIngredients = ref<RecipeIngredient[]>([{ itemName: '', quantity: 1, unit: 'pcs' }])
 const formInstructions = ref<string[]>([''])
+const formTags = ref<string[]>([])
 
 // Item dialog state
 const showAddItemDialog = ref(false)
@@ -76,6 +79,7 @@ const resetForm = () => {
   formServings.value = 4
   formIngredients.value = [{ itemName: '', quantity: 1, unit: 'pcs' }]
   formInstructions.value = ['']
+  formTags.value = []
 }
 
 // Watch for editing recipe changes
@@ -92,6 +96,7 @@ watch(() => props.editingRecipe, (recipe) => {
     formInstructions.value = recipe.instructions?.length > 0
       ? [...recipe.instructions]
       : ['']
+    formTags.value = recipe.tags || []
   } else {
     resetForm()
   }
@@ -109,7 +114,8 @@ const handleSaveRecipe = () => {
     icon: formIcon.value.trim() || undefined,
     servings: formServings.value,
     ingredients: formIngredients.value.filter(ing => ing.itemName.trim()),
-    instructions: formInstructions.value.filter(inst => inst.trim())
+    instructions: formInstructions.value.filter(inst => inst.trim()),
+    tags: formTags.value
   }
 
   // Include recipe type only for new recipes
@@ -315,6 +321,14 @@ const removeInstruction = (index: number) => {
               </q-tooltip>
             </q-toggle>
           </template>
+
+          <!-- Tags -->
+          <TagSelector
+            v-model="formTags"
+            label="Tags"
+            class="q-mb-md"
+            :readonly="readOnly"
+          />
 
           <q-separator class="q-my-md" />
 

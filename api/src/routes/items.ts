@@ -39,6 +39,11 @@ const router = Router();
  *         isActive:
  *           type: boolean
  *           description: Whether item is active
+ *         tags:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: Tag IDs associated with this item
  *         createdAt:
  *           type: string
  *           format: date-time
@@ -77,6 +82,11 @@ const router = Router();
  *         createdBy:
  *           type: string
  *           description: User ID who created this item
+ *         tags:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: Tag IDs associated with this item
  *         createdAt:
  *           type: string
  *           format: date-time
@@ -102,6 +112,11 @@ const router = Router();
  *           items:
  *             type: string
  *           description: Additional names for search
+ *         tags:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: Tag IDs to associate with this item
  *       required:
  *         - name
  *         - category
@@ -123,6 +138,11 @@ const router = Router();
  *           items:
  *             type: string
  *           description: Additional names for search
+ *         tags:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: Tag IDs to associate with this item
  *       required:
  *         - name
  *         - category
@@ -309,7 +329,7 @@ router.get('/items/global', authMiddleware, async (req: AuthRequest, res: Respon
 router.post('/items/global', authMiddleware, requireGlobalPermission('global_items:create'), async (req: AuthRequest, res: Response) => {
   try {
     const db = getDatabase();
-    const { name, category, icon, defaultUnit, barcode, searchNames } = req.body;
+    const { name, category, icon, defaultUnit, barcode, searchNames, tags } = req.body;
 
     if (!name || !category) {
       return res.status(400).json({
@@ -325,6 +345,7 @@ router.post('/items/global', authMiddleware, requireGlobalPermission('global_ite
       defaultUnit: defaultUnit || null,
       barcode: barcode || null,
       searchNames: Array.isArray(searchNames) ? searchNames.map((n: string) => n.trim()).filter(Boolean) : [],
+      tags: Array.isArray(tags) ? tags.map((t: string) => new ObjectId(t)) : [],
       createdBy: new ObjectId(req.userId),
       isActive: true,
       createdAt: new Date(),
@@ -380,7 +401,7 @@ router.put('/items/global/:id', authMiddleware, requireGlobalPermission('global_
   try {
     const db = getDatabase();
     const { id } = req.params;
-    const { name, category, icon, defaultUnit, barcode, searchNames } = req.body;
+    const { name, category, icon, defaultUnit, barcode, searchNames, tags } = req.body;
 
     if (!ObjectId.isValid(id)) {
       return res.status(400).json({
@@ -400,6 +421,9 @@ router.put('/items/global/:id', authMiddleware, requireGlobalPermission('global_
     if (barcode !== undefined) updateData.barcode = barcode;
     if (searchNames !== undefined) {
       updateData.searchNames = Array.isArray(searchNames) ? searchNames.map((n: string) => n.trim()).filter(Boolean) : [];
+    }
+    if (tags !== undefined) {
+      updateData.tags = Array.isArray(tags) ? tags.map((t: string) => new ObjectId(t)) : [];
     }
 
     const result = await db.collection('globalItems').findOneAndUpdate(
@@ -584,7 +608,7 @@ router.get('/items/group', authMiddleware, async (req: AuthRequest, res: Respons
 router.post('/items/group', authMiddleware, requirePermission('group_items:create'), async (req: AuthRequest, res: Response) => {
   try {
     const db = getDatabase();
-    const { name, category, icon, defaultUnit, barcode, searchNames } = req.body;
+    const { name, category, icon, defaultUnit, barcode, searchNames, tags } = req.body;
 
     if (!name || !category) {
       return res.status(400).json({
@@ -613,6 +637,7 @@ router.post('/items/group', authMiddleware, requirePermission('group_items:creat
       defaultUnit: defaultUnit || null,
       barcode: barcode || null,
       searchNames: Array.isArray(searchNames) ? searchNames.map((n: string) => n.trim()).filter(Boolean) : [],
+      tags: Array.isArray(tags) ? tags.map((t: string) => new ObjectId(t)) : [],
       createdBy: new ObjectId(req.userId),
       createdAt: new Date(),
       updatedAt: new Date()
@@ -668,7 +693,7 @@ router.put('/items/group/:id', authMiddleware, requirePermission('group_items:up
   try {
     const db = getDatabase();
     const { id } = req.params;
-    const { name, category, icon, defaultUnit, barcode, searchNames } = req.body;
+    const { name, category, icon, defaultUnit, barcode, searchNames, tags } = req.body;
 
     if (!ObjectId.isValid(id)) {
       return res.status(400).json({
@@ -700,6 +725,9 @@ router.put('/items/group/:id', authMiddleware, requirePermission('group_items:up
     if (barcode !== undefined) updateData.barcode = barcode;
     if (searchNames !== undefined) {
       updateData.searchNames = Array.isArray(searchNames) ? searchNames.map((n: string) => n.trim()).filter(Boolean) : [];
+    }
+    if (tags !== undefined) {
+      updateData.tags = Array.isArray(tags) ? tags.map((t: string) => new ObjectId(t)) : [];
     }
 
     const result = await db.collection('groupItems').findOneAndUpdate(

@@ -37,6 +37,10 @@ export type GlobalRecipe = {
      * Step-by-step instructions
      */
     instructions: Array<string>;
+    /**
+     * Tag IDs associated with this recipe
+     */
+    tags?: Array<string>;
     createdAt?: string;
     updatedAt?: string;
 };
