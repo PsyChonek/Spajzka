@@ -321,17 +321,6 @@ const removeInstruction = (index: number) => {
           <!-- Ingredients -->
           <div class="text-subtitle1 text-weight-medium q-mb-sm">
             Ingredients
-            <q-btn
-              v-if="!readOnly"
-              flat
-              dense
-              round
-              icon="add"
-              size="sm"
-              color="primary"
-              @click="addIngredient"
-              class="q-ml-sm"
-            />
           </div>
 
           <div
@@ -446,22 +435,28 @@ const removeInstruction = (index: number) => {
             </div>
           </div>
 
+          <!-- Add Ingredient Button -->
+          <div v-if="!readOnly" class="row q-mb-sm">
+            <div class="col-12 flex justify-center">
+              <q-btn
+                flat
+                dense
+                round
+                icon="add"
+                size="sm"
+                color="primary"
+                @click="addIngredient"
+              >
+                <q-tooltip>Add ingredient</q-tooltip>
+              </q-btn>
+            </div>
+          </div>
+
           <q-separator class="q-my-md" />
 
           <!-- Instructions -->
           <div class="text-subtitle1 text-weight-medium q-mb-sm">
             Instructions
-            <q-btn
-              v-if="!readOnly"
-              flat
-              dense
-              round
-              icon="add"
-              size="sm"
-              color="primary"
-              @click="addInstruction"
-              class="q-ml-sm"
-            />
           </div>
 
           <div
@@ -496,6 +491,23 @@ const removeInstruction = (index: number) => {
                 @click="removeInstruction(index)"
                 :disable="formInstructions.length === 1"
               />
+            </div>
+          </div>
+
+          <!-- Add Instruction Button -->
+          <div v-if="!readOnly" class="row q-mb-sm">
+            <div class="col-12 flex justify-center">
+              <q-btn
+                flat
+                dense
+                round
+                icon="add"
+                size="sm"
+                color="primary"
+                @click="addInstruction"
+              >
+                <q-tooltip>Add instruction step</q-tooltip>
+              </q-btn>
             </div>
           </div>
         </q-card-section>
