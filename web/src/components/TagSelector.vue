@@ -2,30 +2,66 @@
   <div class="tag-selector">
     <q-select
       v-model="selectedTags"
-      :options="tagOptions"
+      :options="filteredTagOptions"
       :label="label"
       multiple
       use-chips
       outlined
       dense
+      use-input
+      input-debounce="300"
       :loading="tagsStore.loading"
       :readonly="readonly"
       :disable="disable"
+      @filter="filterTags"
       @update:model-value="emitUpdate"
     >
-      <template #option="{ opt, selected, toggleOption }">
-        <q-item clickable @click="toggleOption(opt)">
+      <template #no-option>
+        <q-item>
+          <q-item-section class="text-grey">
+            No tags found
+          </q-item-section>
+        </q-item>
+      </template>
+      <template #option="scope">
+        <q-item v-bind="scope.itemProps" clickable>
           <q-item-section side>
-            <q-checkbox :model-value="selected" />
+            <q-checkbox :model-value="scope.selected" @update:model-value="scope.toggleOption(scope.opt)" />
+          </q-item-section>
+          <q-item-section avatar v-if="scope.opt.icon">
+            <span class="text-h6">{{ scope.opt.icon }}</span>
           </q-item-section>
           <q-item-section>
-            <q-item-label>
-              <span v-if="opt.icon">{{ opt.icon }} </span>
-              {{ opt.label }}
-            </q-item-label>
+            <q-item-label>{{ scope.opt.label }}</q-item-label>
           </q-item-section>
           <q-item-section side>
-            <q-badge :style="{ backgroundColor: opt.color }" />
+            <q-badge :style="{ backgroundColor: scope.opt.color }" />
+          </q-item-section>
+          <q-item-section side>
+            <q-btn
+              flat
+              dense
+              round
+              icon="edit"
+              size="xs"
+              color="grey-7"
+              @click.stop="openEditDialog(scope.opt)"
+            >
+              <q-tooltip>Edit tag</q-tooltip>
+            </q-btn>
+          </q-item-section>
+        </q-item>
+      </template>
+
+      <template #after-options>
+        <q-separator />
+        <q-item clickable @click="openCreateDialog">
+          <q-item-section avatar>
+            <q-icon name="add" color="primary" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>Create new tag</q-item-label>
+            <q-item-label caption v-if="searchQuery">Create "{{ searchQuery }}"</q-item-label>
           </q-item-section>
         </q-item>
       </template>
@@ -45,42 +81,27 @@
           <span>{{ opt.label }}</span>
         </q-chip>
       </template>
-
-      <template #after>
-        <q-btn
-          v-if="!readonly && !disable"
-          flat
-          dense
-          round
-          icon="add"
-          color="primary"
-          size="sm"
-          @click="showCreateDialog = true"
-        >
-          <q-tooltip>Create new tag</q-tooltip>
-        </q-btn>
-      </template>
     </q-select>
 
-    <!-- Create Tag Dialog -->
-    <q-dialog v-model="showCreateDialog">
+    <!-- Create/Edit Tag Dialog -->
+    <q-dialog v-model="showDialog">
       <q-card style="min-width: 350px">
         <q-card-section>
-          <div class="text-h6">Create New Tag</div>
+          <div class="text-h6">{{ dialogMode === 'create' ? 'Create New Tag' : 'Edit Tag' }}</div>
         </q-card-section>
 
         <q-card-section>
           <q-input
-            v-model="newTagName"
+            v-model="tagForm.name"
             label="Tag Name"
             outlined
             dense
             autofocus
-            @keyup.enter="createTag"
+            @keyup.enter="saveTag"
           />
 
           <q-input
-            v-model="newTagColor"
+            v-model="tagForm.color"
             label="Color"
             outlined
             dense
@@ -89,14 +110,14 @@
             <template #append>
               <q-icon name="colorize" class="cursor-pointer">
                 <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                  <q-color v-model="newTagColor" />
+                  <q-color v-model="tagForm.color" />
                 </q-popup-proxy>
               </q-icon>
             </template>
           </q-input>
 
           <q-input
-            v-model="newTagIcon"
+            v-model="tagForm.icon"
             label="Icon (emoji)"
             outlined
             dense
@@ -106,11 +127,34 @@
         </q-card-section>
 
         <q-card-actions align="right">
+          <q-btn
+            v-if="dialogMode === 'edit'"
+            flat
+            label="Delete"
+            color="negative"
+            @click="confirmDelete"
+          />
+          <q-space v-if="dialogMode === 'edit'" />
           <q-btn flat label="Cancel" v-close-popup />
-          <q-btn flat label="Create" color="primary" @click="createTag" />
+          <q-btn
+            flat
+            :label="dialogMode === 'create' ? 'Create' : 'Save'"
+            color="primary"
+            @click="saveTag"
+          />
         </q-card-actions>
       </q-card>
     </q-dialog>
+
+    <!-- Delete Confirmation Dialog -->
+    <ConfirmDialog
+      v-model="showDeleteDialog"
+      title="Delete Tag"
+      message="Are you sure you want to delete this tag? It will be removed from all items."
+      type="danger"
+      confirm-label="Delete"
+      @confirm="handleDeleteConfirm"
+    />
   </div>
 </template>
 
@@ -118,6 +162,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useTagsStore } from '@/stores/tagsStore'
 import { useQuasar } from 'quasar'
+import ConfirmDialog from '@/components/ConfirmDialog.vue'
 
 interface Props {
   modelValue: string[]
@@ -140,13 +185,20 @@ const $q = useQuasar()
 const tagsStore = useTagsStore()
 
 const selectedTags = ref<any[]>([])
-const showCreateDialog = ref(false)
-const newTagName = ref('')
-const newTagColor = ref('#6200EA')
-const newTagIcon = ref('')
+const showDialog = ref(false)
+const dialogMode = ref<'create' | 'edit'>('create')
+const editingTagId = ref<string | null>(null)
+const tagForm = ref({
+  name: '',
+  color: '#6200EA',
+  icon: ''
+})
+const showDeleteDialog = ref(false)
+const filteredTagOptions = ref<any[]>([])
+const searchQuery = ref('')
 
 const tagOptions = computed(() => {
-  return tagsStore.sortedTags.map(tag => ({
+  return tagsStore.sortedTagsWithRecent.map(tag => ({
     label: tag.name,
     value: tag._id!,
     color: tag.color || '#6200EA',
@@ -158,6 +210,7 @@ onMounted(async () => {
   if (tagsStore.tags.length === 0) {
     await tagsStore.fetchTags()
   }
+  filteredTagOptions.value = tagOptions.value
   updateSelectedTags()
 })
 
@@ -168,7 +221,13 @@ function updateSelectedTags() {
 }
 
 function emitUpdate(selected: any[]) {
-  emit('update:modelValue', selected.map(s => s.value))
+  const selectedIds = selected.map(s => s.value)
+  emit('update:modelValue', selectedIds)
+
+  // Mark these tags as recently used
+  if (selectedIds.length > 0) {
+    tagsStore.markTagsAsUsed(selectedIds)
+  }
 }
 
 function removeTag(opt: any) {
@@ -176,8 +235,45 @@ function removeTag(opt: any) {
   emitUpdate(selectedTags.value)
 }
 
-async function createTag() {
-  if (!newTagName.value.trim()) {
+function filterTags(val: string, update: (fn: () => void) => void) {
+  searchQuery.value = val
+
+  update(() => {
+    if (val === '') {
+      filteredTagOptions.value = tagOptions.value
+    } else {
+      const needle = val.toLowerCase()
+      filteredTagOptions.value = tagOptions.value.filter(opt =>
+        opt.label.toLowerCase().includes(needle)
+      )
+    }
+  })
+}
+
+function openCreateDialog() {
+  dialogMode.value = 'create'
+  editingTagId.value = null
+  tagForm.value = {
+    name: searchQuery.value || '',
+    color: '#6200EA',
+    icon: ''
+  }
+  showDialog.value = true
+}
+
+function openEditDialog(opt: any) {
+  dialogMode.value = 'edit'
+  editingTagId.value = opt.value
+  tagForm.value = {
+    name: opt.label,
+    color: opt.color,
+    icon: opt.icon || ''
+  }
+  showDialog.value = true
+}
+
+async function saveTag() {
+  if (!tagForm.value.name.trim()) {
     $q.notify({
       type: 'negative',
       message: 'Tag name is required'
@@ -186,36 +282,75 @@ async function createTag() {
   }
 
   try {
-    const newTag = await tagsStore.createTag({
-      name: newTagName.value.trim(),
-      color: newTagColor.value,
-      icon: newTagIcon.value.trim() || undefined
-    })
+    if (dialogMode.value === 'create') {
+      const newTag = await tagsStore.createTag({
+        name: tagForm.value.name.trim(),
+        color: tagForm.value.color,
+        icon: tagForm.value.icon.trim() || undefined
+      })
 
-    // Add the new tag to selection
-    const newOption = {
-      label: newTag.name,
-      value: newTag._id!,
-      color: newTag.color || '#6200EA',
-      icon: newTag.icon
+      // Add the new tag to selection
+      const newOption = {
+        label: newTag.name,
+        value: newTag._id!,
+        color: newTag.color || '#6200EA',
+        icon: newTag.icon
+      }
+      selectedTags.value.push(newOption)
+      emitUpdate(selectedTags.value)
+
+      $q.notify({
+        type: 'positive',
+        message: 'Tag created successfully'
+      })
+    } else {
+      // Edit mode
+      await tagsStore.updateTag(editingTagId.value!, {
+        name: tagForm.value.name.trim(),
+        color: tagForm.value.color,
+        icon: tagForm.value.icon.trim() || undefined
+      })
+
+      // Update the selected tags if this tag is selected
+      updateSelectedTags()
+
+      $q.notify({
+        type: 'positive',
+        message: 'Tag updated successfully'
+      })
     }
-    selectedTags.value.push(newOption)
+
+    showDialog.value = false
+  } catch (error: any) {
+    $q.notify({
+      type: 'negative',
+      message: error.body?.message || `Failed to ${dialogMode.value} tag`
+    })
+  }
+}
+
+function confirmDelete() {
+  showDeleteDialog.value = true
+}
+
+async function handleDeleteConfirm() {
+  try {
+    await tagsStore.deleteTag(editingTagId.value!)
+
+    // Remove from selected tags if it was selected
+    selectedTags.value = selectedTags.value.filter(t => t.value !== editingTagId.value)
     emitUpdate(selectedTags.value)
 
-    // Reset form
-    newTagName.value = ''
-    newTagColor.value = '#6200EA'
-    newTagIcon.value = ''
-    showCreateDialog.value = false
+    showDialog.value = false
 
     $q.notify({
       type: 'positive',
-      message: 'Tag created successfully'
+      message: 'Tag deleted successfully'
     })
   } catch (error: any) {
     $q.notify({
       type: 'negative',
-      message: error.body?.message || 'Failed to create tag'
+      message: error.body?.message || 'Failed to delete tag'
     })
   }
 }

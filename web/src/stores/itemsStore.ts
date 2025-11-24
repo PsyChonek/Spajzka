@@ -26,6 +26,8 @@ export const useItemsStore = defineStore('items', () => {
   const loading = ref(false)
   const lastSynced = ref<Date | null>(null)
   const pendingChanges = ref<Map<string, 'create' | 'update' | 'delete'>>(new Map())
+  const recentlyUsedItemIds = ref<string[]>([])
+  // This will be persisted automatically
 
   // Watch for group changes and refetch items
   watch(() => groupsStore.currentGroupId, (newGroupId, oldGroupId) => {
@@ -50,6 +52,25 @@ export const useItemsStore = defineStore('items', () => {
       if (categoryCompare !== 0) return categoryCompare
       return (a.name || '').localeCompare(b.name || '')
     })
+  })
+
+  const sortedItemsWithRecent = computed(() => {
+    // Separate recently used and other items
+    const recentItems = recentlyUsedItemIds.value
+      .map(id => allItems.value.find(item => item._id === id))
+      .filter(Boolean) as Item[]
+
+    const otherItems = allItems.value
+      .filter(item => !recentlyUsedItemIds.value.includes(item._id!))
+      .sort((a, b) => {
+        const categoryA = a.category || ''
+        const categoryB = b.category || ''
+        const categoryCompare = categoryA.localeCompare(categoryB)
+        if (categoryCompare !== 0) return categoryCompare
+        return (a.name || '').localeCompare(b.name || '')
+      })
+
+    return [...recentItems, ...otherItems]
   })
 
   const hasPendingChanges = computed(() => pendingChanges.value.size > 0)
@@ -407,6 +428,13 @@ export const useItemsStore = defineStore('items', () => {
     }
   }
 
+  function markItemsAsUsed(itemIds: string[]) {
+    // Add new items to the front, remove duplicates
+    const uniqueIds = [...new Set([...itemIds, ...recentlyUsedItemIds.value])]
+    // Keep only the last 20 recently used items (more than tags since items are used more frequently)
+    recentlyUsedItemIds.value = uniqueIds.slice(0, 20)
+  }
+
   function $reset() {
     globalItems.value = []
     groupItems.value = []
@@ -420,6 +448,8 @@ export const useItemsStore = defineStore('items', () => {
     groupItems,
     allItems,
     sortedItems,
+    sortedItemsWithRecent,
+    recentlyUsedItemIds,
     loading,
     lastSynced,
     hasPendingChanges,
@@ -434,6 +464,7 @@ export const useItemsStore = defineStore('items', () => {
     deleteGlobalItem,
     syncPendingChanges,
     getItem,
+    markItemsAsUsed,
     $reset
   }
 }, {

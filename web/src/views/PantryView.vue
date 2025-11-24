@@ -191,6 +191,10 @@ const addFromSuggestion = async (item: any) => {
     itemType: itemType as any,
     quantity: 1
   })
+
+  // Mark item as recently used
+  itemsStore.markItemsAsUsed([item._id])
+
   searchQuery.value = ''
 }
 
@@ -208,6 +212,9 @@ const saveNewItem = async (data: ItemFormData) => {
       itemType: itemType as any,
       quantity: data.quantity || 1
     })
+
+    // Mark item as recently used
+    itemsStore.markItemsAsUsed([existingItem._id])
   } else {
     // Item doesn't exist, create it first as a group item
     await itemsStore.addGroupItem({
@@ -229,6 +236,9 @@ const saveNewItem = async (data: ItemFormData) => {
         itemType: 'group' as any,
         quantity: data.quantity || 1
       })
+
+      // Mark item as recently used
+      itemsStore.markItemsAsUsed([newItem._id!])
     }
   }
   searchQuery.value = ''

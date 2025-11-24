@@ -151,14 +151,18 @@ const getItemOptions = (index: number, val: string, update: any) => {
 
   if (val === '') {
     update(() => {
-      // Show top items when no search
+      // Show recently used items when no search
+      if (!ingredientOptions.value[index]) {
+        ingredientOptions.value[index] = []
+      }
+      ingredientOptions.value[index] = itemsStore.sortedItemsWithRecent.slice(0, 20)
     })
     return
   }
 
   update(() => {
     const needle = val.toLowerCase()
-    const filtered = itemsStore.sortedItems
+    const filtered = itemsStore.sortedItemsWithRecent
       .filter(item => item.name.toLowerCase().includes(needle))
       .slice(0, 20)
 
@@ -177,6 +181,9 @@ const handleItemSelect = (index: number, val: any) => {
     ingredient.itemId = val._id
     ingredient.itemName = val.name
     ingredient.unit = val.defaultUnit || ingredient.unit || 'pcs'
+
+    // Mark item as recently used
+    itemsStore.markItemsAsUsed([val._id])
   } else if (typeof val === 'string') {
     ingredient.itemName = val
     ingredient.itemId = undefined

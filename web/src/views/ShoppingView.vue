@@ -122,6 +122,10 @@ const addFromSuggestion = async (item: any) => {
     itemType: item.type as CreateShoppingItemRequest.itemType,
     quantity: 1
   })
+
+  // Mark item as recently used
+  itemsStore.markItemsAsUsed([item._id])
+
   searchQuery.value = ''
 }
 
@@ -146,6 +150,9 @@ const saveNewItem = async (data: ItemFormData) => {
       itemType: CreateShoppingItemRequest.itemType.GROUP,
       quantity: 1
     })
+
+    // Mark item as recently used
+    itemsStore.markItemsAsUsed([newItem._id!])
   }
 
   searchQuery.value = ''

@@ -6,19 +6,42 @@
       :label="selectedLabel"
       :icon="selectedTags.length > 0 ? 'filter_alt' : 'filter_alt_off'"
       :color="selectedTags.length > 0 ? 'primary' : 'grey-7'"
+      class="tag-filter-dropdown"
+      content-class="tag-filter-menu"
+      auto-close
     >
       <q-list>
+        <!-- Search Input -->
+        <q-item>
+          <q-item-section>
+            <q-input
+              v-model="searchQuery"
+              dense
+              outlined
+              placeholder="Search tags..."
+              clearable
+              autofocus
+            >
+              <template #prepend>
+                <q-icon name="search" />
+              </template>
+            </q-input>
+          </q-item-section>
+        </q-item>
+
+        <q-separator />
+
         <q-item
-          v-if="tagsStore.sortedTags.length === 0"
+          v-if="filteredTags.length === 0"
           dense
         >
           <q-item-section>
-            <q-item-label caption>No tags available</q-item-label>
+            <q-item-label caption>{{ searchQuery ? 'No tags found' : 'No tags available' }}</q-item-label>
           </q-item-section>
         </q-item>
 
         <q-item
-          v-for="tag in tagsStore.sortedTags"
+          v-for="tag in filteredTags"
           :key="tag._id"
           clickable
           dense
@@ -30,11 +53,11 @@
               @update:model-value="toggleTag(tag._id!)"
             />
           </q-item-section>
+          <q-item-section avatar v-if="tag.icon">
+            <span class="text-h6">{{ tag.icon }}</span>
+          </q-item-section>
           <q-item-section>
-            <q-item-label>
-              <span v-if="tag.icon">{{ tag.icon }} </span>
-              {{ tag.name }}
-            </q-item-label>
+            <q-item-label>{{ tag.name }}</q-item-label>
           </q-item-section>
           <q-item-section side>
             <q-badge :style="{ backgroundColor: tag.color || '#6200EA' }" />
@@ -92,6 +115,7 @@ const emit = defineEmits<{
 
 const tagsStore = useTagsStore()
 const selectedTags = ref<string[]>([...props.modelValue])
+const searchQuery = ref('')
 
 const selectedLabel = computed(() => {
   if (selectedTags.value.length === 0) {
@@ -101,6 +125,19 @@ const selectedLabel = computed(() => {
   } else {
     return `${selectedTags.value.length} tags`
   }
+})
+
+const filteredTags = computed(() => {
+  const tags = tagsStore.sortedTagsWithRecent
+
+  if (!searchQuery.value.trim()) {
+    return tags
+  }
+
+  const needle = searchQuery.value.toLowerCase()
+  return tags.filter(tag =>
+    tag.name.toLowerCase().includes(needle)
+  )
 })
 
 onMounted(async () => {
@@ -148,5 +185,12 @@ function getContrastColor(hexColor: string): string {
 <style scoped>
 .tag-filter {
   display: inline-block;
+}
+</style>
+
+<style>
+.tag-filter-menu {
+  min-width: 280px !important;
+  max-width: 280px !important;
 }
 </style>
