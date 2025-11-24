@@ -104,10 +104,11 @@ watch(() => props.modelValue, (newVal) => {
         localValue.value = []
       } else if (typeof newVal[0] === 'string') {
         // Array of strings - find matching options
-        localValue.value = props.options.filter(opt =>
-          newVal.includes(getOptionLabel(opt)) ||
-          newVal.includes(getOptionValue(opt))
-        )
+        localValue.value = props.options.filter(opt => {
+          const label = getOptionLabel(opt)
+          const value = getOptionValue(opt)
+          return newVal.includes(label as any) || newVal.includes(value as any)
+        })
       } else {
         localValue.value = newVal
       }

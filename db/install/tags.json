@@ -1,0 +1,304 @@
+{
+	"tags": [
+		{
+			"_id": {
+				"$oid": "000000000000000000000101"
+			},
+			"groupId": null,
+			"name": "Vegetarian",
+			"color": "#4CAF50",
+			"icon": "🌱",
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			},
+			"updatedAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "000000000000000000000102"
+			},
+			"groupId": null,
+			"name": "Vegan",
+			"color": "#8BC34A",
+			"icon": "🥗",
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			},
+			"updatedAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "000000000000000000000103"
+			},
+			"groupId": null,
+			"name": "Gluten-Free",
+			"color": "#FFC107",
+			"icon": "🌾",
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			},
+			"updatedAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "000000000000000000000104"
+			},
+			"groupId": null,
+			"name": "Dairy-Free",
+			"color": "#03A9F4",
+			"icon": "🥛",
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			},
+			"updatedAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "000000000000000000000105"
+			},
+			"groupId": null,
+			"name": "Quick & Easy",
+			"color": "#FF9800",
+			"icon": "⚡",
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			},
+			"updatedAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "000000000000000000000106"
+			},
+			"groupId": null,
+			"name": "Dessert",
+			"color": "#E91E63",
+			"icon": "🍰",
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			},
+			"updatedAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "000000000000000000000107"
+			},
+			"groupId": null,
+			"name": "Breakfast",
+			"color": "#FFEB3B",
+			"icon": "🍳",
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			},
+			"updatedAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "000000000000000000000108"
+			},
+			"groupId": null,
+			"name": "Lunch",
+			"color": "#FF5722",
+			"icon": "🍱",
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			},
+			"updatedAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "000000000000000000000109"
+			},
+			"groupId": null,
+			"name": "Dinner",
+			"color": "#673AB7",
+			"icon": "🍽️",
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			},
+			"updatedAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "00000000000000000000010a"
+			},
+			"groupId": null,
+			"name": "Snack",
+			"color": "#9C27B0",
+			"icon": "🍿",
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			},
+			"updatedAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "00000000000000000000010b"
+			},
+			"groupId": null,
+			"name": "Healthy",
+			"color": "#4CAF50",
+			"icon": "💚",
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			},
+			"updatedAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "00000000000000000000010c"
+			},
+			"groupId": null,
+			"name": "Comfort Food",
+			"color": "#795548",
+			"icon": "🤗",
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			},
+			"updatedAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "00000000000000000000010d"
+			},
+			"groupId": null,
+			"name": "Spicy",
+			"color": "#F44336",
+			"icon": "🌶️",
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			},
+			"updatedAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "00000000000000000000010e"
+			},
+			"groupId": null,
+			"name": "Low-Carb",
+			"color": "#00BCD4",
+			"icon": "🥩",
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			},
+			"updatedAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "00000000000000000000010f"
+			},
+			"groupId": null,
+			"name": "High-Protein",
+			"color": "#009688",
+			"icon": "💪",
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			},
+			"updatedAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "000000000000000000000110"
+			},
+			"groupId": null,
+			"name": "Kid-Friendly",
+			"color": "#FF6F00",
+			"icon": "👶",
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			},
+			"updatedAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "000000000000000000000111"
+			},
+			"groupId": null,
+			"name": "Freezer-Friendly",
+			"color": "#2196F3",
+			"icon": "❄️",
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			},
+			"updatedAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "000000000000000000000112"
+			},
+			"groupId": null,
+			"name": "Meal Prep",
+			"color": "#607D8B",
+			"icon": "📦",
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			},
+			"updatedAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "000000000000000000000113"
+			},
+			"groupId": null,
+			"name": "Favorite",
+			"color": "#FF5252",
+			"icon": "❤️",
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			},
+			"updatedAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		},
+		{
+			"_id": {
+				"$oid": "000000000000000000000114"
+			},
+			"groupId": null,
+			"name": "Seasonal",
+			"color": "#CDDC39",
+			"icon": "🍂",
+			"createdAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			},
+			"updatedAt": {
+				"$date": "2025-01-01T00:00:00.000Z"
+			}
+		}
+	]
+}

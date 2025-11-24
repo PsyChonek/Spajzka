@@ -67,13 +67,18 @@ async function installSystemData() {
     const globalItemsPath = path.join(__dirname, 'install', 'globalItems.json');
     const globalItemsData = JSON.parse(fs.readFileSync(globalItemsPath, 'utf-8'));
     if (globalItemsData.globalItems && globalItemsData.globalItems.length > 0) {
-      const globalItems = globalItemsData.globalItems.map(parseExtendedJSON);
+      const globalItems = globalItemsData.globalItems.map(item => {
+        const parsedItem = parseExtendedJSON(item);
+        // Add itemType field for unified collection
+        parsedItem.itemType = 'global';
+        return parsedItem;
+      });
 
       let itemsInserted = 0;
       let itemsUpdated = 0;
       for (const item of globalItems) {
-        const result = await db.collection('globalItems').updateOne(
-          { _id: item._id },
+        const result = await db.collection('items').updateOne(
+          { _id: item._id, itemType: 'global' },
           { $set: item },
           { upsert: true }
         );

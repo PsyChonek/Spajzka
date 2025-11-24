@@ -10,7 +10,7 @@ const router = Router();
  * @openapi
  * components:
  *   schemas:
- *     GlobalItem:
+ *     Item:
  *       type: object
  *       properties:
  *         _id:
@@ -36,55 +36,22 @@ const router = Router();
  *           items:
  *             type: string
  *           description: Additional names for search
- *         isActive:
- *           type: boolean
- *           description: Whether item is active
- *         tags:
- *           type: array
- *           items:
- *             type: string
- *           description: Tag IDs associated with this item
- *         createdAt:
+ *         itemType:
  *           type: string
- *           format: date-time
- *       required:
- *         - name
- *         - category
- *     GroupItem:
- *       type: object
- *       properties:
- *         _id:
- *           type: string
- *           description: Item ID
+ *           enum: [global, group]
+ *           description: Item type
  *         groupId:
  *           type: string
- *           description: Group ID this item belongs to
+ *           description: Group ID (only for group items)
  *         globalItemRef:
  *           type: string
  *           description: Reference to global item if this is a copy
- *         name:
- *           type: string
- *           description: Item name
- *         category:
- *           type: string
- *           description: Item category
- *         icon:
- *           type: string
- *           description: Emoji icon
- *         defaultUnit:
- *           type: string
- *           description: Default unit of measurement
- *         barcode:
- *           type: string
- *           description: Barcode
- *         searchNames:
- *           type: array
- *           items:
- *             type: string
- *           description: Additional names for search
+ *         isActive:
+ *           type: boolean
+ *           description: Whether item is active (only for global items)
  *         createdBy:
  *           type: string
- *           description: User ID who created this item
+ *           description: User ID who created this item (only for group items)
  *         tags:
  *           type: array
  *           items:
@@ -96,7 +63,7 @@ const router = Router();
  *       required:
  *         - name
  *         - category
- *         - groupId
+ *         - itemType
  *     CreateGlobalItemRequest:
  *       type: object
  *       properties:
@@ -156,7 +123,7 @@ const router = Router();
  * /api/items:
  *   get:
  *     summary: Get all items
- *     description: Get group items for user's active group (global items are hidden and accessed through group items)
+ *     description: Get group items for user's active group
  *     tags:
  *       - Items
  *     security:
@@ -175,7 +142,7 @@ const router = Router();
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/GroupItem'
+ *                 $ref: '#/components/schemas/Item'
  */
 router.get('/items', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
@@ -231,8 +198,8 @@ router.get('/items', authMiddleware, async (req: AuthRequest, res: Response) => 
     }
 
     // Get group items for the active group
-    const groupItems = await db.collection('groupItems')
-      .find({ groupId: groupId })
+    const groupItems = await db.collection('items')
+      .find({ itemType: 'group', groupId: groupId })
       .toArray();
 
     // If user has permission and requests global items, include them
@@ -248,8 +215,8 @@ router.get('/items', authMiddleware, async (req: AuthRequest, res: Response) => 
         const hasPermission = role?.globalPermissions?.includes('global_items:view');
 
         if (hasPermission) {
-          const globalItems = await db.collection('globalItems')
-            .find({ isActive: true })
+          const globalItems = await db.collection('items')
+            .find({ itemType: 'global', isActive: true })
             .toArray();
 
           res.json({
@@ -258,13 +225,11 @@ router.get('/items', authMiddleware, async (req: AuthRequest, res: Response) => 
               _id: item._id.toString(),
               groupId: item.groupId.toString(),
               globalItemRef: item.globalItemRef?.toString(),
-              createdBy: item.createdBy?.toString(),
-              type: 'group'
+              createdBy: item.createdBy?.toString()
             })),
             globalItems: globalItems.map(item => ({
               ...item,
-              _id: item._id.toString(),
-              type: 'global'
+              _id: item._id.toString()
             }))
           });
           return;
@@ -278,8 +243,7 @@ router.get('/items', authMiddleware, async (req: AuthRequest, res: Response) => 
       _id: item._id.toString(),
       groupId: item.groupId.toString(),
       globalItemRef: item.globalItemRef?.toString(),
-      createdBy: item.createdBy?.toString(),
-      type: 'group'
+      createdBy: item.createdBy?.toString()
     })));
   } catch (error) {
     console.error('Error fetching items:', error);
@@ -308,13 +272,13 @@ router.get('/items', authMiddleware, async (req: AuthRequest, res: Response) => 
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/GlobalItem'
+ *                 $ref: '#/components/schemas/Item'
  */
 router.get('/items/global', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const db = getDatabase();
-    const globalItems = await db.collection('globalItems')
-      .find({ isActive: true })
+    const globalItems = await db.collection('items')
+      .find({ itemType: 'global', isActive: true })
       .toArray();
 
     res.json(globalItems.map(item => ({
@@ -352,7 +316,7 @@ router.get('/items/global', authMiddleware, async (req: AuthRequest, res: Respon
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/GlobalItem'
+ *               $ref: '#/components/schemas/Item'
  *       403:
  *         description: Insufficient permissions
  */
@@ -375,15 +339,16 @@ router.post('/items/global', authMiddleware, requireGlobalPermission('global_ite
       defaultUnit: defaultUnit || null,
       barcode: barcode || null,
       searchNames: Array.isArray(searchNames) ? searchNames.map((n: string) => n.trim()).filter(Boolean) : [],
-      tags: Array.isArray(tags) ? tags.map((t: string) => new ObjectId(t)) : [],
+      tags: Array.isArray(tags) ? tags.filter(Boolean).map((t: string) => new ObjectId(t)) : [],
+      itemType: 'global',
       createdBy: new ObjectId(req.userId),
       isActive: true,
       createdAt: new Date(),
       updatedAt: new Date()
     };
 
-    const result = await db.collection('globalItems').insertOne(newItem);
-    const createdItem = await db.collection('globalItems').findOne({ _id: result.insertedId });
+    const result = await db.collection('items').insertOne(newItem);
+    const createdItem = await db.collection('items').findOne({ _id: result.insertedId });
 
     // Sync this new global item to all existing groups
     const allGroups = await db.collection('groups').find({}).toArray();
@@ -397,12 +362,13 @@ router.post('/items/global', authMiddleware, requireGlobalPermission('global_ite
       barcode: newItem.barcode,
       searchNames: newItem.searchNames,
       tags: newItem.tags,
+      itemType: 'group',
       createdAt: new Date(),
       updatedAt: new Date()
     }));
 
     if (groupItemsToCreate.length > 0) {
-      await db.collection('groupItems').insertMany(groupItemsToCreate);
+      await db.collection('items').insertMany(groupItemsToCreate);
       console.log(`Synced new global item "${newItem.name}" to ${groupItemsToCreate.length} groups`);
     }
 
@@ -474,11 +440,11 @@ router.put('/items/global/:id', authMiddleware, requireGlobalPermission('global_
       updateData.searchNames = Array.isArray(searchNames) ? searchNames.map((n: string) => n.trim()).filter(Boolean) : [];
     }
     if (tags !== undefined) {
-      updateData.tags = Array.isArray(tags) ? tags.map((t: string) => new ObjectId(t)) : [];
+      updateData.tags = Array.isArray(tags) ? tags.filter(Boolean).map((t: string) => new ObjectId(t)) : [];
     }
 
-    const result = await db.collection('globalItems').findOneAndUpdate(
-      { _id: new ObjectId(id) },
+    const result = await db.collection('items').findOneAndUpdate(
+      { _id: new ObjectId(id), itemType: 'global' },
       { $set: updateData },
       { returnDocument: 'after' }
     );
@@ -490,8 +456,7 @@ router.put('/items/global/:id', authMiddleware, requireGlobalPermission('global_
       });
     }
 
-    // Update all group items that reference this global item and haven't been customized
-    // We'll consider an item "not customized" if it still has the same name and category
+    // Update all group items that reference this global item
     const groupItemUpdateData: any = {
       updatedAt: new Date()
     };
@@ -505,12 +470,12 @@ router.put('/items/global/:id', authMiddleware, requireGlobalPermission('global_
       groupItemUpdateData.searchNames = Array.isArray(searchNames) ? searchNames.map((n: string) => n.trim()).filter(Boolean) : [];
     }
     if (tags !== undefined) {
-      groupItemUpdateData.tags = Array.isArray(tags) ? tags.map((t: string) => new ObjectId(t)) : [];
+      groupItemUpdateData.tags = Array.isArray(tags) ? tags.filter(Boolean).map((t: string) => new ObjectId(t)) : [];
     }
 
     // Update all group items that reference this global item
-    const updateResult = await db.collection('groupItems').updateMany(
-      { globalItemRef: new ObjectId(id) },
+    const updateResult = await db.collection('items').updateMany(
+      { itemType: 'group', globalItemRef: new ObjectId(id) },
       { $set: groupItemUpdateData }
     );
 
@@ -569,8 +534,8 @@ router.delete('/items/global/:id', authMiddleware, requireGlobalPermission('glob
     const itemId = new ObjectId(id);
 
     // Soft delete by setting isActive to false
-    const result = await db.collection('globalItems').updateOne(
-      { _id: itemId },
+    const result = await db.collection('items').updateOne(
+      { _id: itemId, itemType: 'global' },
       { $set: { isActive: false, updatedAt: new Date() } }
     );
 
@@ -621,7 +586,7 @@ router.delete('/items/global/:id', authMiddleware, requireGlobalPermission('glob
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/GroupItem'
+ *                 $ref: '#/components/schemas/Item'
  */
 router.get('/items/group', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
@@ -639,8 +604,8 @@ router.get('/items/group', authMiddleware, async (req: AuthRequest, res: Respons
       });
     }
 
-    const groupItems = await db.collection('groupItems')
-      .find({ groupId: userGroup._id })
+    const groupItems = await db.collection('items')
+      .find({ itemType: 'group', groupId: userGroup._id })
       .toArray();
 
     res.json(groupItems.map(item => ({
@@ -680,7 +645,7 @@ router.get('/items/group', authMiddleware, async (req: AuthRequest, res: Respons
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/GroupItem'
+ *               $ref: '#/components/schemas/Item'
  *       403:
  *         description: Insufficient permissions
  */
@@ -716,14 +681,15 @@ router.post('/items/group', authMiddleware, requirePermission('group_items:creat
       defaultUnit: defaultUnit || null,
       barcode: barcode || null,
       searchNames: Array.isArray(searchNames) ? searchNames.map((n: string) => n.trim()).filter(Boolean) : [],
-      tags: Array.isArray(tags) ? tags.map((t: string) => new ObjectId(t)) : [],
+      tags: Array.isArray(tags) ? tags.filter(Boolean).map((t: string) => new ObjectId(t)) : [],
+      itemType: 'group',
       createdBy: new ObjectId(req.userId),
       createdAt: new Date(),
       updatedAt: new Date()
     };
 
-    const result = await db.collection('groupItems').insertOne(newItem);
-    const createdItem = await db.collection('groupItems').findOne({ _id: result.insertedId });
+    const result = await db.collection('items').insertOne(newItem);
+    const createdItem = await db.collection('items').findOne({ _id: result.insertedId });
 
     res.status(201).json({
       ...createdItem,
@@ -818,11 +784,11 @@ router.put('/items/group/:id', authMiddleware, requirePermission('group_items:up
       updateData.searchNames = Array.isArray(searchNames) ? searchNames.map((n: string) => n.trim()).filter(Boolean) : [];
     }
     if (tags !== undefined) {
-      updateData.tags = Array.isArray(tags) ? tags.map((t: string) => new ObjectId(t)) : [];
+      updateData.tags = Array.isArray(tags) ? tags.filter(Boolean).map((t: string) => new ObjectId(t)) : [];
     }
 
-    const result = await db.collection('groupItems').findOneAndUpdate(
-      { _id: new ObjectId(id), groupId: groupId },
+    const result = await db.collection('items').findOneAndUpdate(
+      { _id: new ObjectId(id), itemType: 'group', groupId: groupId },
       { $set: updateData },
       { returnDocument: 'after' }
     );
@@ -913,8 +879,9 @@ router.delete('/items/group/:id', authMiddleware, requirePermission('group_items
 
     const itemId = new ObjectId(id);
 
-    const result = await db.collection('groupItems').deleteOne({
+    const result = await db.collection('items').deleteOne({
       _id: itemId,
+      itemType: 'group',
       groupId: groupId
     });
 

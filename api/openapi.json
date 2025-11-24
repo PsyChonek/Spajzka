@@ -283,7 +283,7 @@
           "role"
         ]
       },
-      "GlobalItem": {
+      "Item": {
         "type": "object",
         "properties": {
           "_id": {
@@ -317,72 +317,29 @@
             },
             "description": "Additional names for search"
           },
-          "isActive": {
-            "type": "boolean",
-            "description": "Whether item is active"
-          },
-          "tags": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "Tag IDs associated with this item"
-          },
-          "createdAt": {
+          "itemType": {
             "type": "string",
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "name",
-          "category"
-        ]
-      },
-      "GroupItem": {
-        "type": "object",
-        "properties": {
-          "_id": {
-            "type": "string",
-            "description": "Item ID"
+            "enum": [
+              "global",
+              "group"
+            ],
+            "description": "Item type"
           },
           "groupId": {
             "type": "string",
-            "description": "Group ID this item belongs to"
+            "description": "Group ID (only for group items)"
           },
           "globalItemRef": {
             "type": "string",
             "description": "Reference to global item if this is a copy"
           },
-          "name": {
-            "type": "string",
-            "description": "Item name"
-          },
-          "category": {
-            "type": "string",
-            "description": "Item category"
-          },
-          "icon": {
-            "type": "string",
-            "description": "Emoji icon"
-          },
-          "defaultUnit": {
-            "type": "string",
-            "description": "Default unit of measurement"
-          },
-          "barcode": {
-            "type": "string",
-            "description": "Barcode"
-          },
-          "searchNames": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "Additional names for search"
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether item is active (only for global items)"
           },
           "createdBy": {
             "type": "string",
-            "description": "User ID who created this item"
+            "description": "User ID who created this item (only for group items)"
           },
           "tags": {
             "type": "array",
@@ -399,7 +356,7 @@
         "required": [
           "name",
           "category",
-          "groupId"
+          "itemType"
         ]
       },
       "CreateGlobalItemRequest": {
@@ -1756,7 +1713,7 @@
     "/api/items": {
       "get": {
         "summary": "Get all items",
-        "description": "Get group items for user's active group (global items are hidden and accessed through group items)",
+        "description": "Get group items for user's active group",
         "tags": [
           "Items"
         ],
@@ -1783,7 +1740,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/GroupItem"
+                    "$ref": "#/components/schemas/Item"
                   }
                 }
               }
@@ -1812,7 +1769,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/GlobalItem"
+                    "$ref": "#/components/schemas/Item"
                   }
                 }
               }
@@ -1847,7 +1804,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GlobalItem"
+                  "$ref": "#/components/schemas/Item"
                 }
               }
             }
@@ -1950,7 +1907,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/GroupItem"
+                    "$ref": "#/components/schemas/Item"
                   }
                 }
               }
@@ -1985,7 +1942,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GroupItem"
+                  "$ref": "#/components/schemas/Item"
                 }
               }
             }

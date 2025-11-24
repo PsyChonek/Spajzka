@@ -2,7 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type GlobalItem = {
+export type Item = {
     /**
      * Item ID
      */
@@ -32,13 +32,38 @@ export type GlobalItem = {
      */
     searchNames?: Array<string>;
     /**
-     * Whether item is active
+     * Item type
+     */
+    itemType: Item.itemType;
+    /**
+     * Group ID (only for group items)
+     */
+    groupId?: string;
+    /**
+     * Reference to global item if this is a copy
+     */
+    globalItemRef?: string;
+    /**
+     * Whether item is active (only for global items)
      */
     isActive?: boolean;
+    /**
+     * User ID who created this item (only for group items)
+     */
+    createdBy?: string;
     /**
      * Tag IDs associated with this item
      */
     tags?: Array<string>;
     createdAt?: string;
 };
+export namespace Item {
+    /**
+     * Item type
+     */
+    export enum itemType {
+        GLOBAL = 'global',
+        GROUP = 'group',
+    }
+}
 

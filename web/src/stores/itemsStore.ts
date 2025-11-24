@@ -1,17 +1,19 @@
 import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
-import { ItemsService, ApiError, type GlobalItem as ApiGlobalItem, type GroupItem as ApiGroupItem } from '@/api-client'
+import { ItemsService, ApiError, type Item as ApiItem } from '@/api-client'
 import { isOnline } from '@/utils/network'
 import { Notify } from 'quasar'
 import { useAuthStore } from './authStore'
 import { useGroupsStore } from './groupsStore'
 
 // Extended types for store use
-export interface GlobalItem extends ApiGlobalItem {
+export interface GlobalItem extends Omit<ApiItem, 'itemType'> {
+  itemType: 'global'
   type?: 'global'
 }
 
-export interface GroupItem extends ApiGroupItem {
+export interface GroupItem extends Omit<ApiItem, 'itemType'> {
+  itemType: 'group'
   type?: 'group'
 }
 
@@ -123,7 +125,7 @@ export const useItemsStore = defineStore('items', () => {
     loading.value = true
     try {
       const items = await ItemsService.getApiItemsGlobal()
-      globalItems.value = items.map(item => ({ ...item, type: 'global' as const }))
+      globalItems.value = items.map(item => ({ ...item, itemType: 'global' as const, type: 'global' as const }))
       lastSynced.value = new Date()
     } catch (error: any) {
     } finally {
@@ -139,7 +141,7 @@ export const useItemsStore = defineStore('items', () => {
     loading.value = true
     try {
       const items = await ItemsService.getApiItemsGroup()
-      groupItems.value = items.map(item => ({ ...item, type: 'group' as const }))
+      groupItems.value = items.map(item => ({ ...item, itemType: 'group' as const, type: 'group' as const }))
       lastSynced.value = new Date()
     } catch (error: any) {
     } finally {
@@ -147,13 +149,14 @@ export const useItemsStore = defineStore('items', () => {
     }
   }
 
-  async function addGroupItem(itemData: Omit<GroupItem, '_id' | 'groupId' | 'createdBy' | 'createdAt'>) {
+  async function addGroupItem(itemData: Omit<GroupItem, '_id' | 'groupId' | 'createdBy' | 'createdAt' | 'itemType' | 'type'>) {
     // Create temporary item for immediate UI update
     const tempId = `temp_${Date.now()}`
     const tempItem: GroupItem = {
       _id: tempId,
       groupId: 'temp',
       ...itemData,
+      itemType: 'group',
       createdBy: authStore.user?._id || 'temp',
       createdAt: new Date().toISOString(),
       type: 'group'
@@ -250,7 +253,7 @@ export const useItemsStore = defineStore('items', () => {
     }
   }
 
-  async function addGlobalItem(itemData: Omit<GlobalItem, '_id' | 'createdBy' | 'createdAt' | 'isActive'>) {
+  async function addGlobalItem(itemData: Omit<GlobalItem, '_id' | 'createdBy' | 'createdAt' | 'isActive' | 'itemType' | 'type'>) {
     if (!isOnline()) {
       Notify.create({
         type: 'warning',

@@ -4,22 +4,21 @@
 /* eslint-disable */
 import type { CreateGlobalItemRequest } from '../models/CreateGlobalItemRequest';
 import type { CreateGroupItemRequest } from '../models/CreateGroupItemRequest';
-import type { GlobalItem } from '../models/GlobalItem';
-import type { GroupItem } from '../models/GroupItem';
+import type { Item } from '../models/Item';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class ItemsService {
     /**
      * Get all items
-     * Get group items for user's active group (global items are hidden and accessed through group items)
+     * Get group items for user's active group
      * @param includeGlobal Include global items (requires global_items:view permission)
-     * @returns GroupItem List of items
+     * @returns Item List of items
      * @throws ApiError
      */
     public static getApiItems(
         includeGlobal?: boolean,
-    ): CancelablePromise<Array<GroupItem>> {
+    ): CancelablePromise<Array<Item>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/items',
@@ -31,10 +30,10 @@ export class ItemsService {
     /**
      * Get all global items
      * Get all active global items
-     * @returns GlobalItem List of global items
+     * @returns Item List of global items
      * @throws ApiError
      */
-    public static getApiItemsGlobal(): CancelablePromise<Array<GlobalItem>> {
+    public static getApiItemsGlobal(): CancelablePromise<Array<Item>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/items/global',
@@ -44,12 +43,12 @@ export class ItemsService {
      * Create global item
      * Create a new global item (requires global_items:create permission)
      * @param requestBody
-     * @returns GlobalItem Global item created
+     * @returns Item Global item created
      * @throws ApiError
      */
     public static postApiItemsGlobal(
         requestBody: CreateGlobalItemRequest,
-    ): CancelablePromise<GlobalItem> {
+    ): CancelablePromise<Item> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/items/global',
@@ -109,10 +108,10 @@ export class ItemsService {
     /**
      * Get group items
      * Get all items for user's group
-     * @returns GroupItem List of group items
+     * @returns Item List of group items
      * @throws ApiError
      */
-    public static getApiItemsGroup(): CancelablePromise<Array<GroupItem>> {
+    public static getApiItemsGroup(): CancelablePromise<Array<Item>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/items/group',
@@ -122,12 +121,12 @@ export class ItemsService {
      * Create group item
      * Create a new group-specific item (requires group_items:create permission)
      * @param requestBody
-     * @returns GroupItem Group item created
+     * @returns Item Group item created
      * @throws ApiError
      */
     public static postApiItemsGroup(
         requestBody: CreateGroupItemRequest,
-    ): CancelablePromise<GroupItem> {
+    ): CancelablePromise<Item> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/items/group',

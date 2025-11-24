@@ -80,9 +80,18 @@ async function seed() {
 				}
 
 				// Convert MongoDB Extended JSON format ($oid) to ObjectId
-				const processedDocuments = documents.map(doc => convertExtendedJSON(doc));
+				const processedDocuments = documents.map(doc => {
+					const converted = convertExtendedJSON(doc);
+					// Add itemType field for groupItems collection
+					if (collectionName === 'groupitems') {
+						converted.itemType = 'group';
+					}
+					return converted;
+				});
 
-				const collection = db.collection(collectionName);
+				// Map groupItems to items collection
+				const targetCollection = collectionName === 'groupitems' ? 'items' : collectionName;
+				const collection = db.collection(targetCollection);
 
 				// Upsert each document	
 				let insertedCount = 0;
