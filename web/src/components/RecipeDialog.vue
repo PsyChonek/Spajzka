@@ -7,7 +7,6 @@ import { useAuthStore } from '@/stores/authStore'
 import { GlobalRecipe, GroupRecipe, type RecipeIngredient } from '@/api-client'
 import AddItemDialog, { type ItemFormData } from './AddItemDialog.vue'
 import TagSelector from './TagSelector.vue'
-import SearchSelect from './SearchSelect.vue'
 
 interface Props {
   modelValue: boolean
@@ -57,6 +56,10 @@ const formTags = ref<string[]>([])
 const showAddItemDialog = ref(false)
 const addItemDialogInitialData = ref<Partial<ItemFormData>>({})
 const currentIngredientIndex = ref<number | null>(null)
+
+// Item autocomplete
+const ingredientOptions = ref<any[][]>([])
+const currentIngredientSearchValue = ref<string[]>([])
 const ingredientSelectRefs = ref<any[]>([])
 
 const canCreateGlobalRecipe = computed(() => {
@@ -143,31 +146,46 @@ const removeIngredient = (index: number) => {
   }
 }
 
-const handleItemSelect = (index: number, itemName: string | null) => {
-  const ingredient = formIngredients.value[index]
-  if (!ingredient) return
+const getItemOptions = (index: number, val: string, update: any) => {
+  currentIngredientSearchValue.value[index] = val
 
-  if (!itemName) {
-    ingredient.itemName = ''
-    ingredient.itemId = undefined
+  if (val === '') {
+    update(() => {
+      // Show recently used items when no search
+      if (!ingredientOptions.value[index]) {
+        ingredientOptions.value[index] = []
+      }
+      ingredientOptions.value[index] = itemsStore.sortedItemsWithRecent.slice(0, 20)
+    })
     return
   }
 
-  // Find the item in the store
-  const item = itemsStore.sortedItemsWithRecent.find(i => i.name === itemName)
+  update(() => {
+    const needle = val.toLowerCase()
+    const filtered = itemsStore.sortedItemsWithRecent
+      .filter(item => item.name.toLowerCase().includes(needle))
+      .slice(0, 20)
 
-  if (item) {
-    ingredient.itemId = item._id
-    ingredient.itemName = item.name
-    ingredient.unit = item.defaultUnit || ingredient.unit || 'pcs'
+    if (!ingredientOptions.value[index]) {
+      ingredientOptions.value[index] = []
+    }
+    ingredientOptions.value[index] = filtered
+  })
+}
+
+const handleItemSelect = (index: number, val: any) => {
+  const ingredient = formIngredients.value[index]
+  if (!ingredient) return
+
+  if (val && val._id) {
+    ingredient.itemId = val._id
+    ingredient.itemName = val.name
+    ingredient.unit = val.defaultUnit || ingredient.unit || 'pcs'
 
     // Mark item as recently used
-    if (item._id) {
-      itemsStore.markItemsAsUsed([item._id])
-    }
-  } else {
-    // It's a custom string entry
-    ingredient.itemName = itemName
+    itemsStore.markItemsAsUsed([val._id])
+  } else if (typeof val === 'string') {
+    ingredient.itemName = val
     ingredient.itemId = undefined
   }
 }
@@ -334,28 +352,73 @@ const removeInstruction = (index: number) => {
             <!-- Ingredient dropdown on its own row -->
             <div class="row q-col-gutter-sm q-mb-xs">
               <div class="col-12">
-                <SearchSelect
-                  :ref="(el: any) => { if (el) ingredientSelectRefs[index] = el }"
-                  :model-value="ingredient.itemName"
-                  :options="itemsStore.sortedItemsWithRecent"
+                <q-select
+                  :ref="el => { if (el) ingredientSelectRefs[index] = el }"
+                  v-model="ingredient.itemName"
+                  outlined
+                  dense
+                  use-input
+                  input-debounce="300"
                   label="Ingredient *"
                   placeholder="Start typing to search items..."
-                  :readonly="readOnly"
-                  :disable="readOnly"
+                  :options="ingredientOptions[index] || []"
                   option-label="name"
-                  dense
-                  show-icon
-                  icon-field="icon"
-                  show-sub-label
-                  sub-label-field="category"
-                  show-side-info
-                  side-info-field="defaultUnit"
-                  show-add-option
-                  add-option-label="Add new item"
-                  :add-option-caption="(searchValue: string) => `Create &quot;${searchValue}&quot; as a new item`"
-                  @update:model-value="handleItemSelect(index, $event)"
-                  @add-new="openAddItemDialog($event, index)"
-                />
+                  @filter="(val, update) => getItemOptions(index, val, update)"
+                  @update:model-value="(val) => handleItemSelect(index, val)"
+                  new-value-mode="add-unique"
+                  fill-input
+                  hide-selected
+                >
+                  <template v-slot:option="scope">
+                    <q-item v-bind="scope.itemProps" clickable>
+                      <q-item-section avatar>
+                        <span class="text-h6">{{ scope.opt.icon || '📦' }}</span>
+                      </q-item-section>
+                      <q-item-section>
+                        <q-item-label>{{ scope.opt.name }}</q-item-label>
+                        <q-item-label caption v-if="scope.opt.category">
+                          {{ scope.opt.category }}
+                        </q-item-label>
+                      </q-item-section>
+                      <q-item-section side v-if="scope.opt.defaultUnit">
+                        <q-item-label caption class="text-weight-medium">{{ scope.opt.defaultUnit }}</q-item-label>
+                      </q-item-section>
+                    </q-item>
+                  </template>
+                  <template v-slot:after-options>
+                    <template v-if="currentIngredientSearchValue[index]">
+                      <q-separator />
+                      <q-item clickable @click="openAddItemDialog(currentIngredientSearchValue[index] || '', index)">
+                        <q-item-section avatar>
+                          <q-icon name="add" color="primary" />
+                        </q-item-section>
+                        <q-item-section>
+                          <q-item-label>Add new item</q-item-label>
+                          <q-item-label caption>Create "{{ currentIngredientSearchValue[index] }}" as a new item</q-item-label>
+                        </q-item-section>
+                      </q-item>
+                    </template>
+                  </template>
+                  <template v-slot:no-option>
+                    <q-item>
+                      <q-item-section class="text-grey">
+                        No items found
+                      </q-item-section>
+                    </q-item>
+                    <template v-if="currentIngredientSearchValue[index]">
+                      <q-separator />
+                      <q-item clickable @click="openAddItemDialog(currentIngredientSearchValue[index] || '', index)">
+                        <q-item-section avatar>
+                          <q-icon name="add" color="primary" />
+                        </q-item-section>
+                        <q-item-section>
+                          <q-item-label>Add new item</q-item-label>
+                          <q-item-label caption>Create "{{ currentIngredientSearchValue[index] }}" as a new item</q-item-label>
+                        </q-item-section>
+                      </q-item>
+                    </template>
+                  </template>
+                </q-select>
               </div>
             </div>
             <!-- Quantity, Unit, and Remove button on second row -->

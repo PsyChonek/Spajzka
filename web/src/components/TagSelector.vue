@@ -1,192 +1,87 @@
-<script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useTagsStore } from '@/stores/tagsStore'
-import { useQuasar } from 'quasar'
-import ConfirmDialog from '@/components/ConfirmDialog.vue'
-import SearchSelect from '@/components/SearchSelect.vue'
-
-interface Props {
-  modelValue: string[]
-  label?: string
-  readonly?: boolean
-  disable?: boolean
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  label: 'Tags',
-  readonly: false,
-  disable: false
-})
-
-const emit = defineEmits<{
-  'update:modelValue': [value: string[]]
-}>()
-
-const $q = useQuasar()
-const tagsStore = useTagsStore()
-
-const showDialog = ref(false)
-const dialogMode = ref<'create' | 'edit'>('create')
-const editingTagId = ref<string | null>(null)
-const tagForm = ref({
-  name: '',
-  color: '#6200EA',
-  icon: ''
-})
-const showDeleteDialog = ref(false)
-
-const tagOptions = computed(() => {
-  return tagsStore.sortedTagsWithRecent.map(tag => ({
-    label: tag.name,
-    name: tag.name, // For SearchSelect optionLabel
-    value: tag._id!,
-    color: tag.color || '#6200EA',
-    icon: tag.icon
-  }))
-})
-
-onMounted(async () => {
-  if (tagsStore.tags.length === 0) {
-    await tagsStore.fetchTags()
-  }
-})
-
-function handleUpdate(selectedTagValues: string[]) {
-  emit('update:modelValue', selectedTagValues)
-
-  // Mark these tags as recently used
-  if (selectedTagValues.length > 0) {
-    tagsStore.markTagsAsUsed(selectedTagValues)
-  }
-}
-
-function openCreateDialog(searchValue: string) {
-  dialogMode.value = 'create'
-  editingTagId.value = null
-  tagForm.value = {
-    name: searchValue || '',
-    color: '#6200EA',
-    icon: ''
-  }
-  showDialog.value = true
-}
-
-function openEditDialog(opt: any) {
-  dialogMode.value = 'edit'
-  editingTagId.value = opt.value
-  tagForm.value = {
-    name: opt.label,
-    color: opt.color,
-    icon: opt.icon || ''
-  }
-  showDialog.value = true
-}
-
-async function saveTag() {
-  if (!tagForm.value.name.trim()) {
-    $q.notify({
-      type: 'negative',
-      message: 'Tag name is required'
-    })
-    return
-  }
-
-  try {
-    if (dialogMode.value === 'create') {
-      const newTag = await tagsStore.createTag({
-        name: tagForm.value.name.trim(),
-        color: tagForm.value.color,
-        icon: tagForm.value.icon.trim() || undefined
-      })
-
-      // Add the new tag to selection
-      if (newTag._id) {
-        const updatedSelection = [...props.modelValue, newTag._id]
-        emit('update:modelValue', updatedSelection)
-      }
-
-      $q.notify({
-        type: 'positive',
-        message: 'Tag created successfully'
-      })
-    } else {
-      // Edit mode
-      await tagsStore.updateTag(editingTagId.value!, {
-        name: tagForm.value.name.trim(),
-        color: tagForm.value.color,
-        icon: tagForm.value.icon.trim() || undefined
-      })
-
-      $q.notify({
-        type: 'positive',
-        message: 'Tag updated successfully'
-      })
-    }
-
-    showDialog.value = false
-  } catch (error: any) {
-    $q.notify({
-      type: 'negative',
-      message: error.body?.message || `Failed to ${dialogMode.value} tag`
-    })
-  }
-}
-
-function confirmDelete() {
-  showDeleteDialog.value = true
-}
-
-async function handleDeleteConfirm() {
-  try {
-    await tagsStore.deleteTag(editingTagId.value!)
-
-    // Remove from selected tags if it was selected
-    const updatedSelection = props.modelValue.filter(id => id !== editingTagId.value)
-    emit('update:modelValue', updatedSelection)
-
-    showDialog.value = false
-
-    $q.notify({
-      type: 'positive',
-      message: 'Tag deleted successfully'
-    })
-  } catch (error: any) {
-    $q.notify({
-      type: 'negative',
-      message: error.body?.message || 'Failed to delete tag'
-    })
-  }
-}
-</script>
-
 <template>
   <div class="tag-selector">
-    <SearchSelect
-      :model-value="modelValue"
-      :options="tagOptions"
+    <q-select
+      v-model="selectedTags"
+      :options="filteredTagOptions"
       :label="label"
+      multiple
+      use-chips
+      outlined
+      dense
+      use-input
+      input-debounce="300"
       :loading="tagsStore.loading"
       :readonly="readonly"
       :disable="disable"
-      option-label="name"
-      option-value="value"
-      multiple
-      use-chips
-      dense
-      show-icon
-      icon-field="icon"
-      chip-color-field="color"
-      chip-icon-field="icon"
-      show-side-info
-      side-info-field="color"
-      show-add-option
-      add-option-label="Create new tag"
-      :add-option-caption="(search: string) => search ? `Create &quot;${search}&quot;` : ''"
-      return-object
-      @update:model-value="handleUpdate"
-      @add-new="openCreateDialog"
-      @edit="openEditDialog"
-    />
+      @filter="filterTags"
+      @update:model-value="emitUpdate"
+    >
+      <template #no-option>
+        <q-item>
+          <q-item-section class="text-grey">
+            No tags found
+          </q-item-section>
+        </q-item>
+      </template>
+      <template #option="scope">
+        <q-item v-bind="scope.itemProps" clickable>
+          <q-item-section side>
+            <q-checkbox :model-value="scope.selected" @click.stop="scope.toggleOption" />
+          </q-item-section>
+          <q-item-section avatar v-if="scope.opt.icon">
+            <span class="text-h6">{{ scope.opt.icon }}</span>
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>{{ scope.opt.label }}</q-item-label>
+          </q-item-section>
+          <q-item-section side>
+            <q-badge :style="{ backgroundColor: scope.opt.color }" />
+          </q-item-section>
+          <q-item-section side>
+            <q-btn
+              flat
+              dense
+              round
+              icon="edit"
+              size="xs"
+              color="grey-7"
+              @click.stop="openEditDialog(scope.opt)"
+            >
+              <q-tooltip>Edit tag</q-tooltip>
+            </q-btn>
+          </q-item-section>
+        </q-item>
+      </template>
+
+      <template #after-options>
+        <q-separator />
+        <q-item clickable @click="openCreateDialog">
+          <q-item-section avatar>
+            <q-icon name="add" color="primary" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>Create new tag</q-item-label>
+            <q-item-label caption v-if="searchQuery">Create "{{ searchQuery }}"</q-item-label>
+          </q-item-section>
+        </q-item>
+      </template>
+
+      <template #selected-item="{ opt }">
+        <q-chip
+          :removable="!readonly && !disable"
+          dense
+          :style="{
+            backgroundColor: opt.color,
+            color: getContrastColor(opt.color),
+            padding: '6px 12px'
+          }"
+          @remove="removeTag(opt)"
+        >
+          <span v-if="opt.icon" style="margin-right: 6px">{{ opt.icon }}</span>
+          <span>{{ opt.label }}</span>
+        </q-chip>
+      </template>
+    </q-select>
 
     <!-- Create/Edit Tag Dialog -->
     <q-dialog v-model="showDialog">
@@ -262,6 +157,216 @@ async function handleDeleteConfirm() {
     />
   </div>
 </template>
+
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
+import { useTagsStore } from '@/stores/tagsStore'
+import { useQuasar } from 'quasar'
+import ConfirmDialog from '@/components/ConfirmDialog.vue'
+
+interface Props {
+  modelValue: string[]
+  label?: string
+  readonly?: boolean
+  disable?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  label: 'Tags',
+  readonly: false,
+  disable: false
+})
+
+const emit = defineEmits<{
+  'update:modelValue': [value: string[]]
+}>()
+
+const $q = useQuasar()
+const tagsStore = useTagsStore()
+
+const selectedTags = ref<any[]>([])
+const showDialog = ref(false)
+const dialogMode = ref<'create' | 'edit'>('create')
+const editingTagId = ref<string | null>(null)
+const tagForm = ref({
+  name: '',
+  color: '#6200EA',
+  icon: ''
+})
+const showDeleteDialog = ref(false)
+const filteredTagOptions = ref<any[]>([])
+const searchQuery = ref('')
+
+const tagOptions = computed(() => {
+  return tagsStore.sortedTagsWithRecent.map(tag => ({
+    label: tag.name,
+    value: tag._id!,
+    color: tag.color || '#6200EA',
+    icon: tag.icon
+  }))
+})
+
+onMounted(async () => {
+  if (tagsStore.tags.length === 0) {
+    await tagsStore.fetchTags()
+  }
+  filteredTagOptions.value = tagOptions.value
+  updateSelectedTags()
+})
+
+function updateSelectedTags() {
+  selectedTags.value = tagOptions.value.filter(opt =>
+    props.modelValue.includes(opt.value)
+  )
+}
+
+function emitUpdate(selected: any[]) {
+  const selectedIds = selected.map(s => s.value)
+  emit('update:modelValue', selectedIds)
+
+  // Mark these tags as recently used
+  if (selectedIds.length > 0) {
+    tagsStore.markTagsAsUsed(selectedIds)
+  }
+}
+
+function removeTag(opt: any) {
+  selectedTags.value = selectedTags.value.filter(t => t.value !== opt.value)
+  emitUpdate(selectedTags.value)
+}
+
+function filterTags(val: string, update: (fn: () => void) => void) {
+  searchQuery.value = val
+
+  update(() => {
+    if (val === '') {
+      filteredTagOptions.value = tagOptions.value
+    } else {
+      const needle = val.toLowerCase()
+      filteredTagOptions.value = tagOptions.value.filter(opt =>
+        opt.label.toLowerCase().includes(needle)
+      )
+    }
+  })
+}
+
+function openCreateDialog() {
+  dialogMode.value = 'create'
+  editingTagId.value = null
+  tagForm.value = {
+    name: searchQuery.value || '',
+    color: '#6200EA',
+    icon: ''
+  }
+  showDialog.value = true
+}
+
+function openEditDialog(opt: any) {
+  dialogMode.value = 'edit'
+  editingTagId.value = opt.value
+  tagForm.value = {
+    name: opt.label,
+    color: opt.color,
+    icon: opt.icon || ''
+  }
+  showDialog.value = true
+}
+
+async function saveTag() {
+  if (!tagForm.value.name.trim()) {
+    $q.notify({
+      type: 'negative',
+      message: 'Tag name is required'
+    })
+    return
+  }
+
+  try {
+    if (dialogMode.value === 'create') {
+      const newTag = await tagsStore.createTag({
+        name: tagForm.value.name.trim(),
+        color: tagForm.value.color,
+        icon: tagForm.value.icon.trim() || undefined
+      })
+
+      // Add the new tag to selection
+      const newOption = {
+        label: newTag.name,
+        value: newTag._id!,
+        color: newTag.color || '#6200EA',
+        icon: newTag.icon
+      }
+      selectedTags.value.push(newOption)
+      emitUpdate(selectedTags.value)
+
+      $q.notify({
+        type: 'positive',
+        message: 'Tag created successfully'
+      })
+    } else {
+      // Edit mode
+      await tagsStore.updateTag(editingTagId.value!, {
+        name: tagForm.value.name.trim(),
+        color: tagForm.value.color,
+        icon: tagForm.value.icon.trim() || undefined
+      })
+
+      // Update the selected tags if this tag is selected
+      updateSelectedTags()
+
+      $q.notify({
+        type: 'positive',
+        message: 'Tag updated successfully'
+      })
+    }
+
+    showDialog.value = false
+  } catch (error: any) {
+    $q.notify({
+      type: 'negative',
+      message: error.body?.message || `Failed to ${dialogMode.value} tag`
+    })
+  }
+}
+
+function confirmDelete() {
+  showDeleteDialog.value = true
+}
+
+async function handleDeleteConfirm() {
+  try {
+    await tagsStore.deleteTag(editingTagId.value!)
+
+    // Remove from selected tags if it was selected
+    selectedTags.value = selectedTags.value.filter(t => t.value !== editingTagId.value)
+    emitUpdate(selectedTags.value)
+
+    showDialog.value = false
+
+    $q.notify({
+      type: 'positive',
+      message: 'Tag deleted successfully'
+    })
+  } catch (error: any) {
+    $q.notify({
+      type: 'negative',
+      message: error.body?.message || 'Failed to delete tag'
+    })
+  }
+}
+
+function getContrastColor(hexColor: string): string {
+  // Convert hex to RGB
+  const r = parseInt(hexColor.slice(1, 3), 16)
+  const g = parseInt(hexColor.slice(3, 5), 16)
+  const b = parseInt(hexColor.slice(5, 7), 16)
+
+  // Calculate luminance
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+
+  return luminance > 0.5 ? '#000000' : '#FFFFFF'
+}
+</script>
 
 <style scoped>
 .tag-selector {
