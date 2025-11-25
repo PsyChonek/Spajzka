@@ -1,6 +1,7 @@
 <template>
   <div class="tag-selector">
     <q-select
+      ref="selectRef"
       v-model="selectedTags"
       :options="filteredTagOptions"
       :label="label"
@@ -171,7 +172,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useTagsStore } from '@/stores/tagsStore'
 import { useQuasar } from 'quasar'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
@@ -196,6 +197,7 @@ const emit = defineEmits<{
 const $q = useQuasar()
 const tagsStore = useTagsStore()
 
+const selectRef = ref<any>(null)
 const selectedTags = ref<any[]>([])
 const showDialog = ref(false)
 const dialogMode = ref<'create' | 'edit'>('create')
@@ -206,7 +208,6 @@ const tagForm = ref({
   icon: ''
 })
 const showDeleteDialog = ref(false)
-const filteredTagOptions = ref<any[]>([])
 const searchQuery = ref('')
 
 const tagOptions = computed(() => {
@@ -218,11 +219,26 @@ const tagOptions = computed(() => {
   }))
 })
 
+const filteredTagOptions = computed(() => {
+  if (searchQuery.value === '') {
+    return tagOptions.value
+  } else {
+    const needle = searchQuery.value.toLowerCase()
+    return tagOptions.value.filter(opt =>
+      opt.label.toLowerCase().includes(needle)
+    )
+  }
+})
+
 onMounted(async () => {
   if (tagsStore.tags.length === 0) {
     await tagsStore.fetchTags()
   }
-  filteredTagOptions.value = tagOptions.value
+  updateSelectedTags()
+})
+
+// Watch for changes in tagOptions to update selected tags
+watch(tagOptions, () => {
   updateSelectedTags()
 })
 
@@ -248,17 +264,8 @@ function removeTag(opt: any) {
 }
 
 function filterTags(val: string, update: (fn: () => void) => void) {
-  searchQuery.value = val
-
   update(() => {
-    if (val === '') {
-      filteredTagOptions.value = tagOptions.value
-    } else {
-      const needle = val.toLowerCase()
-      filteredTagOptions.value = tagOptions.value.filter(opt =>
-        opt.label.toLowerCase().includes(needle)
-      )
-    }
+    searchQuery.value = val
   })
 }
 
@@ -310,6 +317,12 @@ async function saveTag() {
       }
       selectedTags.value.push(newOption)
       emitUpdate(selectedTags.value)
+
+      // Clear the search query and reset the input field
+      searchQuery.value = ''
+      if (selectRef.value) {
+        selectRef.value.updateInputValue('', true)
+      }
 
       $q.notify({
         type: 'positive',
