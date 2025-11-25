@@ -92,8 +92,8 @@ const selectRecipe = (recipe: Recipe) => {
 }
 
 const goBack = () => {
-  // Navigate back to recipes
-  router.push('/recipes')
+  // Navigate back in history to restore scroll position
+  router.back()
 }
 
 const toggleIngredient = (index: number) => {

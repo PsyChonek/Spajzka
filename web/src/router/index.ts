@@ -51,7 +51,19 @@ const routes: RouteRecordRaw[] = [
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  routes
+  routes,
+  scrollBehavior(to, from, savedPosition) {
+    // Return a promise to ensure proper scroll behavior after async navigation guards
+    return new Promise((resolve) => {
+      // If there's a saved position (browser back/forward), use it
+      if (savedPosition) {
+        resolve(savedPosition)
+      } else {
+        // Otherwise, scroll to top
+        resolve({ top: 0, behavior: 'smooth' })
+      }
+    })
+  }
 })
 
 // Add navigation guard to refresh stores on each page navigation

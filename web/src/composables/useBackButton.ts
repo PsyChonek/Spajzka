@@ -39,7 +39,8 @@ export function useBackButton(isDialogOpen: () => boolean, closeDialog: () => vo
         // The browser's back action will trigger Quasar's internal menu close handlers
         // We just need to push state back to keep user on the same page
         if (hasAddedHistoryEntry.value) {
-          window.history.pushState(null, '', window.location.href)
+          // Preserve Vue Router's history state
+          window.history.pushState(window.history.state, '', window.location.href)
         }
       } else {
         // No open menus, close the dialog instead of navigating
@@ -47,7 +48,8 @@ export function useBackButton(isDialogOpen: () => boolean, closeDialog: () => vo
 
         // Push state back to keep user on the same page
         if (hasAddedHistoryEntry.value) {
-          window.history.pushState(null, '', window.location.href)
+          // Preserve Vue Router's history state
+          window.history.pushState(window.history.state, '', window.location.href)
         }
       }
     }
@@ -56,7 +58,8 @@ export function useBackButton(isDialogOpen: () => boolean, closeDialog: () => vo
   const pushHistoryState = () => {
     if (isDialogOpen() && !hasAddedHistoryEntry.value) {
       // Add a history entry when dialog opens
-      window.history.pushState(null, '', window.location.href)
+      // Preserve Vue Router's history state
+      window.history.pushState(window.history.state, '', window.location.href)
       hasAddedHistoryEntry.value = true
     }
   }
