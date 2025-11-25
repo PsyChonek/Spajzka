@@ -133,35 +133,20 @@ router.get('/pantry', authMiddleware, async (req: AuthRequest, res: Response) =>
       { $sort: { updatedAt: -1 } },
       {
         $lookup: {
-          from: 'globalItems',
+          from: 'items',
           localField: 'itemId',
           foreignField: '_id',
-          as: 'globalItemData'
-        }
-      },
-      {
-        $lookup: {
-          from: 'groupItems',
-          localField: 'itemId',
-          foreignField: '_id',
-          as: 'groupItemData'
+          as: 'itemData'
         }
       },
       {
         $addFields: {
-          item: {
-            $cond: {
-              if: { $eq: ['$itemType', 'global'] },
-              then: { $arrayElemAt: ['$globalItemData', 0] },
-              else: { $arrayElemAt: ['$groupItemData', 0] }
-            }
-          }
+          item: { $arrayElemAt: ['$itemData', 0] }
         }
       },
       {
         $project: {
-          globalItemData: 0,
-          groupItemData: 0
+          itemData: 0
         }
       }
     ]).toArray();
@@ -235,9 +220,11 @@ router.post('/pantry', authMiddleware, requirePermission('pantry:create'), async
       });
     }
 
-    // Verify item exists
-    const collection = itemType === 'global' ? 'globalItems' : 'groupItems';
-    const item = await db.collection(collection).findOne({ _id: new ObjectId(itemId) });
+    // Verify item exists in the unified items collection
+    const item = await db.collection('items').findOne({
+      _id: new ObjectId(itemId),
+      itemType: itemType
+    });
 
     if (!item) {
       return res.status(404).json({
@@ -262,29 +249,15 @@ router.post('/pantry', authMiddleware, requirePermission('pantry:create'), async
       { $match: { _id: result.insertedId } },
       {
         $lookup: {
-          from: 'globalItems',
+          from: 'items',
           localField: 'itemId',
           foreignField: '_id',
-          as: 'globalItemData'
-        }
-      },
-      {
-        $lookup: {
-          from: 'groupItems',
-          localField: 'itemId',
-          foreignField: '_id',
-          as: 'groupItemData'
+          as: 'itemData'
         }
       },
       {
         $addFields: {
-          item: {
-            $cond: {
-              if: { $eq: ['$itemType', 'global'] },
-              then: { $arrayElemAt: ['$globalItemData', 0] },
-              else: { $arrayElemAt: ['$groupItemData', 0] }
-            }
-          }
+          item: { $arrayElemAt: ['$itemData', 0] }
         }
       }
     ]).toArray();

@@ -134,9 +134,8 @@ router.get('/shopping', authMiddleware, async (req: AuthRequest, res: Response) 
     // Populate item details for each shopping item
     const populatedItems = await Promise.all(
       shoppingItems.map(async (item) => {
-        // Fetch item details from the appropriate collection
-        const collection = item.itemType === 'global' ? 'globalItems' : 'groupItems';
-        const itemDetails = await db.collection(collection).findOne({ _id: item.itemId });
+        // Fetch item details from the unified items collection
+        const itemDetails = await db.collection('items').findOne({ _id: item.itemId });
 
         return {
           ...item,
@@ -207,9 +206,11 @@ router.post('/shopping', authMiddleware, requirePermission('shopping:create'), a
       });
     }
 
-    // Verify item exists
-    const collection = itemType === 'global' ? 'globalItems' : 'groupItems';
-    const item = await db.collection(collection).findOne({ _id: new ObjectId(itemId) });
+    // Verify item exists in the unified items collection
+    const item = await db.collection('items').findOne({
+      _id: new ObjectId(itemId),
+      itemType: itemType
+    });
 
     if (!item) {
       return res.status(404).json({
@@ -231,8 +232,8 @@ router.post('/shopping', authMiddleware, requirePermission('shopping:create'), a
     const result = await db.collection('shopping').insertOne(newItem);
     const createdItem = await db.collection('shopping').findOne({ _id: result.insertedId });
 
-    // Populate item details from the referenced item
-    const itemDetails = await db.collection(collection).findOne({ _id: new ObjectId(itemId) });
+    // Populate item details from the unified items collection
+    const itemDetails = await db.collection('items').findOne({ _id: new ObjectId(itemId) });
 
     res.status(201).json({
       ...createdItem,
@@ -317,9 +318,8 @@ router.put('/shopping/:id', authMiddleware, requirePermission('shopping:update')
       return res.status(404).json({ message: 'Item not found', code: 'NOT_FOUND' });
     }
 
-    // Populate item details from the referenced item
-    const itemCollection = shoppingItem.itemType === 'global' ? 'globalItems' : 'groupItems';
-    const itemDetails = await db.collection(itemCollection).findOne({ _id: shoppingItem.itemId });
+    // Populate item details from the unified items collection
+    const itemDetails = await db.collection('items').findOne({ _id: shoppingItem.itemId });
 
     res.json({
       ...shoppingItem,
