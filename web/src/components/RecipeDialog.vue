@@ -75,6 +75,7 @@ const canCreateGlobalItem = computed(() => {
 const handleCloseDialog = () => {
   emit('update:modelValue', false)
   emit('cancel')
+  resetForm()
 }
 
 const { pushHistoryState, removeHistoryState } = useBackButton(
@@ -141,6 +142,7 @@ const handleSaveRecipe = () => {
 
   emit('save', recipeData)
   emit('update:modelValue', false)
+  resetForm()
 }
 
 const isFormValid = () => {
