@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import { useStoreRefresh } from '@/composables/useStoreRefresh'
+import { useNavigationStore } from '@/stores/navigationStore'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -73,16 +74,22 @@ router.beforeEach(async (to, from) => {
     // Ensure auth is initialized before trying to refresh stores
     const { useAuthStore } = await import('@/stores/authStore')
     const authStore = useAuthStore()
-    
+
     // Wait for auth initialization to complete
     if (!authStore.initialized) {
       await authStore.initialize()
     }
-    
+
     // Now refresh all stores
     const { refreshAllStores } = useStoreRefresh()
     await refreshAllStores()
   }
+})
+
+// Save the last visited route (after navigation completes)
+router.afterEach((to) => {
+  const navigationStore = useNavigationStore()
+  navigationStore.setLastRoute(to.path)
 })
 
 export default router

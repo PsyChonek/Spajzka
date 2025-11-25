@@ -30,6 +30,16 @@ app.use(Quasar, {
 	}, // import Quasar plugins and add here
 });
 
+// Restore last visited route before mounting the app
+const { useNavigationStore } = await import('@/stores/navigationStore');
+const navigationStore = useNavigationStore();
+const lastRoute = navigationStore.getLastRoute();
+
+// Only restore if not already on the last route and not on root
+if (lastRoute !== '/' && router.currentRoute.value.path !== lastRoute) {
+	router.replace(lastRoute);
+}
+
 app.mount("#app");
 
 registerSW({

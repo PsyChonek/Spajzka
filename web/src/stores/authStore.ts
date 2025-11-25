@@ -122,11 +122,13 @@ export const useAuthStore = defineStore('auth', () => {
       const { usePantryStore } = await import('./pantryStore')
       const { useShoppingStore } = await import('./shoppingStore')
       const { useItemsStore } = await import('./itemsStore')
+      const { useNavigationStore } = await import('./navigationStore')
 
       useGroupsStore().$reset()
       usePantryStore().$reset()
       useShoppingStore().$reset()
       useItemsStore().$reset()
+      useNavigationStore().$reset()
 
       Notify.create({
         type: 'info',
