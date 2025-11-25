@@ -16,6 +16,18 @@
       @filter="filterTags"
       @update:model-value="emitUpdate"
     >
+      <template #append v-if="canCreateFromSearch">
+        <q-btn
+          round
+          dense
+          flat
+          icon="add"
+          color="primary"
+          @click.stop="openCreateDialog"
+        >
+          <q-tooltip>Create tag "{{ searchQuery }}"</q-tooltip>
+        </q-btn>
+      </template>
       <template #no-option>
         <q-item>
           <q-item-section class="text-grey">
@@ -204,6 +216,20 @@ const tagOptions = computed(() => {
     color: tag.color || '#6200EA',
     icon: tag.icon
   }))
+})
+
+const canCreateFromSearch = computed(() => {
+  if (!searchQuery.value.trim() || props.readonly || props.disable) {
+    return false
+  }
+
+  // Check if the search query matches any existing tag
+  const needle = searchQuery.value.toLowerCase().trim()
+  const exactMatch = tagOptions.value.some(opt =>
+    opt.label.toLowerCase() === needle
+  )
+
+  return !exactMatch
 })
 
 onMounted(async () => {
