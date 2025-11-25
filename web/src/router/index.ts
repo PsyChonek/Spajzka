@@ -53,7 +53,7 @@ const routes: RouteRecordRaw[] = [
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
-  scrollBehavior(to, from, savedPosition) {
+  scrollBehavior(_to, _from, savedPosition) {
     // Return a promise to ensure proper scroll behavior after async navigation guards
     return new Promise((resolve) => {
       // If there's a saved position (browser back/forward), use it
