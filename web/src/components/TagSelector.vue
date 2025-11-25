@@ -16,24 +16,24 @@
       @filter="filterTags"
       @update:model-value="emitUpdate"
     >
-      <template #append v-if="canCreateFromSearch">
-        <q-btn
-          round
-          dense
-          flat
-          icon="add"
-          color="primary"
-          @click.stop="openCreateDialog"
-        >
-          <q-tooltip>Create tag "{{ searchQuery }}"</q-tooltip>
-        </q-btn>
-      </template>
       <template #no-option>
         <q-item>
           <q-item-section class="text-grey">
             No tags found
           </q-item-section>
         </q-item>
+        <template v-if="searchQuery">
+          <q-separator />
+          <q-item clickable @click="openCreateDialog">
+            <q-item-section avatar>
+              <q-icon name="add" color="primary" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Create new tag</q-item-label>
+              <q-item-label caption>Create "{{ searchQuery }}"</q-item-label>
+            </q-item-section>
+          </q-item>
+        </template>
       </template>
       <template #option="scope">
         <q-item v-bind="scope.itemProps" clickable>
@@ -216,20 +216,6 @@ const tagOptions = computed(() => {
     color: tag.color || '#6200EA',
     icon: tag.icon
   }))
-})
-
-const canCreateFromSearch = computed(() => {
-  if (!searchQuery.value.trim() || props.readonly || props.disable) {
-    return false
-  }
-
-  // Check if the search query matches any existing tag
-  const needle = searchQuery.value.toLowerCase().trim()
-  const exactMatch = tagOptions.value.some(opt =>
-    opt.label.toLowerCase() === needle
-  )
-
-  return !exactMatch
 })
 
 onMounted(async () => {
