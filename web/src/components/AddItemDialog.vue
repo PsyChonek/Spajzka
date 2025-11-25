@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, nextTick } from 'vue'
 import { useQuasar, type QInput } from 'quasar'
+import { useBackButton } from '@/composables/useBackButton'
 import TagSelector from './TagSelector.vue'
 
 const $q = useQuasar()
@@ -65,6 +66,12 @@ const iconInputRef = ref<QInput | null>(null)
 const unitInputRef = ref<QInput | null>(null)
 const categoryInputRef = ref<QInput | null>(null)
 
+// Back button handler
+const { pushHistoryState, removeHistoryState } = useBackButton(
+  () => props.modelValue,
+  () => handleClose()
+)
+
 // Watch for initial data changes
 watch(() => props.initialData, (newData) => {
   if (newData) {
@@ -82,6 +89,9 @@ watch(() => props.initialData, (newData) => {
 // Watch for dialog opening to focus the correct field
 watch(() => props.modelValue, (isOpen) => {
   if (isOpen) {
+    // Add history entry when dialog opens
+    pushHistoryState()
+
     nextTick(() => {
       const focusMap = {
         name: nameInputRef,
@@ -96,6 +106,9 @@ watch(() => props.modelValue, (isOpen) => {
         targetRef.value.focus()
       }
     })
+  } else {
+    // Remove history entry when dialog closes
+    removeHistoryState()
   }
 })
 

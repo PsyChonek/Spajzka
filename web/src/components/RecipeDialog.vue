@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
 import { useQuasar } from 'quasar'
+import { useBackButton } from '@/composables/useBackButton'
 import type { Recipe } from '@/stores/recipesStore'
 import { useItemsStore } from '@/stores/itemsStore'
 import { useAuthStore } from '@/stores/authStore'
@@ -70,6 +71,17 @@ const canCreateGlobalItem = computed(() => {
   return authStore.hasGlobalPermission('global_items:create')
 })
 
+// Back button handler
+const handleCloseDialog = () => {
+  emit('update:modelValue', false)
+  emit('cancel')
+}
+
+const { pushHistoryState, removeHistoryState } = useBackButton(
+  () => props.modelValue,
+  handleCloseDialog
+)
+
 // Define resetForm first
 const resetForm = () => {
   formRecipeType.value = GroupRecipe.recipeType.GROUP
@@ -102,10 +114,14 @@ watch(() => props.editingRecipe, (recipe) => {
   }
 }, { immediate: true })
 
-const handleCloseDialog = () => {
-  emit('update:modelValue', false)
-  emit('cancel')
-}
+// Watch for dialog opening/closing to manage back button behavior
+watch(() => props.modelValue, (isOpen) => {
+  if (isOpen) {
+    pushHistoryState()
+  } else {
+    removeHistoryState()
+  }
+})
 
 const handleSaveRecipe = () => {
   const recipeData: RecipeFormData = {
@@ -257,7 +273,7 @@ const removeInstruction = (index: number) => {
 
 <template>
   <div>
-    <q-dialog :model-value="modelValue" @update:model-value="emit('update:modelValue', $event)" persistent :full-width="$q.screen.lt.sm" :maximized="$q.screen.lt.sm">
+    <q-dialog :model-value="modelValue" @update:model-value="emit('update:modelValue', $event)" :full-width="$q.screen.lt.sm" :maximized="$q.screen.lt.sm">
       <q-card :style="$q.screen.lt.sm ? 'height: 100vh; max-height: 100vh; display: flex; flex-direction: column' : 'width: 100%; max-width: 600px; max-height: 80vh'">
         <q-card-section>
           <div class="text-h6">

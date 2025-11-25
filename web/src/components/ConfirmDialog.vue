@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { watch } from 'vue'
 import { useQuasar } from 'quasar'
+import { useBackButton } from '@/composables/useBackButton'
 
 const $q = useQuasar()
 
@@ -59,6 +61,21 @@ const handleCancel = () => {
   emit('cancel')
   emit('update:modelValue', false)
 }
+
+// Back button handler
+const { pushHistoryState, removeHistoryState } = useBackButton(
+  () => props.modelValue,
+  handleCancel
+)
+
+// Watch for dialog opening/closing to manage back button behavior
+watch(() => props.modelValue, (isOpen) => {
+  if (isOpen) {
+    pushHistoryState()
+  } else {
+    removeHistoryState()
+  }
+})
 </script>
 
 <template>
