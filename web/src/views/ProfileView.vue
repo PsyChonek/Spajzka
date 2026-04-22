@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useQuasar } from 'quasar'
 import { useAuthStore } from '@/stores/authStore'
 import PageWrapper from '@/components/PageWrapper.vue'
+import McpAccessCard from '@/components/McpAccessCard.vue'
 
 const $q = useQuasar()
 const authStore = useAuthStore()
@@ -422,6 +423,9 @@ const changePassword = async () => {
             />
           </q-card-actions>
         </q-card>
+
+        <!-- MCP Access -->
+        <McpAccessCard />
 
         <!-- Token Info -->
         <q-card class="token-card q-mt-md">
