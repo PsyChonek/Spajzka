@@ -14,11 +14,13 @@ Spajzka is a full-stack pantry management application built as a Progressive Web
 
 ## Project Structure
 
-This is a monorepo with three main workspaces:
+This is a monorepo with four main workspaces plus a shared directory:
 
 - `api/` - Express.js REST API server with OpenAPI specification
 - `web/` - Vue 3 PWA frontend application
-- `db/` - MongoDB database seeding scripts
+- `mcp/` - Remote MCP server exposing Spajzka over Streamable HTTP for AI assistants
+- `db/` - MongoDB database seeding and migration scripts
+- `shared/api-client/` - Generated TypeScript client consumed by both `web/` and `mcp/`
 
 ## Development Commands
 
@@ -48,6 +50,26 @@ npm run build:web
 npm run generate-api-client
 # This runs from the api workspace and outputs to web/src/api-client/
 ```
+
+### MCP Server
+
+The MCP server lets users connect AI assistants (Claude Desktop, Claude Code,
+Claude.ai) to their Spajzka account.
+
+- **Port:** 3001 (`POST /mcp`, health on `GET /healthz`)
+- **Transport:** Streamable HTTP (single endpoint)
+- **Auth:** Personal access token. Log into the web app → Profile →
+  "MCP access" → Generate token. Paste the token into your MCP client as a
+  Bearer token.
+- **Connection URL:** set via `MCP_PUBLIC_URL` env var on the mcp container;
+  displayed to users on the profile card.
+- **Tools:** 32, covering pantry/shopping/items/recipes/tags/groups. Every
+  group-scoped tool requires `groupId` — the LLM should call `list_groups`
+  first to discover IDs.
+- **Rate limit:** 60 requests/minute per PAT (configurable via
+  `MCP_RATE_LIMIT_PER_MINUTE`).
+
+Smoke test against a running stack: `MCP_SMOKE_PAT=spk_mcp_... npm run smoke:mcp`
 
 ### Docker
 ```bash
