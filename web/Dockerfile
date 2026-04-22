@@ -3,26 +3,29 @@ FROM node:20-alpine AS build
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Copy package files (context is repo root; the web/ workspace references
+# ../shared/api-client via a path alias, so shared/ must be inside the
+# build context).
+COPY web/package*.json ./web/
+COPY shared ./shared
 
-# Install dependencies
+WORKDIR /app/web
+
 RUN npm install
 
-# Copy source files
-COPY . .
+# Copy the rest of web/
+COPY web/ ./
 
-# Build the application
 RUN npm run build
 
 # Production stage
 FROM nginx:alpine
 
 # Copy built assets from build stage
-COPY --from=build /app/dist /usr/share/nginx/html
+COPY --from=build /app/web/dist /usr/share/nginx/html
 
 # Copy nginx configuration
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY web/nginx.conf /etc/nginx/conf.d/default.conf
 
 # Expose port 80
 EXPOSE 80

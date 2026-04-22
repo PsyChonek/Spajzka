@@ -53,8 +53,8 @@ services:
 
   web:
     build:
-      context: ./web
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: web/Dockerfile
     ports:
       - "8080:80"
     container_name: spajzka-web
