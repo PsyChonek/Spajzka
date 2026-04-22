@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
-import { PantryService, type PantryItem, type CreatePantryItemRequest, ApiError } from '@/api-client'
+import { PantryService, type PantryItem, type CreatePantryItemRequest, ApiError } from '@shared/api-client'
 import { isOnline } from '@/utils/network'
 import { Notify } from 'quasar'
 import { useGroupsStore } from './groupsStore'

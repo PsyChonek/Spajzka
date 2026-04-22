@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
-import { GroupsService } from '@/api-client'
-import type { GroupMember } from '@/api-client'
+import { GroupsService } from '@shared/api-client'
+import type { GroupMember } from '@shared/api-client'
 import PageWrapper from '@/components/PageWrapper.vue'
 import GroupActions from '@/components/GroupActions.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'

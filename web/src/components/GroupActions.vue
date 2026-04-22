@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { GroupsService } from '@/api-client'
+import { GroupsService } from '@shared/api-client'
 import { useGroupsStore } from '@/stores/groupsStore'
 import { Notify, useQuasar } from 'quasar'
 

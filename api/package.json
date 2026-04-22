@@ -9,7 +9,7 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "generate-spec": "node generate-spec.js",
-    "generate-client": "npm run generate-spec && npx openapi-typescript-codegen --input ./openapi.json --output ../web/src/api-client --client axios"
+    "generate-client": "npm run generate-spec && npx openapi-typescript-codegen --input ./openapi.json --output ../shared/api-client --client axios"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

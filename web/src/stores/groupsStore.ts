@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { GroupsService, AuthenticationService, type Group, ApiError } from '@/api-client'
+import { GroupsService, AuthenticationService, type Group, ApiError } from '@shared/api-client'
 import { Notify } from 'quasar'
 
 export const useGroupsStore = defineStore('groups', () => {

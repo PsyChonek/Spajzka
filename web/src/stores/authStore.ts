@@ -6,7 +6,7 @@ import {
   type RegisterRequest,
   type LoginRequest,
   ApiError
-} from '@/api-client'
+} from '@shared/api-client'
 import { Notify } from 'quasar'
 
 export const useAuthStore = defineStore('auth', () => {

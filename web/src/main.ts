@@ -5,7 +5,7 @@ import App from "./App.vue";
 import router from "./router";
 import { registerSW } from "virtual:pwa-register";
 import { Quasar, Notify } from 'quasar';
-import { OpenAPI } from '@/api-client';
+import { OpenAPI } from '@shared/api-client';
 
 // Import icon libraries
 import '@quasar/extras/material-icons/material-icons.css';

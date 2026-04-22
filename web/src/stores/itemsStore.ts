@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
-import { ItemsService, ApiError, type Item as ApiItem } from '@/api-client'
+import { ItemsService, ApiError, type Item as ApiItem } from '@shared/api-client'
 import { isOnline } from '@/utils/network'
 import { Notify } from 'quasar'
 import { useAuthStore } from './authStore'

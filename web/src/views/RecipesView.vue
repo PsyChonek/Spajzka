@@ -8,7 +8,7 @@ import PageWrapper from '@/components/PageWrapper.vue'
 import SearchInput from '@/components/SearchInput.vue'
 import RecipeDialog, { type RecipeFormData } from '@/components/RecipeDialog.vue'
 import TagFilter from '@/components/TagFilter.vue'
-import { GlobalRecipe } from '@/api-client'
+import { GlobalRecipe } from '@shared/api-client'
 import { useTagsStore } from '@/stores/tagsStore'
 
 const $q = useQuasar()

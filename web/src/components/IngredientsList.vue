@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { RecipeIngredient } from '@/api-client'
+import type { RecipeIngredient } from '@shared/api-client'
 
 interface Props {
   ingredients: RecipeIngredient[]

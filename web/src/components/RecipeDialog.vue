@@ -5,7 +5,7 @@ import { useBackButton } from '@/composables/useBackButton'
 import type { Recipe } from '@/stores/recipesStore'
 import { useItemsStore } from '@/stores/itemsStore'
 import { useAuthStore } from '@/stores/authStore'
-import { GlobalRecipe, GroupRecipe, type RecipeIngredient } from '@/api-client'
+import { GlobalRecipe, GroupRecipe, type RecipeIngredient } from '@shared/api-client'
 import AddItemDialog, { type ItemFormData } from './AddItemDialog.vue'
 import TagSelector from './TagSelector.vue'
 

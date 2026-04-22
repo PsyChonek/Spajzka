@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue'
 import { useShoppingStore } from '@/stores/shoppingStore'
 import { useItemsStore } from '@/stores/itemsStore'
-import { CreateShoppingItemRequest, type ShoppingItem } from '@/api-client'
+import { CreateShoppingItemRequest, type ShoppingItem } from '@shared/api-client'
 import PageWrapper from '@/components/PageWrapper.vue'
 import ItemSuggestions from '@/components/ItemSuggestions.vue'
 import AddItemDialog, { type ItemFormData } from '@/components/AddItemDialog.vue'

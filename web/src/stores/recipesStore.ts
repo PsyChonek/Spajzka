@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
-import { RecipesService, GlobalRecipe, GroupRecipe, type CreateGlobalRecipeRequest, type CreateGroupRecipeRequest, ApiError } from '@/api-client'
+import { RecipesService, GlobalRecipe, GroupRecipe, type CreateGlobalRecipeRequest, type CreateGroupRecipeRequest, ApiError } from '@shared/api-client'
 import { isOnline } from '@/utils/network'
 import { Notify } from 'quasar'
 import { useGroupsStore } from './groupsStore'
