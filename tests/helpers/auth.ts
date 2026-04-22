@@ -26,45 +26,52 @@ export const testUsers = {
 
 /**
  * Login helper function
+ * The app uses anonymous authentication, so we need to go to /profile to login
  */
 export async function login(page: Page, user: TestUser = testUsers.jan) {
-  await page.goto('/');
+  // Navigate to profile page where login form is located
+  await page.goto('/profile');
 
-  // Wait for the auth check to complete
+  // Wait for the page to load
   await page.waitForLoadState('networkidle');
 
-  // Check if we're on the login page or if login dialog appears
-  const emailInput = page.locator('input[type="email"]');
+  // Find the email input field (should be visible for anonymous users)
+  const emailInput = page.locator('input[type="email"]').first();
   await emailInput.waitFor({ timeout: 5000 });
 
+  // Fill in login credentials
   await emailInput.fill(user.email);
-  await page.locator('input[type="password"]').fill(user.password);
+  await page.locator('input[type="password"]').first().fill(user.password);
 
-  // Click login button
-  await page.getByRole('button', { name: /login|sign in/i }).click();
+  // Click login button (look for button with Login or Sign in text)
+  await page.getByRole('button', { name: /^login$|^sign in$/i }).click();
 
-  // Wait for navigation to complete
-  await page.waitForURL('/');
+  // Wait for login to complete
   await page.waitForLoadState('networkidle');
 
-  // Verify we're logged in by checking for user-specific content
-  await expect(page.locator('body')).toBeVisible();
+  // Give time for auth state to update
+  await page.waitForTimeout(1000);
+
+  // Verify we're logged in by checking localStorage
+  const token = await page.evaluate(() => localStorage.getItem('auth_token'));
+  await expect(token).toBeTruthy();
 }
 
 /**
  * Logout helper function
  */
 export async function logout(page: Page) {
-  // Look for profile or menu button
-  const profileButton = page.getByRole('button', { name: /profile|menu/i }).first();
-  await profileButton.click();
+  // Navigate to profile page if not already there
+  await page.goto('/profile');
+  await page.waitForLoadState('networkidle');
 
-  // Click logout
-  const logoutButton = page.getByRole('button', { name: /logout|sign out/i });
+  // Click logout button
+  const logoutButton = page.getByRole('button', { name: /logout|sign out/i }).first();
   await logoutButton.click();
 
-  // Wait for redirect to login
+  // Wait for logout to complete (app creates anonymous user automatically)
   await page.waitForLoadState('networkidle');
+  await page.waitForTimeout(1000);
 }
 
 /**
