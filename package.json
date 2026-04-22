@@ -5,16 +5,20 @@
   "private": true,
   "workspaces": [
     "api",
-    "web"
+    "web",
+    "mcp"
   ],
   "scripts": {
-    "dev": "concurrently \"npm run dev:api\" \"npm run dev:web\" --names \"API,WEB\" --prefix-colors \"blue,green\"",
+    "dev": "concurrently \"npm run dev:api\" \"npm run dev:web\" \"npm run dev:mcp\" --names \"API,WEB,MCP\" --prefix-colors \"blue,green,magenta\"",
     "generate-api-client": "cd api && npm run generate-client",
     "dev:api": "cd api && npm run dev",
     "dev:web": "cd web && npm run dev",
-    "build": "npm run build:api && npm run build:web",
+    "dev:mcp": "cd mcp && npm run dev",
+    "build": "npm run build:api && npm run build:web && npm run build:mcp",
     "build:api": "cd api && npm run build",
     "build:web": "cd web && npm run build",
+    "build:mcp": "cd mcp && npm run build",
+    "smoke:mcp": "cd mcp && npm run smoke",
     "docker:dev": "docker-compose -f docker-compose.dev.yml up",
     "docker:dev:build": "docker-compose -f docker-compose.dev.yml up --build",
     "docker:prod": "docker-compose up",

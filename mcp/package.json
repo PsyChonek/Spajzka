@@ -1,0 +1,32 @@
+{
+  "name": "spajzka-mcp",
+  "version": "1.0.0",
+  "description": "MCP server exposing Spajzka pantry/shopping/recipes/items/tags/groups",
+  "main": "dist/server.js",
+  "type": "commonjs",
+  "scripts": {
+    "dev": "nodemon",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "smoke": "ts-node scripts/smoke.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "axios": "^1.7.9",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "pino": "^9.5.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/node": "^20.17.14",
+    "nodemon": "^3.1.9",
+    "pino-pretty": "^11.3.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.3",
+    "vitest": "^2.1.8"
+  }
+}
