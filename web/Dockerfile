@@ -13,6 +13,10 @@ WORKDIR /app/web
 
 RUN npm install
 
+# shared/api-client imports axios / form-data — Node module resolution
+# walks up from the importer, so expose web/node_modules at /app as well.
+RUN ln -s /app/web/node_modules /app/node_modules
+
 # Copy the rest of web/
 COPY web/ ./
 
