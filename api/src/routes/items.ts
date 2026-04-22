@@ -3,6 +3,7 @@ import { getDatabase } from '../config/database';
 import { ObjectId } from 'mongodb';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
 import { requirePermission, requireGlobalPermission } from '../rbac/middleware';
+import { resolveGroupId, handleGroupResolutionError } from '../utils/resolveGroup';
 
 const router = Router();
 
@@ -148,58 +149,10 @@ router.get('/items', authMiddleware, async (req: AuthRequest, res: Response) => 
   try {
     const db = getDatabase();
     const includeGlobal = req.query.includeGlobal === 'true';
+    const groupId = await resolveGroupId(db, req, req.userId!);
 
-    // Get user to find their active group
-    const user = await db.collection('users').findOne({ _id: new ObjectId(req.userId) });
-    if (!user) {
-      return res.status(404).json({
-        message: 'User not found',
-        code: 'NOT_FOUND'
-      });
-    }
-
-    // Determine which group to use
-    let groupId = user.activeGroupId;
-
-    // If no active group set, find user's first NON-PERSONAL group
-    if (!groupId) {
-      // First try to find a non-personal group
-      const nonPersonalGroup = await db.collection('groups').findOne({
-        'members.userId': new ObjectId(req.userId),
-        isPersonal: { $ne: true }
-      });
-
-      if (nonPersonalGroup) {
-        groupId = nonPersonalGroup._id;
-        console.log('[Items API] Using non-personal group:', nonPersonalGroup.name);
-      } else {
-        // Fall back to personal group if no other group exists
-        const personalGroup = await db.collection('groups').findOne({
-          'members.userId': new ObjectId(req.userId),
-          isPersonal: true
-        });
-
-        if (!personalGroup) {
-          return res.status(404).json({
-            message: 'User is not in any group',
-            code: 'NOT_IN_GROUP'
-          });
-        }
-
-        groupId = personalGroup._id;
-        console.log('[Items API] Using personal group (no other groups available)');
-      }
-
-      // Set this as the active group for future requests
-      await db.collection('users').updateOne(
-        { _id: new ObjectId(req.userId) },
-        { $set: { activeGroupId: groupId } }
-      );
-    }
-
-    // Get group items for the active group
     const groupItems = await db.collection('items')
-      .find({ itemType: 'group', groupId: groupId })
+      .find({ itemType: 'group', groupId })
       .toArray();
 
     // If user has permission and requests global items, include them
@@ -246,6 +199,7 @@ router.get('/items', authMiddleware, async (req: AuthRequest, res: Response) => 
       createdBy: item.createdBy?.toString()
     })));
   } catch (error) {
+    if (handleGroupResolutionError(error, res)) return;
     console.error('Error fetching items:', error);
     res.status(500).json({
       message: 'Failed to fetch items',
@@ -661,20 +615,10 @@ router.post('/items/group', authMiddleware, requirePermission('group_items:creat
       });
     }
 
-    // Get user's group
-    const userGroup = await db.collection('groups').findOne({
-      'members.userId': new ObjectId(req.userId)
-    });
-
-    if (!userGroup) {
-      return res.status(404).json({
-        message: 'User has no group',
-        code: 'NO_GROUP'
-      });
-    }
+    const groupId = await resolveGroupId(db, req, req.userId!);
 
     const newItem = {
-      groupId: userGroup._id,
+      groupId,
       name: name.trim(),
       category: category.trim(),
       icon: icon || null,
@@ -698,6 +642,7 @@ router.post('/items/group', authMiddleware, requirePermission('group_items:creat
       createdBy: createdItem!.createdBy?.toString()
     });
   } catch (error) {
+    if (handleGroupResolutionError(error, res)) return;
     console.error('Error creating group item:', error);
     res.status(500).json({
       message: 'Failed to create group item',
@@ -747,29 +692,7 @@ router.put('/items/group/:id', authMiddleware, requirePermission('group_items:up
       });
     }
 
-    // Get user to find their active group
-    const user = await db.collection('users').findOne({ _id: new ObjectId(req.userId) });
-    if (!user) {
-      return res.status(404).json({
-        message: 'User not found',
-        code: 'NOT_FOUND'
-      });
-    }
-
-    // Use active group or find user's first group
-    let groupId = user.activeGroupId;
-    if (!groupId) {
-      const userGroup = await db.collection('groups').findOne({
-        'members.userId': new ObjectId(req.userId)
-      });
-      if (!userGroup) {
-        return res.status(404).json({
-          message: 'User has no group',
-          code: 'NO_GROUP'
-        });
-      }
-      groupId = userGroup._id;
-    }
+    const groupId = await resolveGroupId(db, req, req.userId!);
 
     const updateData: any = {
       updatedAt: new Date()
@@ -788,7 +711,7 @@ router.put('/items/group/:id', authMiddleware, requirePermission('group_items:up
     }
 
     const result = await db.collection('items').findOneAndUpdate(
-      { _id: new ObjectId(id), itemType: 'group', groupId: groupId },
+      { _id: new ObjectId(id), itemType: 'group', groupId },
       { $set: updateData },
       { returnDocument: 'after' }
     );
@@ -807,6 +730,7 @@ router.put('/items/group/:id', authMiddleware, requirePermission('group_items:up
       createdBy: result.createdBy?.toString()
     });
   } catch (error) {
+    if (handleGroupResolutionError(error, res)) return;
     console.error('Error updating group item:', error);
     res.status(500).json({
       message: 'Failed to update group item',
@@ -849,40 +773,13 @@ router.delete('/items/group/:id', authMiddleware, requirePermission('group_items
       });
     }
 
-    // Get user to find their active group
-    const user = await db.collection('users').findOne({
-      _id: new ObjectId(req.userId)
-    });
-
-    if (!user) {
-      return res.status(404).json({
-        message: 'User not found',
-        code: 'USER_NOT_FOUND'
-      });
-    }
-
-    // Use active group or find user's first group
-    let groupId = user.activeGroupId;
-    if (!groupId) {
-      const userGroup = await db.collection('groups').findOne({
-        'members.userId': new ObjectId(req.userId)
-      });
-
-      if (!userGroup) {
-        return res.status(404).json({
-          message: 'User has no group',
-          code: 'NO_GROUP'
-        });
-      }
-      groupId = userGroup._id;
-    }
-
+    const groupId = await resolveGroupId(db, req, req.userId!);
     const itemId = new ObjectId(id);
 
     const result = await db.collection('items').deleteOne({
       _id: itemId,
       itemType: 'group',
-      groupId: groupId
+      groupId
     });
 
     if (result.deletedCount === 0) {
@@ -897,17 +794,18 @@ router.delete('/items/group/:id', authMiddleware, requirePermission('group_items
       db.collection('pantry').deleteMany({
         itemId: itemId,
         itemType: 'group',
-        groupId: groupId
+        groupId
       }),
       db.collection('shopping').deleteMany({
         itemId: itemId,
         itemType: 'group',
-        groupId: groupId
+        groupId
       })
     ]);
 
     res.status(204).send();
   } catch (error) {
+    if (handleGroupResolutionError(error, res)) return;
     console.error('Error deleting group item:', error);
     res.status(500).json({
       message: 'Failed to delete group item',

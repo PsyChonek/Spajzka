@@ -3,6 +3,7 @@ import { getDatabase } from '../config/database';
 import { ObjectId } from 'mongodb';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
 import { requirePermission, requireGlobalPermission } from '../rbac/middleware';
+import { resolveGroupId, handleGroupResolutionError } from '../utils/resolveGroup';
 
 const router = Router();
 
@@ -227,26 +228,14 @@ router.get('/recipes', authMiddleware, async (req: AuthRequest, res: Response) =
   try {
     const db = getDatabase();
     const includeGlobal = req.query.includeGlobal === 'true';
+    const groupId = await resolveGroupId(db, req, req.userId!);
 
-    // Get user to find their active group
-    const user = await db.collection('users').findOne({ _id: new ObjectId(req.userId) });
-    if (!user) {
-      return res.status(404).json({
-        message: 'User not found',
-        code: 'NOT_FOUND'
-      });
-    }
-
-    // Get group recipes if user has an active group
-    let groupRecipes: any[] = [];
-    if (user.activeGroupId) {
-      groupRecipes = await db.collection('recipes')
-        .find({
-          recipeType: 'group',
-          groupId: user.activeGroupId
-        })
-        .toArray();
-    }
+    const groupRecipes = await db.collection('recipes')
+      .find({
+        recipeType: 'group',
+        groupId
+      })
+      .toArray();
 
     // If user has permission and requests global recipes, include them
     if (includeGlobal) {
@@ -302,6 +291,7 @@ router.get('/recipes', authMiddleware, async (req: AuthRequest, res: Response) =
       type: 'group'
     })));
   } catch (error) {
+    if (handleGroupResolutionError(error, res)) return;
     console.error('Error fetching recipes:', error);
     res.status(500).json({
       message: 'Failed to fetch recipes',
@@ -615,19 +605,12 @@ router.get('/recipes/group', authMiddleware, async (req: AuthRequest, res: Respo
   try {
     const db = getDatabase();
 
-    // Get user's active group
-    const user = await db.collection('users').findOne({ _id: new ObjectId(req.userId) });
-    if (!user || !user.activeGroupId) {
-      return res.status(404).json({
-        message: 'User has no active group',
-        code: 'NO_GROUP'
-      });
-    }
+    const groupId = await resolveGroupId(db, req, req.userId!);
 
     const groupRecipes = await db.collection('recipes')
       .find({
         recipeType: 'group',
-        groupId: user.activeGroupId
+        groupId
       })
       .toArray();
 
@@ -638,6 +621,7 @@ router.get('/recipes/group', authMiddleware, async (req: AuthRequest, res: Respo
       userId: recipe.userId?.toString()
     })));
   } catch (error) {
+    if (handleGroupResolutionError(error, res)) return;
     console.error('Error fetching group recipes:', error);
     res.status(500).json({
       message: 'Failed to fetch group recipes',
@@ -698,21 +682,14 @@ router.post('/recipes/group', authMiddleware, requirePermission('group_recipes:c
       });
     }
 
-    // Get user's active group
-    const user = await db.collection('users').findOne({ _id: new ObjectId(req.userId) });
-    if (!user || !user.activeGroupId) {
-      return res.status(404).json({
-        message: 'User has no active group',
-        code: 'NO_GROUP'
-      });
-    }
+    const groupId = await resolveGroupId(db, req, req.userId!);
 
     const newRecipe = {
       name: name.trim(),
       description: description?.trim() || null,
       icon: icon || null,
       recipeType: 'group',
-      groupId: user.activeGroupId,
+      groupId,
       userId: new ObjectId(req.userId),
       servings: Number(servings),
       ingredients: ingredients.map((ing: any) => ({
@@ -737,6 +714,7 @@ router.post('/recipes/group', authMiddleware, requirePermission('group_recipes:c
       userId: createdRecipe!.userId?.toString()
     });
   } catch (error) {
+    if (handleGroupResolutionError(error, res)) return;
     console.error('Error creating group recipe:', error);
     res.status(500).json({
       message: 'Failed to create group recipe',
@@ -786,14 +764,7 @@ router.put('/recipes/group/:id', authMiddleware, requirePermission('group_recipe
       });
     }
 
-    // Get user's active group
-    const user = await db.collection('users').findOne({ _id: new ObjectId(req.userId) });
-    if (!user || !user.activeGroupId) {
-      return res.status(404).json({
-        message: 'User has no active group',
-        code: 'NO_GROUP'
-      });
-    }
+    const groupId = await resolveGroupId(db, req, req.userId!);
 
     const updateData: any = {
       updatedAt: new Date()
@@ -822,7 +793,7 @@ router.put('/recipes/group/:id', authMiddleware, requirePermission('group_recipe
       {
         _id: new ObjectId(id),
         recipeType: 'group',
-        groupId: user.activeGroupId
+        groupId
       },
       { $set: updateData },
       { returnDocument: 'after' }
@@ -842,6 +813,7 @@ router.put('/recipes/group/:id', authMiddleware, requirePermission('group_recipe
       userId: result.userId?.toString()
     });
   } catch (error) {
+    if (handleGroupResolutionError(error, res)) return;
     console.error('Error updating group recipe:', error);
     res.status(500).json({
       message: 'Failed to update group recipe',
@@ -884,19 +856,12 @@ router.delete('/recipes/group/:id', authMiddleware, requirePermission('group_rec
       });
     }
 
-    // Get user's active group
-    const user = await db.collection('users').findOne({ _id: new ObjectId(req.userId) });
-    if (!user || !user.activeGroupId) {
-      return res.status(404).json({
-        message: 'User has no active group',
-        code: 'NO_GROUP'
-      });
-    }
+    const groupId = await resolveGroupId(db, req, req.userId!);
 
     const result = await db.collection('recipes').deleteOne({
       _id: new ObjectId(id),
       recipeType: 'group',
-      groupId: user.activeGroupId
+      groupId
     });
 
     if (result.deletedCount === 0) {
@@ -908,6 +873,7 @@ router.delete('/recipes/group/:id', authMiddleware, requirePermission('group_rec
 
     res.status(204).send();
   } catch (error) {
+    if (handleGroupResolutionError(error, res)) return;
     console.error('Error deleting group recipe:', error);
     res.status(500).json({
       message: 'Failed to delete group recipe',

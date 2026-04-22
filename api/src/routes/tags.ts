@@ -2,6 +2,7 @@ import { Router, Response } from 'express';
 import { getDatabase } from '../config/database';
 import { ObjectId } from 'mongodb';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
+import { resolveGroupId, handleGroupResolutionError } from '../utils/resolveGroup';
 
 const router = Router();
 
@@ -75,14 +76,21 @@ router.get('/tags', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const db = getDatabase();
 
-    // Get all groups the user is a member of
-    const groups = await db.collection('groups')
-      .find({ 'members.userId': new ObjectId(req.userId) })
-      .toArray();
+    // If the client supplies a groupId (MCP clients do, web client doesn't),
+    // filter to that single group and verify membership. Otherwise return
+    // tags for every group the user belongs to (original web-client behavior).
+    const suppliedGroupId = (req.query as any)?.groupId;
+    let groupIds: ObjectId[];
+    if (typeof suppliedGroupId === 'string') {
+      const groupId = await resolveGroupId(db, req, req.userId!);
+      groupIds = [groupId];
+    } else {
+      const groups = await db.collection('groups')
+        .find({ 'members.userId': new ObjectId(req.userId) })
+        .toArray();
+      groupIds = groups.map(g => g._id);
+    }
 
-    const groupIds = groups.map(g => g._id);
-
-    // Get all tags for these groups
     const tags = await db.collection('tags')
       .find({ groupId: { $in: groupIds } })
       .sort({ name: 1 })
@@ -94,6 +102,7 @@ router.get('/tags', authMiddleware, async (req: AuthRequest, res: Response) => {
       groupId: tag.groupId.toString()
     })));
   } catch (error) {
+    if (handleGroupResolutionError(error, res)) return;
     console.error('Error fetching tags:', error);
     res.status(500).json({
       message: 'Failed to fetch tags',
@@ -138,41 +147,11 @@ router.post('/tags', authMiddleware, async (req: AuthRequest, res: Response) => 
       });
     }
 
-    // Get user to find active group
-    const user = await db.collection('users').findOne({ _id: new ObjectId(req.userId) });
-    let groupId = user?.activeGroupId;
-
-    // If no active group set, find user's first NON-PERSONAL group
-    if (!groupId) {
-      // First try to find a non-personal group
-      const nonPersonalGroup = await db.collection('groups').findOne({
-        'members.userId': new ObjectId(req.userId),
-        isPersonal: { $ne: true }
-      });
-
-      if (nonPersonalGroup) {
-        groupId = nonPersonalGroup._id;
-      } else {
-        // Fall back to personal group if no other group exists
-        const personalGroup = await db.collection('groups').findOne({
-          'members.userId': new ObjectId(req.userId),
-          isPersonal: true
-        });
-
-        if (!personalGroup) {
-          return res.status(404).json({
-            message: 'User has no group',
-            code: 'NO_GROUP'
-          });
-        }
-
-        groupId = personalGroup._id;
-      }
-    }
+    const groupId = await resolveGroupId(db, req, req.userId!);
 
     // Check for duplicate tag name for this group
     const existingTag = await db.collection('tags').findOne({
-      groupId: new ObjectId(groupId),
+      groupId,
       name: name.trim()
     });
 
@@ -184,7 +163,7 @@ router.post('/tags', authMiddleware, async (req: AuthRequest, res: Response) => 
     }
 
     const newTag = {
-      groupId: new ObjectId(groupId),
+      groupId,
       name: name.trim(),
       color: color?.trim() || '#6200EA', // Default purple color
       icon: icon?.trim() || null,
@@ -201,6 +180,7 @@ router.post('/tags', authMiddleware, async (req: AuthRequest, res: Response) => 
       groupId: createdTag!.groupId.toString()
     });
   } catch (error) {
+    if (handleGroupResolutionError(error, res)) return;
     console.error('Error creating tag:', error);
     res.status(500).json({
       message: 'Failed to create tag',

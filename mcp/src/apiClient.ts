@@ -85,7 +85,7 @@ export async function apiRequest<T>({ method, path, params, body, nullOn404 = fa
       return await requestOnce<T>(method, path, requestConfig);
     } catch (err) {
       if (!(err instanceof AxiosError) || !err.response) {
-        logger.error({ err, tool: ctx.traceId }, 'Upstream network error');
+        logger.error({ err, traceId: ctx.traceId }, 'Upstream network error');
         throw new UpstreamError('Upstream network error', 0, undefined, true);
       }
 

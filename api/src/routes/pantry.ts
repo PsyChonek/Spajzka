@@ -3,6 +3,7 @@ import { getDatabase } from '../config/database';
 import { ObjectId } from 'mongodb';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
 import { requirePermission } from '../rbac/middleware';
+import { resolveGroupId, handleGroupResolutionError } from '../utils/resolveGroup';
 
 const router = Router();
 
@@ -79,53 +80,7 @@ const router = Router();
 router.get('/pantry', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const db = getDatabase();
-
-    // Get user to find their active group
-    const user = await db.collection('users').findOne({ _id: new ObjectId(req.userId) });
-    
-    if (!user) {
-      return res.status(404).json({
-        message: 'User not found',
-        code: 'NOT_FOUND'
-      });
-    }
-
-    // Determine which group to use
-    let groupId = user.activeGroupId;
-
-    // If no active group set, find user's first NON-PERSONAL group
-    if (!groupId) {
-      // First try to find a non-personal group
-      const nonPersonalGroup = await db.collection('groups').findOne({
-        'members.userId': new ObjectId(req.userId),
-        isPersonal: { $ne: true }
-      });
-
-      if (nonPersonalGroup) {
-        groupId = nonPersonalGroup._id;
-      } else {
-        // Fall back to personal group if no other group exists
-        const personalGroup = await db.collection('groups').findOne({
-          'members.userId': new ObjectId(req.userId),
-          isPersonal: true
-        });
-
-        if (!personalGroup) {
-          return res.status(404).json({
-            message: 'User is not in any group',
-            code: 'NOT_IN_GROUP'
-          });
-        }
-
-        groupId = personalGroup._id;
-      }
-
-      // Set this as the active group for future requests
-      await db.collection('users').updateOne(
-        { _id: new ObjectId(req.userId) },
-        { $set: { activeGroupId: groupId } }
-      );
-    }
+    const groupId = await resolveGroupId(db, req, req.userId!);
 
     // Fetch pantry items and populate item details using aggregation
     const pantryItems = await db.collection('pantry').aggregate([
@@ -167,6 +122,7 @@ router.get('/pantry', authMiddleware, async (req: AuthRequest, res: Response) =>
       barcode: pantryItem.item?.barcode || ''
     })));
   } catch (error) {
+    if (handleGroupResolutionError(error, res)) return;
     console.error('Error fetching pantry items:', error);
     res.status(500).json({ message: 'Failed to fetch pantry items', code: 'FETCH_ERROR' });
   }
@@ -211,14 +167,7 @@ router.post('/pantry', authMiddleware, requirePermission('pantry:create'), async
       });
     }
 
-    // Get user to find their active group
-    const user = await db.collection('users').findOne({ _id: new ObjectId(req.userId) });
-    if (!user || !user.activeGroupId) {
-      return res.status(400).json({
-        message: 'No active group set. Please set an active group first.',
-        code: 'NO_ACTIVE_GROUP'
-      });
-    }
+    const groupId = await resolveGroupId(db, req, req.userId!);
 
     // Verify item exists in the unified items collection
     const item = await db.collection('items').findOne({
@@ -234,7 +183,7 @@ router.post('/pantry', authMiddleware, requirePermission('pantry:create'), async
     }
 
     const newItem = {
-      groupId: user.activeGroupId,
+      groupId,
       itemId: new ObjectId(itemId),
       itemType,
       quantity,
@@ -279,6 +228,7 @@ router.post('/pantry', authMiddleware, requirePermission('pantry:create'), async
       barcode: createdItem.item?.barcode || ''
     });
   } catch (error) {
+    if (handleGroupResolutionError(error, res)) return;
     console.error('Error creating pantry item:', error);
     res.status(500).json({ message: 'Failed to create item', code: 'CREATE_ERROR' });
   }
@@ -323,14 +273,7 @@ router.put('/pantry/:id', authMiddleware, requirePermission('pantry:update'), as
       return res.status(400).json({ message: 'Invalid item ID', code: 'INVALID_ID' });
     }
 
-    // Get user to find their active group
-    const user = await db.collection('users').findOne({ _id: new ObjectId(req.userId) });
-    if (!user || !user.activeGroupId) {
-      return res.status(400).json({
-        message: 'No active group set',
-        code: 'NO_ACTIVE_GROUP'
-      });
-    }
+    const groupId = await resolveGroupId(db, req, req.userId!);
 
     const updateData: any = {
       updatedAt: new Date()
@@ -339,7 +282,7 @@ router.put('/pantry/:id', authMiddleware, requirePermission('pantry:update'), as
     if (quantity !== undefined) updateData.quantity = quantity;
 
     const pantryItem = await db.collection('pantry').findOneAndUpdate(
-      { _id: new ObjectId(id), groupId: user.activeGroupId },
+      { _id: new ObjectId(id), groupId },
       { $set: updateData },
       { returnDocument: 'after' }
     );
@@ -355,6 +298,7 @@ router.put('/pantry/:id', authMiddleware, requirePermission('pantry:update'), as
       itemId: pantryItem.itemId.toString()
     });
   } catch (error) {
+    if (handleGroupResolutionError(error, res)) return;
     console.error('Error updating pantry item:', error);
     res.status(500).json({ message: 'Failed to update item', code: 'UPDATE_ERROR' });
   }
@@ -389,18 +333,11 @@ router.delete('/pantry/:id', authMiddleware, requirePermission('pantry:delete'),
       return res.status(400).json({ message: 'Invalid item ID', code: 'INVALID_ID' });
     }
 
-    // Get user to find their active group
-    const user = await db.collection('users').findOne({ _id: new ObjectId(req.userId) });
-    if (!user || !user.activeGroupId) {
-      return res.status(400).json({
-        message: 'No active group set',
-        code: 'NO_ACTIVE_GROUP'
-      });
-    }
+    const groupId = await resolveGroupId(db, req, req.userId!);
 
     const result = await db.collection('pantry').deleteOne({
       _id: new ObjectId(id),
-      groupId: user.activeGroupId
+      groupId
     });
 
     if (result.deletedCount === 0) {
@@ -409,6 +346,7 @@ router.delete('/pantry/:id', authMiddleware, requirePermission('pantry:delete'),
 
     res.status(204).send();
   } catch (error) {
+    if (handleGroupResolutionError(error, res)) return;
     console.error('Error deleting pantry item:', error);
     res.status(500).json({ message: 'Failed to delete item', code: 'DELETE_ERROR' });
   }

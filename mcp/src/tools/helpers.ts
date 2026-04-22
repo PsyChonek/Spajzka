@@ -18,6 +18,7 @@ export function registerTool(
     async (args: any) => {
       const ctx = currentContext();
       const start = Date.now();
+      const groupId = args && typeof args === 'object' ? (args as any).groupId : undefined;
       try {
         const result = await handler(args);
         logger.info(
@@ -25,6 +26,7 @@ export function registerTool(
             traceId: ctx.traceId,
             userId: ctx.userId,
             tool: name,
+            groupId,
             durationMs: Date.now() - start,
             ok: true
           },
@@ -37,6 +39,7 @@ export function registerTool(
             traceId: ctx.traceId,
             userId: ctx.userId,
             tool: name,
+            groupId,
             durationMs: Date.now() - start,
             ok: false,
             err

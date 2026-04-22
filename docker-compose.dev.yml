@@ -61,6 +61,7 @@ services:
       - PORT=3000
       - MONGO_URL=mongodb://${MONGO_USERNAME:-admin}:${MONGO_PASSWORD:-password}@mongodb:27017
       - DB_NAME=spajzka
+      - JWT_SECRET=${JWT_SECRET:-your-secret-key-change-in-production}
     networks:
       - spajzka-network-dev
     restart: unless-stopped
