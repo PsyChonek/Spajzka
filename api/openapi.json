@@ -156,6 +156,63 @@
           "newPassword"
         ]
       },
+      "McpTokenStatus": {
+        "type": "object",
+        "properties": {
+          "exists": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "lastUsedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "McpTokenResponse": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "description": "Personal access token. Shown exactly once."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "McpExchangeRequest": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "token"
+        ]
+      },
+      "McpExchangeResponse": {
+        "type": "object",
+        "properties": {
+          "jwt": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "Group": {
         "type": "object",
         "properties": {
@@ -1174,6 +1231,113 @@
           },
           "403": {
             "description": "User is not a member of this group"
+          }
+        }
+      }
+    },
+    "/api/auth/mcp-token": {
+      "get": {
+        "summary": "Get MCP token status",
+        "description": "Returns whether an MCP personal access token exists, plus creation and last-use timestamps. The token itself is never returned.",
+        "tags": [
+          "Authentication"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Token status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/McpTokenStatus"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Generate or rotate MCP token",
+        "description": "Creates a new personal access token for MCP access. Replaces any existing token. Returns the plaintext token exactly once.",
+        "tags": [
+          "Authentication"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Token generated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/McpTokenResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Anonymous users cannot generate MCP tokens"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Revoke MCP token",
+        "description": "Revokes the user's active MCP personal access token. Takes effect immediately.",
+        "tags": [
+          "Authentication"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Token revoked"
+          }
+        }
+      }
+    },
+    "/api/auth/mcp-exchange": {
+      "post": {
+        "summary": "Exchange MCP personal access token for a JWT",
+        "description": "Used by the MCP server to turn a user's PAT into a short-lived JWT. Not behind JWT auth — the PAT is the credential. Rate-limited per IP.",
+        "tags": [
+          "Authentication"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/McpExchangeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Exchange successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/McpExchangeResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or revoked PAT"
+          },
+          "429": {
+            "description": "Too many exchange attempts from this IP"
           }
         }
       }

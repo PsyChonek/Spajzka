@@ -1,10 +1,22 @@
-import { Router, Response } from 'express';
+import { Router, Request, Response } from 'express';
+import crypto from 'crypto';
 import { getDatabase } from '../config/database';
 import { ObjectId } from 'mongodb';
 import bcrypt from 'bcryptjs';
 import { authMiddleware, AuthRequest, generateToken } from '../middleware/auth';
+import { createRateLimiter } from '../utils/rateLimit';
 
 const router = Router();
+
+const MCP_TOKEN_PREFIX = 'spk_mcp_';
+const MCP_EXCHANGE_JWT_TTL_SECONDS = 60 * 60; // 1 hour
+
+// IP-scoped brute-force guard for PAT exchange.
+const mcpExchangeLimiter = createRateLimiter(10);
+
+function generateMcpToken(): string {
+  return MCP_TOKEN_PREFIX + crypto.randomBytes(32).toString('base64url');
+}
 
 /**
  * @openapi
@@ -691,6 +703,278 @@ router.post('/auth/change-password', authMiddleware, async (req: AuthRequest, re
  *       403:
  *         description: User is not a member of this group
  */
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     McpTokenStatus:
+ *       type: object
+ *       properties:
+ *         exists:
+ *           type: boolean
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *         lastUsedAt:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *     McpTokenResponse:
+ *       type: object
+ *       properties:
+ *         token:
+ *           type: string
+ *           description: Personal access token. Shown exactly once.
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *     McpExchangeRequest:
+ *       type: object
+ *       properties:
+ *         token:
+ *           type: string
+ *       required:
+ *         - token
+ *     McpExchangeResponse:
+ *       type: object
+ *       properties:
+ *         jwt:
+ *           type: string
+ *         userId:
+ *           type: string
+ *         expiresAt:
+ *           type: string
+ *           format: date-time
+ */
+
+/**
+ * @openapi
+ * /api/auth/mcp-token:
+ *   get:
+ *     summary: Get MCP token status
+ *     description: Returns whether an MCP personal access token exists, plus creation and last-use timestamps. The token itself is never returned.
+ *     tags:
+ *       - Authentication
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Token status
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/McpTokenStatus'
+ */
+router.get('/auth/mcp-token', authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const db = getDatabase();
+    const user = await db.collection('users').findOne(
+      { _id: new ObjectId(req.userId) },
+      { projection: { mcpTokenHash: 1, mcpTokenCreatedAt: 1, mcpTokenLastUsedAt: 1 } }
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found', code: 'NOT_FOUND' });
+    }
+
+    res.json({
+      exists: Boolean(user.mcpTokenHash),
+      createdAt: user.mcpTokenCreatedAt ?? null,
+      lastUsedAt: user.mcpTokenLastUsedAt ?? null
+    });
+  } catch (error) {
+    console.error('Error fetching MCP token status:', error);
+    res.status(500).json({ message: 'Failed to fetch MCP token status', code: 'FETCH_ERROR' });
+  }
+});
+
+/**
+ * @openapi
+ * /api/auth/mcp-token:
+ *   post:
+ *     summary: Generate or rotate MCP token
+ *     description: Creates a new personal access token for MCP access. Replaces any existing token. Returns the plaintext token exactly once.
+ *     tags:
+ *       - Authentication
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Token generated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/McpTokenResponse'
+ *       403:
+ *         description: Anonymous users cannot generate MCP tokens
+ */
+router.post('/auth/mcp-token', authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const db = getDatabase();
+    const user = await db.collection('users').findOne(
+      { _id: new ObjectId(req.userId) },
+      { projection: { isAnonymous: 1 } }
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found', code: 'NOT_FOUND' });
+    }
+
+    if (user.isAnonymous) {
+      return res.status(403).json({
+        message: 'Anonymous users cannot generate MCP tokens. Register or log in first.',
+        code: 'ANONYMOUS_NOT_ALLOWED'
+      });
+    }
+
+    const token = generateMcpToken();
+    const hash = await bcrypt.hash(token, 10);
+    const createdAt = new Date();
+
+    await db.collection('users').updateOne(
+      { _id: new ObjectId(req.userId) },
+      {
+        $set: {
+          mcpTokenHash: hash,
+          mcpTokenCreatedAt: createdAt,
+          mcpTokenLastUsedAt: null,
+          updatedAt: createdAt
+        }
+      }
+    );
+
+    res.json({ token, createdAt });
+  } catch (error) {
+    console.error('Error generating MCP token:', error);
+    res.status(500).json({ message: 'Failed to generate MCP token', code: 'GENERATE_ERROR' });
+  }
+});
+
+/**
+ * @openapi
+ * /api/auth/mcp-token:
+ *   delete:
+ *     summary: Revoke MCP token
+ *     description: Revokes the user's active MCP personal access token. Takes effect immediately.
+ *     tags:
+ *       - Authentication
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Token revoked
+ */
+router.delete('/auth/mcp-token', authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const db = getDatabase();
+    await db.collection('users').updateOne(
+      { _id: new ObjectId(req.userId) },
+      {
+        $set: {
+          mcpTokenHash: null,
+          mcpTokenCreatedAt: null,
+          mcpTokenLastUsedAt: null,
+          updatedAt: new Date()
+        }
+      }
+    );
+
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('Error revoking MCP token:', error);
+    res.status(500).json({ message: 'Failed to revoke MCP token', code: 'REVOKE_ERROR' });
+  }
+});
+
+/**
+ * @openapi
+ * /api/auth/mcp-exchange:
+ *   post:
+ *     summary: Exchange MCP personal access token for a JWT
+ *     description: Used by the MCP server to turn a user's PAT into a short-lived JWT. Not behind JWT auth — the PAT is the credential. Rate-limited per IP.
+ *     tags:
+ *       - Authentication
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/McpExchangeRequest'
+ *     responses:
+ *       200:
+ *         description: Exchange successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/McpExchangeResponse'
+ *       401:
+ *         description: Invalid or revoked PAT
+ *       429:
+ *         description: Too many exchange attempts from this IP
+ */
+router.post('/auth/mcp-exchange', async (req: Request, res: Response) => {
+  const clientIp = req.ip || req.socket.remoteAddress || 'unknown';
+  if (!mcpExchangeLimiter.consume(clientIp)) {
+    return res.status(429).json({
+      message: 'Too many exchange attempts. Try again later.',
+      code: 'RATE_LIMITED'
+    });
+  }
+
+  try {
+    const { token } = req.body ?? {};
+
+    if (typeof token !== 'string' || !token.startsWith(MCP_TOKEN_PREFIX)) {
+      return res.status(401).json({ message: 'Invalid token', code: 'INVALID_TOKEN' });
+    }
+
+    const db = getDatabase();
+
+    // We cannot index bcrypt hashes, so we scan candidates with a token set.
+    // In practice mcpTokenHash is a single-token-per-user column; the set of
+    // users with an active MCP token is small relative to the full users
+    // collection. If this collection grows, add a short per-token indexable
+    // prefix hash as a secondary lookup field.
+    const candidates = await db.collection('users')
+      .find({ mcpTokenHash: { $ne: null } }, { projection: { mcpTokenHash: 1, email: 1 } })
+      .toArray();
+
+    let matched: { _id: ObjectId; email: string } | null = null;
+    for (const candidate of candidates) {
+      if (candidate.mcpTokenHash && await bcrypt.compare(token, candidate.mcpTokenHash)) {
+        matched = { _id: candidate._id, email: candidate.email };
+        break;
+      }
+    }
+
+    if (!matched) {
+      return res.status(401).json({
+        message: 'Invalid or revoked MCP token.',
+        code: 'INVALID_MCP_TOKEN'
+      });
+    }
+
+    // Best-effort lastUsedAt update — not on the hot path.
+    db.collection('users').updateOne(
+      { _id: matched._id },
+      { $set: { mcpTokenLastUsedAt: new Date() } }
+    ).catch(err => console.error('Failed to update mcpTokenLastUsedAt:', err));
+
+    const jwtToken = generateToken(matched._id.toString(), matched.email, `${MCP_EXCHANGE_JWT_TTL_SECONDS}s`);
+    const expiresAt = new Date(Date.now() + MCP_EXCHANGE_JWT_TTL_SECONDS * 1000);
+
+    res.json({
+      jwt: jwtToken,
+      userId: matched._id.toString(),
+      expiresAt
+    });
+  } catch (error) {
+    console.error('Error exchanging MCP token:', error);
+    res.status(500).json({ message: 'Failed to exchange MCP token', code: 'EXCHANGE_ERROR' });
+  }
+});
+
 router.post('/auth/active-group', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const db = getDatabase();

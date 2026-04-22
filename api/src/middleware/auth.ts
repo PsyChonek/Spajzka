@@ -46,10 +46,10 @@ export const authMiddleware = (req: AuthRequest, res: Response, next: NextFuncti
   }
 };
 
-export const generateToken = (userId: string, email: string): string => {
+export const generateToken = (userId: string, email: string, expiresIn: string = '7d'): string => {
   return jwt.sign(
     { userId, email },
     JWT_SECRET,
-    { expiresIn: '7d' }
+    { expiresIn } as jwt.SignOptions
   );
 };
