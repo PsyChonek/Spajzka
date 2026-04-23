@@ -4,6 +4,7 @@ import { ObjectId } from 'mongodb';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
 import { requirePermission } from '../rbac/middleware';
 import { resolveGroupId, handleGroupResolutionError } from '../utils/resolveGroup';
+import { insertShoppingItem } from '../utils/shoppingHelpers';
 
 const router = Router();
 
@@ -155,47 +156,18 @@ router.post('/shopping', authMiddleware, requirePermission('shopping:create'), a
 
     const groupId = await resolveGroupId(db, req, req.userId!);
 
-    // Verify item exists in the unified items collection
-    const item = await db.collection('items').findOne({
-      _id: new ObjectId(itemId),
-      itemType: itemType
-    });
-
-    if (!item) {
-      return res.status(404).json({
-        message: `${itemType} item not found`,
-        code: 'ITEM_NOT_FOUND'
-      });
-    }
-
-    const newItem = {
-      groupId,
-      itemId: new ObjectId(itemId),
+    const created = await insertShoppingItem(db, groupId, {
+      itemId,
       itemType,
-      quantity: quantity || 1,
-      completed: false,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-
-    const result = await db.collection('shopping').insertOne(newItem);
-    const createdItem = await db.collection('shopping').findOne({ _id: result.insertedId });
-
-    // Populate item details from the unified items collection
-    const itemDetails = await db.collection('items').findOne({ _id: new ObjectId(itemId) });
-
-    res.status(201).json({
-      ...createdItem,
-      _id: createdItem!._id.toString(),
-      groupId: createdItem!.groupId.toString(),
-      itemId: createdItem!.itemId.toString(),
-      name: itemDetails?.name || 'Unknown Item',
-      category: itemDetails?.category,
-      icon: itemDetails?.icon,
-      defaultUnit: itemDetails?.defaultUnit
+      quantity: quantity || 1
     });
-  } catch (error) {
+
+    res.status(201).json(created);
+  } catch (error: any) {
     if (handleGroupResolutionError(error, res)) return;
+    if (error.statusCode === 404) {
+      return res.status(404).json({ message: error.message, code: error.code ?? 'NOT_FOUND' });
+    }
     console.error('Error creating shopping item:', error);
     res.status(500).json({ message: 'Failed to create item', code: 'CREATE_ERROR' });
   }

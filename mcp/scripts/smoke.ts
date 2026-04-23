@@ -45,6 +45,15 @@ async function main() {
   console.log(`\n=== list_shopping (groupId=${groupId}) ===`);
   console.log(await client.callTool({ name: 'list_shopping', arguments: { groupId } }));
 
+  const today = new Date().toISOString().slice(0, 10);
+  const in30 = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
+  console.log(`\n=== list_meal_plan (groupId=${groupId}) ===`);
+  console.log(await client.callTool({ name: 'list_meal_plan', arguments: { groupId, from: today, to: in30 } }));
+
+  console.log(`\n=== preview_meal_plan_shopping (groupId=${groupId}) ===`);
+  console.log(await client.callTool({ name: 'preview_meal_plan_shopping', arguments: { groupId, from: today, to: in30, missingOnly: true } }));
+
   await client.close();
   console.log('\nSmoke test complete.');
 }

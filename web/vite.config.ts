@@ -22,7 +22,7 @@ export default defineConfig({
 			'@shared': fileURLToPath(new URL('../shared', import.meta.url))
 		}
 	},
-	build: { sourcemap: false },
+	build: { sourcemap: false, cssMinify: 'esbuild' },
 	server: {
 		host: '0.0.0.0',
 		port: 5173,

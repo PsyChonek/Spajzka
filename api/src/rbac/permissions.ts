@@ -29,7 +29,11 @@ export type Permission =
   // Shopping permissions
   | 'shopping:create'
   | 'shopping:update'
-  | 'shopping:delete';
+  | 'shopping:delete'
+  // Meal plan permissions
+  | 'meal_plan:create'
+  | 'meal_plan:update'
+  | 'meal_plan:delete';
 
 export type RoleId = 'system_moderator' | 'admin' | 'moderator' | 'member';
 

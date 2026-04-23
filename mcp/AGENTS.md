@@ -1,6 +1,6 @@
 # Spajzka MCP Server — Agent Guide
 
-This workspace is a **remote Model Context Protocol (MCP) server** that exposes Spajzka pantry/shopping/recipes/items/tags/groups to AI assistants (Claude Desktop, Claude Code, Claude.ai, or any MCP-compatible client).
+This workspace is a **remote Model Context Protocol (MCP) server** that exposes Spajzka pantry/shopping/recipes/items/tags/groups/meal-plan to AI assistants (Claude Desktop, Claude Code, Claude.ai, or any MCP-compatible client).
 
 Read this before touching `mcp/` — the architecture has invariants that are not obvious from the code alone.
 
@@ -53,7 +53,7 @@ mcp/
 └── package.json
 ```
 
-Total tool count: **32**, across 6 domains plus discovery.
+Total tool count: **38**, across 7 domains plus discovery (meal-plan added).
 
 ## Invariants — do not break
 

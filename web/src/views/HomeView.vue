@@ -27,6 +27,13 @@ const features = [
     color: 'accent'
   },
     {
+    icon: 'event',
+    title: 'Meal Plan',
+    description: 'Schedule meals on your calendar and auto-generate the shopping list',
+    route: '/meal-plan',
+    color: 'purple'
+  },
+  {
     icon: 'restaurant',
     title: 'Cook',
     description: 'Find and cook recipes based on your pantry items',

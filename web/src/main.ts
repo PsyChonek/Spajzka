@@ -12,6 +12,8 @@ import '@quasar/extras/material-icons/material-icons.css';
 
 // Import Quasar css
 import 'quasar/dist/quasar.css';
+import '@quasar/quasar-ui-qcalendar/QCalendarMonth.css';
+import '@quasar/quasar-ui-qcalendar/QCalendarAgenda.css';
 
 // Configure OpenAPI client
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'

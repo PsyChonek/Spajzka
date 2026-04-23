@@ -1,6 +1,7 @@
 import { storeToRefs } from 'pinia'
 import { usePantryStore } from '@/stores/pantryStore'
 import { useShoppingStore } from '@/stores/shoppingStore'
+import { useMealPlanStore } from '@/stores/mealPlanStore'
 
 /**
  * Composable that provides easy access to pantry store with reactive refs
@@ -25,6 +26,47 @@ export function usePantry() {
     syncPendingChanges: store.syncPendingChanges,
     incrementQuantity: store.incrementQuantity,
     decrementQuantity: store.decrementQuantity,
+  }
+}
+
+/**
+ * Composable that provides easy access to meal-plan store with reactive refs.
+ */
+export function useMealPlan() {
+  const store = useMealPlanStore()
+  const {
+    entries,
+    sortedEntries,
+    entriesByDate,
+    entriesExpandedByEatDate,
+    rangeStart,
+    rangeEnd,
+    loading,
+    lastSynced,
+    hasPendingChanges
+  } = storeToRefs(store)
+
+  return {
+    // Reactive state
+    entries,
+    sortedEntries,
+    entriesByDate,
+    entriesExpandedByEatDate,
+    rangeStart,
+    rangeEnd,
+    loading,
+    lastSynced,
+    hasPendingChanges,
+
+    // Actions
+    fetchItems: store.fetchItems,
+    fetchRange: store.fetchRange,
+    addEntry: store.addEntry,
+    updateEntry: store.updateEntry,
+    deleteEntry: store.deleteEntry,
+    previewShopping: store.previewShopping,
+    generateShopping: store.generateShopping,
+    syncPendingChanges: store.syncPendingChanges
   }
 }
 

@@ -13,6 +13,7 @@ import groupsRouter from './routes/groups';
 import recipesRouter from './routes/recipes';
 import rolesRouter from './routes/roles';
 import tagsRouter from './routes/tags';
+import mealPlanRouter from './routes/mealPlan';
 
 // Load environment variables
 dotenv.config();
@@ -48,6 +49,7 @@ app.use('/api', pantryRouter);
 app.use('/api', shoppingRouter);
 app.use('/api', groupsRouter);
 app.use('/api', recipesRouter);
+app.use('/api', mealPlanRouter);
 app.use('/api', rolesRouter);
 app.use('/api', tagsRouter);
 

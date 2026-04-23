@@ -3,6 +3,7 @@ import { usePantryStore } from '@/stores/pantryStore'
 import { useShoppingStore } from '@/stores/shoppingStore'
 import { useItemsStore } from '@/stores/itemsStore'
 import { useRecipesStore } from '@/stores/recipesStore'
+import { useMealPlanStore } from '@/stores/mealPlanStore'
 import { useStoreRefresh } from '@/composables/useStoreRefresh'
 
 let isInitialized = false
@@ -12,6 +13,7 @@ export function useOnlineSync() {
   const shoppingStore = useShoppingStore()
   const itemsStore = useItemsStore()
   const recipesStore = useRecipesStore()
+  const mealPlanStore = useMealPlanStore()
   const { refreshAllStores } = useStoreRefresh()
 
   const handleOnline = async () => {
@@ -22,7 +24,8 @@ export function useOnlineSync() {
       pantryStore.syncPendingChanges(),
       shoppingStore.syncPendingChanges(),
       itemsStore.syncPendingChanges(),
-      recipesStore.syncPendingChanges()
+      recipesStore.syncPendingChanges(),
+      mealPlanStore.syncPendingChanges()
     ])
 
     // Fetch latest data from server to ensure everything is up to date

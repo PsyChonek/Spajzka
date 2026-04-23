@@ -10,9 +10,10 @@
   },
   "dependencies": {
     "@quasar/extras": "^1.17.0",
+    "@quasar/quasar-ui-qcalendar": "^4.1.2",
     "axios": "^1.7.9",
-    "form-data": "^4.0.1",
     "bcryptjs": "^3.0.2",
+    "form-data": "^4.0.1",
     "jsonwebtoken": "^9.0.2",
     "pinia": "^3.0.3",
     "pinia-plugin-persistedstate": "^4.5.0",
