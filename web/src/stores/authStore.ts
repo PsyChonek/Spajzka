@@ -328,5 +328,10 @@ export const useAuthStore = defineStore('auth', () => {
     initialize
   }
 }, {
-  persist: true
+  // `initialized` / `initializing` are runtime-only flags — persisting them
+  // across reloads makes the router guard skip `initialize()` and trust a
+  // stale token.
+  persist: {
+    pick: ['user', 'token']
+  }
 })
