@@ -3,6 +3,7 @@ import { ref, computed, watch } from 'vue'
 import { PantryService, type PantryItem, type CreatePantryItemRequest, ApiError } from '@shared/api-client'
 import { isOnline } from '@/utils/network'
 import { classifyFetchError, logFetchError, fetchErrorToast } from '@/utils/fetchError'
+import { mapAwareSerializer, rehydrateMapKeys } from '@/utils/piniaSerializer'
 import { Notify } from 'quasar'
 import { useGroupsStore } from './groupsStore'
 import { useItemsStore } from './itemsStore'
@@ -262,5 +263,9 @@ export const usePantryStore = defineStore('pantry', () => {
     $reset
   }
 }, {
-  persist: true
+  persist: {
+    // `pendingChanges` is a Map — default JSON serializer would collapse it to `{}`.
+    serializer: mapAwareSerializer,
+    afterHydrate: rehydrateMapKeys(['pendingChanges'])
+  }
 })

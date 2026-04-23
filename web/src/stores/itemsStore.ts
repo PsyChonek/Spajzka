@@ -3,6 +3,7 @@ import { ref, computed, watch } from 'vue'
 import { ItemsService, ApiError, type Item as ApiItem } from '@shared/api-client'
 import { isOnline } from '@/utils/network'
 import { classifyFetchError, logFetchError, fetchErrorToast } from '@/utils/fetchError'
+import { mapAwareSerializer, rehydrateMapKeys } from '@/utils/piniaSerializer'
 import { Notify } from 'quasar'
 import { useAuthStore } from './authStore'
 import { useGroupsStore } from './groupsStore'
@@ -467,5 +468,8 @@ export const useItemsStore = defineStore('items', () => {
     $reset
   }
 }, {
-  persist: true
+  persist: {
+    serializer: mapAwareSerializer,
+    afterHydrate: rehydrateMapKeys(['pendingChanges'])
+  }
 })

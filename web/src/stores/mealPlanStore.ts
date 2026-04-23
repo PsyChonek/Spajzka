@@ -13,6 +13,7 @@ import {
 } from '@shared/api-client'
 import { isOnline } from '@/utils/network'
 import { classifyFetchError, logFetchError, fetchErrorToast } from '@/utils/fetchError'
+import { mapAwareSerializer, rehydrateMapKeys } from '@/utils/piniaSerializer'
 import { toISODate } from '@/utils/date'
 import { Notify } from 'quasar'
 import { useGroupsStore } from './groupsStore'
@@ -394,6 +395,10 @@ export const useMealPlanStore = defineStore('mealPlan', () => {
   // `entries` is excluded — it's re-fetched on mount via fetchRange, and persisting
   // the full array on every calendar navigation is expensive on mobile.
   persist: {
-    pick: ['pendingChanges', 'rangeStart', 'rangeEnd', 'lastSynced']
+    pick: ['pendingChanges', 'rangeStart', 'rangeEnd', 'lastSynced'],
+    // `pendingChanges` is a Map — default JSON serializer would collapse it to `{}`
+    // and every subsequent `.clear()` / `.set()` would throw TypeError.
+    serializer: mapAwareSerializer,
+    afterHydrate: rehydrateMapKeys(['pendingChanges'])
   }
 })

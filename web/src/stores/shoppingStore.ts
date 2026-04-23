@@ -3,6 +3,7 @@ import { ref, computed, watch } from 'vue'
 import { ShoppingService, type ShoppingItem, type CreateShoppingItemRequest, ApiError } from '@shared/api-client'
 import { isOnline } from '@/utils/network'
 import { classifyFetchError, logFetchError, fetchErrorToast } from '@/utils/fetchError'
+import { mapAwareSerializer, rehydrateMapKeys } from '@/utils/piniaSerializer'
 import { Notify } from 'quasar'
 import { useGroupsStore } from './groupsStore'
 import { useItemsStore } from './itemsStore'
@@ -255,5 +256,8 @@ export const useShoppingStore = defineStore('shopping', () => {
     $reset
   }
 }, {
-  persist: true
+  persist: {
+    serializer: mapAwareSerializer,
+    afterHydrate: rehydrateMapKeys(['pendingChanges'])
+  }
 })
