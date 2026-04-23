@@ -1,0 +1,18 @@
+{
+  "version": "2.8.0",
+  "projectType": "Fullstack Node",
+  "gitWorkflow": "current-branch",
+  "commands": {
+    "installed": ["build", "test", "dev", "push", "bump", "release"],
+    "declined": ["team"]
+  },
+  "skills": {
+    "installed": ["build", "test", "release"],
+    "declined": []
+  },
+  "teams": {
+    "installed": [],
+    "declined": ["explorer", "test-writer", "backend", "frontend"]
+  },
+  "lastSync": "2026-04-23"
+}

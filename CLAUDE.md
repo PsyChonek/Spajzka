@@ -63,7 +63,7 @@ Claude.ai) to their Spajzka account.
   Bearer token.
 - **Connection URL:** set via `MCP_PUBLIC_URL` env var on the mcp container;
   displayed to users on the profile card.
-- **Tools:** 32, covering pantry/shopping/items/recipes/tags/groups. Every
+- **Tools:** 38, covering pantry/shopping/items/recipes/tags/groups/meal-plan. Every
   group-scoped tool requires `groupId` — the LLM should call `list_groups`
   first to discover IDs.
 - **Rate limit:** 60 requests/minute per PAT (configurable via
@@ -231,3 +231,16 @@ Data files in `db/install/*.json` and `db/seed/*.json` follow MongoDB Extended J
 - `db/migrate.js` - Database schema migration script
 - `db/Dockerfile.init` - Production database initialization container
 - `db/Dockerfile.dev` - Development database initialization container
+
+## AGENTS.md locations
+
+Every directory with conventions distinct from its parent has its own `AGENTS.md`. Read the relevant ones before editing files under that path.
+
+- @AGENTS.md
+- @api/AGENTS.md
+- @api/src/routes/AGENTS.md
+- @web/AGENTS.md
+- @web/src/stores/AGENTS.md
+- @mcp/AGENTS.md
+- @db/AGENTS.md
+- @tests/AGENTS.md
