@@ -6,7 +6,7 @@ export type UpdateMealPlanEntryRequest = {
     cookDate?: string;
     servings?: number;
     eatDates?: Array<string>;
-    mealType?: string;
+    mealTypes?: Array<string>;
     notes?: string;
     groupId?: string;
 };

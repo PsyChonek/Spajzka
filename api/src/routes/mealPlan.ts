@@ -43,9 +43,11 @@ const router = Router();
  *           items:
  *             type: string
  *             format: date-time
- *         mealType:
- *           type: string
- *           description: Free-form label e.g. "dinner", "lunch"
+ *         mealTypes:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: Zero or more free-form labels (e.g. "breakfast", "lunch", "dinner"). A single meal can belong to several.
  *         notes:
  *           type: string
  *         shoppingGeneratedAt:
@@ -87,8 +89,10 @@ const router = Router();
  *             type: string
  *             format: date-time
  *           description: Defaults to [cookDate] if omitted
- *         mealType:
- *           type: string
+ *         mealTypes:
+ *           type: array
+ *           items:
+ *             type: string
  *         notes:
  *           type: string
  *         groupId:
@@ -107,8 +111,10 @@ const router = Router();
  *           items:
  *             type: string
  *             format: date-time
- *         mealType:
- *           type: string
+ *         mealTypes:
+ *           type: array
+ *           items:
+ *             type: string
  *         notes:
  *           type: string
  *         groupId:
@@ -230,6 +236,10 @@ function serializeEntry(doc: any): object {
     eatDates: (doc.eatDates ?? []).map((d: any) =>
       d instanceof Date ? d.toISOString() : d
     ),
+    mealTypes: Array.isArray(doc.mealTypes)
+      ? doc.mealTypes
+      // Backwards compatibility: old docs stored mealType (singular). Surface as array.
+      : (doc.mealType ? [doc.mealType] : []),
     shoppingGeneratedAt: doc.shoppingGeneratedAt
       ? (doc.shoppingGeneratedAt instanceof Date
         ? doc.shoppingGeneratedAt.toISOString()
@@ -363,7 +373,7 @@ router.post(
   async (req: AuthRequest, res: Response) => {
     try {
       const db = getDatabase();
-      const { recipeId, recipeType, cookDate, servings, eatDates, mealType, notes } = req.body;
+      const { recipeId, recipeType, cookDate, servings, eatDates, mealTypes, notes } = req.body;
 
       if (!recipeId || !recipeType || !cookDate) {
         return res.status(400).json({
@@ -428,7 +438,9 @@ router.post(
         cookDate: cookDateParsed,
         servings: effectiveServings,
         eatDates: parsedEatDates,
-        mealType: mealType?.trim() || undefined,
+        mealTypes: Array.isArray(mealTypes)
+          ? mealTypes.map((t: string) => String(t).trim()).filter(Boolean)
+          : [],
         notes: notes?.trim() || undefined,
         shoppingGeneratedAt: null,
         shoppingBatchId: null,
@@ -507,7 +519,7 @@ router.patch(
 
       const groupId = await resolveGroupId(db, req, req.userId!);
 
-      const { cookDate, servings, eatDates, mealType, notes } = req.body;
+      const { cookDate, servings, eatDates, mealTypes, notes } = req.body;
       const updateData: any = { updatedAt: new Date() };
 
       if (cookDate !== undefined) {
@@ -535,7 +547,11 @@ router.patch(
         });
       }
 
-      if (mealType !== undefined) updateData.mealType = mealType?.trim() || undefined;
+      if (mealTypes !== undefined) {
+        updateData.mealTypes = Array.isArray(mealTypes)
+          ? mealTypes.map((t: string) => String(t).trim()).filter(Boolean)
+          : [];
+      }
       if (notes !== undefined) updateData.notes = notes?.trim() || undefined;
 
       const updated = await db.collection('mealPlan').findOneAndUpdate(

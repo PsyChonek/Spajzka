@@ -138,7 +138,7 @@ export const useMealPlanStore = defineStore('mealPlan', () => {
       cookDate: data.cookDate,
       servings: data.servings,
       eatDates: data.eatDates ?? [data.cookDate],
-      mealType: data.mealType,
+      mealTypes: data.mealTypes,
       notes: data.notes,
       groupId: data.groupId,
       createdAt: new Date().toISOString(),

@@ -15,9 +15,9 @@ export type MealPlanEntry = {
     servings?: number;
     eatDates?: Array<string>;
     /**
-     * Free-form label e.g. "dinner", "lunch"
+     * Zero or more free-form labels (e.g. "breakfast", "lunch", "dinner"). A single meal can belong to several.
      */
-    mealType?: string;
+    mealTypes?: Array<string>;
     notes?: string;
     shoppingGeneratedAt?: string | null;
     shoppingBatchId?: string | null;

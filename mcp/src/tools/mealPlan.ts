@@ -33,7 +33,7 @@ export function registerMealPlanTools(server: McpServer): void {
       cookDate: z.string(),
       servings: z.number().positive().optional(),
       eatDates: z.array(z.string()).optional(),
-      mealType: z.string().optional(),
+      mealTypes: z.array(z.string()).optional(),
       notes: z.string().optional()
     },
     async (args) => {
@@ -55,7 +55,7 @@ export function registerMealPlanTools(server: McpServer): void {
       cookDate: z.string().optional(),
       servings: z.number().positive().optional(),
       eatDates: z.array(z.string()).optional(),
-      mealType: z.string().optional(),
+      mealTypes: z.array(z.string()).optional(),
       notes: z.string().optional()
     },
     async ({ mealPlanId, ...body }) => {

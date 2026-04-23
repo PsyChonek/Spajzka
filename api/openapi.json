@@ -529,9 +529,12 @@
               "format": "date-time"
             }
           },
-          "mealType": {
-            "type": "string",
-            "description": "Free-form label e.g. \"dinner\", \"lunch\""
+          "mealTypes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Zero or more free-form labels (e.g. \"breakfast\", \"lunch\", \"dinner\"). A single meal can belong to several."
           },
           "notes": {
             "type": "string"
@@ -592,8 +595,11 @@
             },
             "description": "Defaults to [cookDate] if omitted"
           },
-          "mealType": {
-            "type": "string"
+          "mealTypes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "notes": {
             "type": "string"
@@ -621,8 +627,11 @@
               "format": "date-time"
             }
           },
-          "mealType": {
-            "type": "string"
+          "mealTypes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "notes": {
             "type": "string"

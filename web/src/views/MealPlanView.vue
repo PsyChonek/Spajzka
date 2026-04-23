@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import QCalendarMonth from '@quasar/quasar-ui-qcalendar/QCalendarMonth'
-// Import QCalendarAgenda as 'any' to avoid strict required-prop TS errors;
-// the component has runtime defaults for all those props.
-import _QCalendarAgenda from '@quasar/quasar-ui-qcalendar/QCalendarAgenda'
+// The dist default export is the Quasar plugin wrapper `{ QCalendarMonth, install, … }`
+// — not the component itself. Pull the component off the plugin object.
+// (The package's .d.ts only declares the default, so named imports fail type-check.)
+import QCalendarMonthPlugin from '@quasar/quasar-ui-qcalendar/QCalendarMonth'
+import QCalendarAgendaPlugin from '@quasar/quasar-ui-qcalendar/QCalendarAgenda'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const QCalendarAgenda = _QCalendarAgenda as any
+const QCalendarMonth = (QCalendarMonthPlugin as any).QCalendarMonth ?? QCalendarMonthPlugin
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const QCalendarAgenda = (QCalendarAgendaPlugin as any).QCalendarAgenda ?? QCalendarAgendaPlugin
 import { useMealPlan } from '@/composables/useStores'
 import { useRecipesStore } from '@/stores/recipesStore'
 import { toISODate } from '@/utils/date'
@@ -99,7 +102,7 @@ async function handleEntrySave(data: any) {
       cookDate: data.cookDate,
       servings: data.servings,
       eatDates: data.eatDates,
-      mealType: data.mealType,
+      mealTypes: data.mealTypes,
       notes: data.notes
     })
   } else {
@@ -269,9 +272,9 @@ onMounted(async () => {
               <span class="q-mr-sm">🍽️</span>
               <div class="col">
                 <div class="text-weight-medium">{{ entry.recipeName }}</div>
-                <div v-if="entry.mealType || entry.servings" class="text-caption text-grey-7">
-                  <span v-if="entry.mealType">{{ entry.mealType }}</span>
-                  <span v-if="entry.mealType && entry.servings"> · </span>
+                <div v-if="(entry.mealTypes && entry.mealTypes.length) || entry.servings" class="text-caption text-grey-7">
+                  <span v-if="entry.mealTypes && entry.mealTypes.length">{{ entry.mealTypes.join(' · ') }}</span>
+                  <span v-if="entry.mealTypes && entry.mealTypes.length && entry.servings"> · </span>
                   <span v-if="entry.servings">{{ entry.servings }} servings</span>
                 </div>
               </div>

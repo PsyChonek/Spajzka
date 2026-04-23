@@ -28,9 +28,15 @@ export interface MealPlanEntryPayload {
   cookDate: string
   servings?: number
   eatDates?: string[]
-  mealType?: string
+  mealTypes?: string[]
   notes?: string
 }
+
+const MEAL_TYPE_OPTIONS = [
+  { value: 'breakfast', label: 'Breakfast', icon: 'free_breakfast' },
+  { value: 'lunch', label: 'Lunch', icon: 'lunch_dining' },
+  { value: 'dinner', label: 'Dinner', icon: 'dinner_dining' }
+] as const
 
 export interface DeletePayload {
   id: string
@@ -49,8 +55,17 @@ const selectedRecipe = ref<Recipe | null>(null)
 const cookDate = ref('')
 const servings = ref<number | undefined>(undefined)
 const eatDates = ref<string[]>([])
-const mealType = ref<string | undefined>(undefined)
+const mealTypes = ref<string[]>([])
 const notes = ref('')
+
+function toggleMealType(value: string) {
+  const idx = mealTypes.value.indexOf(value)
+  if (idx >= 0) {
+    mealTypes.value.splice(idx, 1)
+  } else {
+    mealTypes.value.push(value)
+  }
+}
 
 // Recipe picker filter
 const recipeFilter = ref('')
@@ -68,9 +83,6 @@ function filterRecipes(val: string, update: (fn: () => void) => void) {
     recipeFilter.value = val
   })
 }
-
-// Meal-type suggestions
-const mealTypeSuggestions = ['breakfast', 'lunch', 'dinner', 'snack']
 
 // ---- Delete confirm state ----
 
@@ -104,15 +116,15 @@ function populateForm() {
     selectedRecipe.value = recipesStore.items.find((r) => r._id === d.recipeId) ?? null
     cookDate.value = d.cookDate?.slice(0, 10) ?? ''
     servings.value = d.servings
-    eatDates.value = d.eatDates ? [...d.eatDates] : []
-    mealType.value = d.mealType
+    eatDates.value = d.eatDates ? [...d.eatDates.map(x => x.slice(0, 10))] : []
+    mealTypes.value = Array.isArray(d.mealTypes) ? [...d.mealTypes] : []
     notes.value = d.notes ?? ''
   } else {
     selectedRecipe.value = null
     cookDate.value = props.defaultCookDate?.slice(0, 10) ?? ''
     servings.value = undefined
     eatDates.value = []
-    mealType.value = undefined
+    mealTypes.value = []
     notes.value = ''
   }
   recipeFilter.value = ''
@@ -142,7 +154,7 @@ function handleSave() {
     cookDate: cookDate.value,
     servings: servings.value || undefined,
     eatDates: eatDates.value.length > 0 ? eatDates.value : undefined,
-    mealType: mealType.value || undefined,
+    mealTypes: mealTypes.value.length > 0 ? [...mealTypes.value] : undefined,
     notes: notes.value.trim() || undefined
   })
   emit('update:modelValue', false)
@@ -263,17 +275,23 @@ function parseServings(val: string | number | null) {
           />
         </div>
 
-        <!-- Meal type -->
-        <q-select
-          v-model="mealType"
-          :options="mealTypeSuggestions"
-          label="Meal type"
-          outlined
-          use-input
-          new-value-mode="add-unique"
-          clearable
-          class="q-mb-md"
-        />
+        <!-- Meal types (multi-select toggles — a meal can be e.g. lunch + dinner) -->
+        <div class="q-mb-md">
+          <div class="text-caption text-grey-7 q-mb-xs">Meal type</div>
+          <div class="row q-gutter-sm">
+            <q-btn
+              v-for="opt in MEAL_TYPE_OPTIONS"
+              :key="opt.value"
+              :icon="opt.icon"
+              :label="opt.label"
+              :color="mealTypes.includes(opt.value) ? 'primary' : 'grey-5'"
+              :outline="!mealTypes.includes(opt.value)"
+              no-caps
+              dense
+              @click="toggleMealType(opt.value)"
+            />
+          </div>
+        </div>
 
         <!-- Notes -->
         <q-input

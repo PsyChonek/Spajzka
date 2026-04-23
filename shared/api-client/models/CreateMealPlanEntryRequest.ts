@@ -14,7 +14,7 @@ export type CreateMealPlanEntryRequest = {
      * Defaults to [cookDate] if omitted
      */
     eatDates?: Array<string>;
-    mealType?: string;
+    mealTypes?: Array<string>;
     notes?: string;
     /**
      * Optional override; defaults to active group
