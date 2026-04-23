@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 import { ShoppingService, type ShoppingItem, type CreateShoppingItemRequest, ApiError } from '@shared/api-client'
 import { isOnline } from '@/utils/network'
+import { classifyFetchError, logFetchError, fetchErrorToast } from '@/utils/fetchError'
 import { Notify } from 'quasar'
 import { useGroupsStore } from './groupsStore'
 import { useItemsStore } from './itemsStore'
@@ -52,16 +53,12 @@ export const useShoppingStore = defineStore('shopping', () => {
       items.value = fetchedItems
       lastSynced.value = new Date()
       pendingChanges.value.clear()
-    } catch (error: any) {
-      const is404 = error instanceof ApiError && error.status === 404
-      if (!is404 && error.message !== 'offline') {
-        Notify.create({
-          type: 'warning',
-          message: 'Using cached data. Will sync when online.',
-          timeout: 2000
-        })
-      } else if (is404) {
-        console.log('API endpoint not found - using local data only')
+    } catch (error) {
+      const classified = classifyFetchError(error)
+      logFetchError('shopping', 'fetchItems', classified)
+      const toast = fetchErrorToast(classified)
+      if (toast) {
+        Notify.create({ type: 'warning', message: toast, timeout: 2500 })
       }
     } finally {
       loading.value = false

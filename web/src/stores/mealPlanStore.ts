@@ -12,6 +12,7 @@ import {
   ApiError
 } from '@shared/api-client'
 import { isOnline } from '@/utils/network'
+import { classifyFetchError, logFetchError, fetchErrorToast } from '@/utils/fetchError'
 import { toISODate } from '@/utils/date'
 import { Notify } from 'quasar'
 import { useGroupsStore } from './groupsStore'
@@ -29,6 +30,13 @@ export const useMealPlanStore = defineStore('mealPlan', () => {
   const rangeStart = ref<string | null>(null)
   /** ISO date (YYYY-MM-DD) of the end of the currently-loaded window. */
   const rangeEnd = ref<string | null>(null)
+  /**
+   * Deduplicates concurrent fetches for the same range. Keyed `${from}|${to}`.
+   * Router guard's `refreshAllStores()` and `MealPlanView.onMounted` both call
+   * `fetchItems()` on a page refresh; without this guard, both issue identical
+   * GETs and both can surface a toast on transient failures.
+   */
+  const inflight = ref<Map<string, Promise<void>>>(new Map())
 
   // Watch for group changes and refetch entries
   const groupsStore = useGroupsStore()
@@ -105,26 +113,33 @@ export const useMealPlanStore = defineStore('mealPlan', () => {
       return
     }
 
+    const key = `${from}|${to}`
+    const existing = inflight.value.get(key)
+    if (existing) return existing
+
     loading.value = true
-    try {
-      const fetched = await MealPlanService.getApiMealPlan(from, to)
-      entries.value = fetched
-      rangeStart.value = from
-      rangeEnd.value = to
-      lastSynced.value = new Date()
-      pendingChanges.value.clear()
-    } catch (error: any) {
-      const is404 = error instanceof ApiError && error.status === 404
-      if (!is404 && error.message !== 'offline') {
-        Notify.create({
-          type: 'warning',
-          message: 'Using cached data. Will sync when online.',
-          timeout: 2000
-        })
+    const task = (async () => {
+      try {
+        const fetched = await MealPlanService.getApiMealPlan(from, to)
+        entries.value = fetched
+        rangeStart.value = from
+        rangeEnd.value = to
+        lastSynced.value = new Date()
+        pendingChanges.value.clear()
+      } catch (error) {
+        const classified = classifyFetchError(error)
+        logFetchError('mealPlan', `fetchRange(${from}..${to})`, classified)
+        const toast = fetchErrorToast(classified)
+        if (toast) {
+          Notify.create({ type: 'warning', message: toast, timeout: 2500 })
+        }
+      } finally {
+        loading.value = false
+        inflight.value.delete(key)
       }
-    } finally {
-      loading.value = false
-    }
+    })()
+    inflight.value.set(key, task)
+    return task
   }
 
   /** Optimistically creates a meal-plan entry and syncs when online. */

@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 import { ItemsService, ApiError, type Item as ApiItem } from '@shared/api-client'
 import { isOnline } from '@/utils/network'
+import { classifyFetchError, logFetchError, fetchErrorToast } from '@/utils/fetchError'
 import { Notify } from 'quasar'
 import { useAuthStore } from './authStore'
 import { useGroupsStore } from './groupsStore'
@@ -100,17 +101,12 @@ export const useItemsStore = defineStore('items', () => {
 
       lastSynced.value = new Date()
       pendingChanges.value.clear()
-    } catch (error: any) {
-      console.error('Failed to fetch items:', error)
-      const is404 = error instanceof ApiError && error.status === 404
-      if (!is404 && error.message !== 'offline' && authStore.isAuthenticated) {
-        Notify.create({
-          type: 'warning',
-          message: 'Using cached data. Will sync when online.',
-          timeout: 2000
-        })
-      } else if (is404) {
-        console.log('API endpoint not found - using local data only')
+    } catch (error) {
+      const classified = classifyFetchError(error)
+      logFetchError('items', 'fetchItems', classified)
+      const toast = fetchErrorToast(classified)
+      if (toast && authStore.isAuthenticated) {
+        Notify.create({ type: 'warning', message: toast, timeout: 2500 })
       }
     } finally {
       loading.value = false
