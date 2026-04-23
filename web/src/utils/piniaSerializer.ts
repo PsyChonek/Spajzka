@@ -8,6 +8,8 @@
  * so they all need this.
  */
 
+import type { PiniaPluginContext, StateTree } from 'pinia'
+
 const MAP_MARKER = '__$map__'
 
 interface MapEnvelope {
@@ -19,7 +21,7 @@ function isMapEnvelope(v: unknown): v is MapEnvelope {
 }
 
 export const mapAwareSerializer = {
-  serialize(state: unknown): string {
+  serialize(state: StateTree): string {
     return JSON.stringify(state, (_, value) => {
       if (value instanceof Map) {
         return { [MAP_MARKER]: Array.from(value.entries()) } satisfies MapEnvelope
@@ -27,7 +29,7 @@ export const mapAwareSerializer = {
       return value
     })
   },
-  deserialize(raw: string): unknown {
+  deserialize(raw: string): StateTree {
     return JSON.parse(raw, (_, value) => {
       if (isMapEnvelope(value)) {
         return new Map(value[MAP_MARKER])
@@ -45,11 +47,11 @@ export const mapAwareSerializer = {
  * `{}` on every write, so nothing recoverable is being discarded.
  */
 export function rehydrateMapKeys(keys: string[]) {
-  return (ctx: { store: Record<string, unknown> }) => {
+  return (ctx: PiniaPluginContext) => {
+    const store = ctx.store as unknown as Record<string, unknown>
     for (const key of keys) {
-      const current = ctx.store[key]
-      if (!(current instanceof Map)) {
-        ctx.store[key] = new Map()
+      if (!(store[key] instanceof Map)) {
+        store[key] = new Map()
       }
     }
   }
