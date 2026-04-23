@@ -14,5 +14,9 @@ export type CreateGroupRecipeRequest = {
      * Tag IDs to associate with this recipe
      */
     tags?: Array<string>;
+    /**
+     * Additional names for search (e.g. localized variants)
+     */
+    searchNames?: Array<string>;
 };
 

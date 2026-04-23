@@ -5,6 +5,7 @@
 				"$oid": "100000000000000000000001"
 			},
 			"name": "Scrambled Eggs with Cheese",
+			"searchNames": ["míchaná vajíčka", "vajíčka se sýrem"],
 			"description": "Quick and easy breakfast classic",
 			"icon": "🍳",
 			"recipeType": "global",
@@ -58,6 +59,7 @@
 				"$oid": "100000000000000000000002"
 			},
 			"name": "Chicken Rice Bowl",
+			"searchNames": ["kuřecí rýže", "kuře s rýží"],
 			"description": "Simple one-bowl meal with protein and grains",
 			"icon": "🍚",
 			"recipeType": "global",
@@ -124,6 +126,7 @@
 				"$oid": "100000000000000000000003"
 			},
 			"name": "Tomato Pasta",
+			"searchNames": ["těstoviny s rajčaty", "rajčatové těstoviny"],
 			"description": "Classic Italian pasta with fresh tomato sauce",
 			"icon": "🍝",
 			"recipeType": "global",
@@ -192,6 +195,7 @@
 				"$oid": "100000000000000000000004"
 			},
 			"name": "Beef Stir-Fry with Vegetables",
+			"searchNames": ["hovězí se zeleninou", "restované hovězí"],
 			"description": "Quick and healthy stir-fry dinner",
 			"icon": "🥩",
 			"recipeType": "global",
@@ -259,6 +263,7 @@
 				"$oid": "100000000000000000000005"
 			},
 			"name": "Baked Fish with Vegetables",
+			"searchNames": ["pečená ryba", "ryba se zeleninou"],
 			"description": "Healthy oven-baked fish dinner",
 			"icon": "🐟",
 			"recipeType": "global",
@@ -327,6 +332,7 @@
 				"$oid": "100000000000000000000006"
 			},
 			"name": "Pancakes",
+			"searchNames": ["palačinky", "lívance"],
 			"description": "Fluffy breakfast pancakes",
 			"icon": "🥞",
 			"recipeType": "global",
@@ -396,6 +402,7 @@
 				"$oid": "100000000000000000000007"
 			},
 			"name": "Apple Cinnamon Yogurt Bowl",
+			"searchNames": ["jogurt s jablky", "jablečný jogurt", "jogurt se skořicí"],
 			"description": "Healthy breakfast or snack",
 			"icon": "🍎",
 			"recipeType": "global",
@@ -448,6 +455,7 @@
 				"$oid": "100000000000000000000008"
 			},
 			"name": "Vegetable Soup",
+			"searchNames": ["zeleninová polévka", "zeleninovka"],
 			"description": "Hearty and healthy vegetable soup",
 			"icon": "🥣",
 			"recipeType": "global",
@@ -527,6 +535,7 @@
 				"$oid": "100000000000000000000009"
 			},
 			"name": "Grilled Cheese Sandwich",
+			"searchNames": ["toast se sýrem", "sýrový toast"],
 			"description": "Classic comfort food sandwich",
 			"icon": "🥪",
 			"recipeType": "global",
@@ -575,6 +584,7 @@
 				"$oid": "10000000000000000000000a"
 			},
 			"name": "Banana Chocolate Smoothie",
+			"searchNames": ["banánové smoothie", "banán s čokoládou"],
 			"description": "Quick and nutritious smoothie",
 			"icon": "🍌",
 			"recipeType": "global",

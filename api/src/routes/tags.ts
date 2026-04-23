@@ -28,6 +28,11 @@ const router = Router();
  *         icon:
  *           type: string
  *           description: Optional emoji icon
+ *         searchNames:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: Additional names for search (e.g. localized variants)
  *         createdAt:
  *           type: string
  *           format: date-time
@@ -48,6 +53,11 @@ const router = Router();
  *         icon:
  *           type: string
  *           description: Optional emoji icon
+ *         searchNames:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: Additional names for search (e.g. localized variants)
  *       required:
  *         - name
  */
@@ -138,7 +148,7 @@ router.get('/tags', authMiddleware, async (req: AuthRequest, res: Response) => {
 router.post('/tags', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const db = getDatabase();
-    const { name, color, icon } = req.body;
+    const { name, color, icon, searchNames } = req.body;
 
     if (!name) {
       return res.status(400).json({
@@ -167,6 +177,7 @@ router.post('/tags', authMiddleware, async (req: AuthRequest, res: Response) => 
       name: name.trim(),
       color: color?.trim() || '#6200EA', // Default purple color
       icon: icon?.trim() || null,
+      searchNames: Array.isArray(searchNames) ? searchNames.map((n: string) => n.trim()).filter(Boolean) : [],
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -219,7 +230,7 @@ router.put('/tags/:id', authMiddleware, async (req: AuthRequest, res: Response) 
   try {
     const db = getDatabase();
     const { id } = req.params;
-    const { name, color, icon } = req.body;
+    const { name, color, icon, searchNames } = req.body;
 
     if (!ObjectId.isValid(id)) {
       return res.status(400).json({
@@ -274,6 +285,11 @@ router.put('/tags/:id', authMiddleware, async (req: AuthRequest, res: Response) 
     if (name !== undefined) updateData.name = name.trim();
     if (color !== undefined) updateData.color = color.trim();
     if (icon !== undefined) updateData.icon = icon?.trim() || null;
+    if (searchNames !== undefined) {
+      updateData.searchNames = Array.isArray(searchNames)
+        ? searchNames.map((n: string) => n.trim()).filter(Boolean)
+        : [];
+    }
 
     const result = await db.collection('tags').findOneAndUpdate(
       { _id: new ObjectId(id) },

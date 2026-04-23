@@ -39,13 +39,14 @@ export const useTagsStore = defineStore('tags', () => {
     }
   }
 
-  async function createTag(data: { name: string; color?: string; icon?: string }) {
+  async function createTag(data: { name: string; color?: string; icon?: string; searchNames?: string[] }) {
     loading.value = true
     try {
       const newTag = await TagsService.postApiTags({
         name: data.name,
         color: data.color || '#6200EA',
-        icon: data.icon
+        icon: data.icon,
+        searchNames: data.searchNames
       })
       tags.value.push(newTag)
       return newTag
@@ -57,7 +58,7 @@ export const useTagsStore = defineStore('tags', () => {
     }
   }
 
-  async function updateTag(id: string, data: { name?: string; color?: string; icon?: string }) {
+  async function updateTag(id: string, data: { name?: string; color?: string; icon?: string; searchNames?: string[] }) {
     loading.value = true
     try {
       const updatedTag = await TagsService.putApiTags(id, data as any)

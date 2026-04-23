@@ -7,6 +7,31 @@ import { resolveGroupId, handleGroupResolutionError } from '../utils/resolveGrou
 
 const router = Router();
 
+function escapeRegex(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// Case- + diacritic-insensitive substring filter over name + searchNames.
+// Relies on MongoDB's Czech collation at strength 1 (folds both case and accents).
+function buildNameSearchFilter(search: string): Record<string, unknown> {
+  const pattern = escapeRegex(search.trim());
+  return {
+    $or: [
+      { name: { $regex: pattern, $options: 'i' } },
+      { searchNames: { $regex: pattern, $options: 'i' } }
+    ]
+  };
+}
+
+const SEARCH_COLLATION = { locale: 'cs', strength: 1 as const };
+
+function parseLimit(raw: unknown): number | undefined {
+  if (typeof raw !== 'string' || raw.length === 0) return undefined;
+  const n = Number.parseInt(raw, 10);
+  if (!Number.isFinite(n) || n <= 0) return undefined;
+  return Math.min(n, 200);
+}
+
 /**
  * @openapi
  * components:
@@ -135,6 +160,16 @@ const router = Router();
  *         schema:
  *           type: boolean
  *         description: Include global items (requires global_items:view permission)
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Case- and diacritic-insensitive substring match against name and searchNames
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Max results per bucket (group/global), capped at 200
  *     responses:
  *       200:
  *         description: List of items
@@ -149,11 +184,18 @@ router.get('/items', authMiddleware, async (req: AuthRequest, res: Response) => 
   try {
     const db = getDatabase();
     const includeGlobal = req.query.includeGlobal === 'true';
+    const search = typeof req.query.search === 'string' ? req.query.search.trim() : '';
+    const limit = parseLimit(req.query.limit);
     const groupId = await resolveGroupId(db, req, req.userId!);
 
-    const groupItems = await db.collection('items')
-      .find({ itemType: 'group', groupId })
-      .toArray();
+    const searchFilter = search ? buildNameSearchFilter(search) : {};
+
+    let groupCursor = db.collection('items').find(
+      { itemType: 'group', groupId, ...searchFilter }
+    );
+    if (search) groupCursor = groupCursor.collation(SEARCH_COLLATION);
+    if (limit) groupCursor = groupCursor.limit(limit);
+    const groupItems = await groupCursor.toArray();
 
     // If user has permission and requests global items, include them
     if (includeGlobal) {
@@ -168,9 +210,12 @@ router.get('/items', authMiddleware, async (req: AuthRequest, res: Response) => 
         const hasPermission = role?.globalPermissions?.includes('global_items:view');
 
         if (hasPermission) {
-          const globalItems = await db.collection('items')
-            .find({ itemType: 'global', isActive: true })
-            .toArray();
+          let globalCursor = db.collection('items').find(
+            { itemType: 'global', isActive: true, ...searchFilter }
+          );
+          if (search) globalCursor = globalCursor.collation(SEARCH_COLLATION);
+          if (limit) globalCursor = globalCursor.limit(limit);
+          const globalItems = await globalCursor.toArray();
 
           res.json({
             groupItems: groupItems.map(item => ({

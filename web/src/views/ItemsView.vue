@@ -9,6 +9,7 @@ import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import SearchInput from '@/components/SearchInput.vue'
 import TagFilter from '@/components/TagFilter.vue'
 import { useTagsStore } from '@/stores/tagsStore'
+import { matchesQuery } from '@/utils/search'
 
 const $q = useQuasar()
 const itemsStore = useItemsStore()
@@ -109,12 +110,14 @@ const filteredItems = computed(() => {
 
   // Filter by search query
   if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
     items = items.filter(item =>
-      item.name.toLowerCase().includes(query) ||
-      (item.defaultUnit && item.defaultUnit.toLowerCase().includes(query)) ||
-      (item.category && item.category.toLowerCase().includes(query)) ||
-      (item.searchNames && item.searchNames.some(name => name.toLowerCase().includes(query)))
+      matchesQuery(
+        searchQuery.value,
+        item.name,
+        item.defaultUnit,
+        item.category,
+        ...(item.searchNames ?? [])
+      )
     )
   }
 

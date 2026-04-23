@@ -8,6 +8,7 @@ import ItemSuggestions from '@/components/ItemSuggestions.vue'
 import AddItemDialog, { type ItemFormData } from '@/components/AddItemDialog.vue'
 import SearchInput from '@/components/SearchInput.vue'
 import TagFilter from '@/components/TagFilter.vue'
+import { matchesQuery, normalizeForSearch } from '@/utils/search'
 
 const shoppingStore = useShoppingStore()
 const itemsStore = useItemsStore()
@@ -58,10 +59,14 @@ const filteredItems = computed(() => {
   let filtered = shoppingStore.sortedItems
 
   if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(item =>
-      item.name?.toLowerCase().includes(query) ?? false
-    )
+    filtered = filtered.filter(item => {
+      const underlyingItem = itemsStore.sortedItems.find((i: any) => i._id === item.itemId)
+      return matchesQuery(
+        searchQuery.value,
+        item.name,
+        ...((underlyingItem?.searchNames as string[] | undefined) ?? [])
+      )
+    })
   }
 
   // Filter by tags
@@ -84,22 +89,23 @@ const suggestedItems = computed(() => {
     return []
   }
 
-  const query = searchQuery.value.toLowerCase().trim()
-
-  // Get items from master list that aren't already in shopping list (case-insensitive)
-  const shoppingItemNames = shoppingStore.sortedItems
-    .map(item => item.name?.toLowerCase().trim())
-    .filter(name => name !== undefined) as string[]
+  // Get items from master list that aren't already in shopping list (normalized compare)
+  const shoppingItemKeys = new Set(
+    shoppingStore.sortedItems
+      .map(item => (item.name ? normalizeForSearch(item.name).trim() : ''))
+      .filter(Boolean)
+  )
 
   return itemsStore.sortedItems
     .filter(item => {
-      const itemNameLower = item.name.toLowerCase().trim()
-      // Include if it matches the query and isn't already in shopping list (exact match, case-insensitive)
+      const key = normalizeForSearch(item.name).trim()
       return (
-        (itemNameLower.includes(query) ||
-         (item.category && item.category.toLowerCase().trim().includes(query)) ||
-         (item.searchNames && item.searchNames.some(name => name.toLowerCase().includes(query)))) &&
-        !shoppingItemNames.includes(itemNameLower)
+        matchesQuery(
+          searchQuery.value,
+          item.name,
+          item.category,
+          ...((item.searchNames as string[] | undefined) ?? [])
+        ) && !shoppingItemKeys.has(key)
       )
     })
     .slice(0, 5) // Limit to 5 suggestions

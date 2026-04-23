@@ -102,6 +102,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useTagsStore } from '@/stores/tagsStore'
+import { matchesQuery } from '@/utils/search'
 
 interface Props {
   modelValue: string[]
@@ -134,9 +135,8 @@ const filteredTags = computed(() => {
     return tags
   }
 
-  const needle = searchQuery.value.toLowerCase()
   return tags.filter(tag =>
-    tag.name.toLowerCase().includes(needle)
+    matchesQuery(searchQuery.value, tag.name, ...((tag.searchNames as string[] | undefined) ?? []))
   )
 })
 

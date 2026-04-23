@@ -41,6 +41,10 @@ export type GlobalRecipe = {
      * Tag IDs associated with this recipe
      */
     tags?: Array<string>;
+    /**
+     * Additional names for search (e.g. localized variants)
+     */
+    searchNames?: Array<string>;
     createdAt?: string;
     updatedAt?: string;
 };

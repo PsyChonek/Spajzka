@@ -943,6 +943,13 @@
             },
             "description": "Tag IDs associated with this recipe"
           },
+          "searchNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Additional names for search (e.g. localized variants)"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -1019,6 +1026,13 @@
             },
             "description": "Tag IDs associated with this recipe"
           },
+          "searchNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Additional names for search (e.g. localized variants)"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -1071,6 +1085,13 @@
               "type": "string"
             },
             "description": "Tag IDs to associate with this recipe"
+          },
+          "searchNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Additional names for search (e.g. localized variants)"
           }
         },
         "required": [
@@ -1113,6 +1134,13 @@
               "type": "string"
             },
             "description": "Tag IDs to associate with this recipe"
+          },
+          "searchNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Additional names for search (e.g. localized variants)"
           }
         },
         "required": [
@@ -1242,6 +1270,13 @@
             "type": "string",
             "description": "Optional emoji icon"
           },
+          "searchNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Additional names for search (e.g. localized variants)"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -1269,6 +1304,13 @@
           "icon": {
             "type": "string",
             "description": "Optional emoji icon"
+          },
+          "searchNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Additional names for search (e.g. localized variants)"
           }
         },
         "required": [
@@ -2195,6 +2237,22 @@
               "type": "boolean"
             },
             "description": "Include global items (requires global_items:view permission)"
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Case- and diacritic-insensitive substring match against name and searchNames"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Max results per bucket (group/global), capped at 200"
           }
         ],
         "responses": {

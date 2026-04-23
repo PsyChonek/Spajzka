@@ -5,6 +5,7 @@ import { useRecipesStore, type Recipe } from '@/stores/recipesStore'
 import { useBackButton } from '@/composables/useBackButton'
 import { GlobalRecipe, CreateMealPlanEntryRequest } from '@shared/api-client'
 import type { MealPlanEntry } from '@shared/api-client'
+import { matchesQuery } from '@/utils/search'
 
 const $q = useQuasar()
 const recipesStore = useRecipesStore()
@@ -16,6 +17,7 @@ interface Props {
   mode: 'add' | 'edit'
   initialData?: Partial<MealPlanEntry>
   defaultCookDate?: string
+  defaultEatDates?: string[]
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -71,10 +73,9 @@ function toggleMealType(value: string) {
 const recipeFilter = ref('')
 
 const filteredRecipes = computed(() => {
-  const q = recipeFilter.value.toLowerCase().trim()
-  if (!q) return recipesStore.sortedItems
+  if (!recipeFilter.value.trim()) return recipesStore.sortedItems
   return recipesStore.sortedItems.filter((r) =>
-    r.name.toLowerCase().includes(q)
+    matchesQuery(recipeFilter.value, r.name, ...((r.searchNames as string[] | undefined) ?? []))
   )
 })
 
@@ -123,7 +124,7 @@ function populateForm() {
     selectedRecipe.value = null
     cookDate.value = props.defaultCookDate?.slice(0, 10) ?? ''
     servings.value = undefined
-    eatDates.value = []
+    eatDates.value = props.defaultEatDates ? [...props.defaultEatDates] : []
     mealTypes.value = []
     notes.value = ''
   }

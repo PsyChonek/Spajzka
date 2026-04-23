@@ -21,12 +21,13 @@ export function registerTagTools(server: McpServer): void {
   registerTool(
     server,
     'create_tag',
-    'Create a new tag in a group. color is a hex code (e.g. #FF5722).',
+    'Create a new tag in a group. color is a hex code (e.g. #FF5722). searchNames lists localized/alternate labels so the tag is discoverable in multiple languages.',
     {
       groupId: z.string(),
       name: z.string().min(1),
       color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
-      icon: z.string().optional()
+      icon: z.string().optional(),
+      searchNames: z.array(z.string()).optional()
     },
     async (args) => {
       return apiRequest({
@@ -40,13 +41,14 @@ export function registerTagTools(server: McpServer): void {
   registerTool(
     server,
     'update_tag',
-    'Update a tag.',
+    'Update a tag. searchNames replaces the whole list of alternate search labels.',
     {
       groupId: z.string(),
       tagId: z.string(),
       name: z.string().min(1).optional(),
       color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
-      icon: z.string().optional()
+      icon: z.string().optional(),
+      searchNames: z.array(z.string()).optional()
     },
     async ({ groupId, tagId, ...fields }) => {
       return apiRequest({

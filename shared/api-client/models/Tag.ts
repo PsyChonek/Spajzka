@@ -23,6 +23,10 @@ export type Tag = {
      * Optional emoji icon
      */
     icon?: string;
+    /**
+     * Additional names for search (e.g. localized variants)
+     */
+    searchNames?: Array<string>;
     createdAt?: string;
     updatedAt?: string;
 };

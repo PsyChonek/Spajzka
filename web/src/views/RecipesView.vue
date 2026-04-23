@@ -10,6 +10,7 @@ import RecipeDialog, { type RecipeFormData } from '@/components/RecipeDialog.vue
 import TagFilter from '@/components/TagFilter.vue'
 import { GlobalRecipe } from '@shared/api-client'
 import { useTagsStore } from '@/stores/tagsStore'
+import { matchesQuery } from '@/utils/search'
 
 const $q = useQuasar()
 const router = useRouter()
@@ -28,10 +29,13 @@ const displayedRecipes = computed(() => {
 
   // Filter by search query
   if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
     recipes = recipes.filter(recipe =>
-      recipe.name.toLowerCase().includes(query) ||
-      (recipe.description && recipe.description.toLowerCase().includes(query))
+      matchesQuery(
+        searchQuery.value,
+        recipe.name,
+        recipe.description,
+        ...((recipe.searchNames as string[] | undefined) ?? [])
+      )
     )
   }
 

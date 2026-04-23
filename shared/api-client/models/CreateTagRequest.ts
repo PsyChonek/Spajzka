@@ -12,5 +12,9 @@ export type CreateTagRequest = {
      * Optional emoji icon
      */
     icon?: string;
+    /**
+     * Additional names for search (e.g. localized variants)
+     */
+    searchNames?: Array<string>;
 };
 

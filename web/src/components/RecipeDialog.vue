@@ -6,6 +6,7 @@ import type { Recipe } from '@/stores/recipesStore'
 import { useItemsStore } from '@/stores/itemsStore'
 import { useAuthStore } from '@/stores/authStore'
 import { GlobalRecipe, GroupRecipe, type RecipeIngredient } from '@shared/api-client'
+import { matchesQuery } from '@/utils/search'
 import AddItemDialog, { type ItemFormData } from './AddItemDialog.vue'
 import TagSelector from './TagSelector.vue'
 
@@ -36,6 +37,7 @@ export interface RecipeFormData {
   ingredients: RecipeIngredient[]
   instructions: string[]
   tags?: string[]
+  searchNames?: string[]
   recipeType?: GlobalRecipe.recipeType | GroupRecipe.recipeType
 }
 
@@ -52,6 +54,7 @@ const formRecipeType = ref<GlobalRecipe.recipeType | GroupRecipe.recipeType>(Glo
 const formIngredients = ref<RecipeIngredient[]>([{ itemName: '', quantity: 1, unit: 'pcs' }])
 const formInstructions = ref<string[]>([''])
 const formTags = ref<string[]>([])
+const formSearchNames = ref('')
 
 // Item dialog state
 const showAddItemDialog = ref(false)
@@ -93,6 +96,7 @@ const resetForm = () => {
   formIngredients.value = [{ itemName: '', quantity: 1, unit: 'pcs' }]
   formInstructions.value = ['']
   formTags.value = []
+  formSearchNames.value = ''
 }
 
 // Watch for editing recipe changes
@@ -110,6 +114,7 @@ watch(() => props.editingRecipe, (recipe) => {
       ? [...recipe.instructions]
       : ['']
     formTags.value = recipe.tags || []
+    formSearchNames.value = Array.isArray(recipe.searchNames) ? recipe.searchNames.join(', ') : ''
   } else {
     resetForm()
   }
@@ -132,7 +137,11 @@ const handleSaveRecipe = () => {
     servings: formServings.value,
     ingredients: formIngredients.value.filter(ing => ing.itemName.trim()),
     instructions: formInstructions.value.filter(inst => inst.trim()),
-    tags: formTags.value
+    tags: formTags.value,
+    searchNames: formSearchNames.value
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean)
   }
 
   // Include recipe type only for new recipes
@@ -179,9 +188,8 @@ const getItemOptions = (index: number, val: string, update: any) => {
   }
 
   update(() => {
-    const needle = val.toLowerCase()
     const filtered = itemsStore.sortedItemsWithRecent
-      .filter(item => item.name.toLowerCase().includes(needle))
+      .filter(item => matchesQuery(val, item.name, ...(item.searchNames ?? [])))
       .slice(0, 20)
 
     if (!ingredientOptions.value[index]) {
@@ -302,6 +310,16 @@ const removeInstruction = (index: number) => {
             label="Description"
             type="textarea"
             rows="2"
+            class="q-mb-md"
+            :readonly="readOnly"
+            :disable="readOnly"
+          />
+
+          <q-input
+            v-model="formSearchNames"
+            outlined
+            label="Alternative names"
+            hint="Comma-separated. Match diacritic-insensitively in search, e.g. palačinky, lívance"
             class="q-mb-md"
             :readonly="readOnly"
             :disable="readOnly"

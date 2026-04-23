@@ -76,14 +76,15 @@ export function registerRecipeTools(server: McpServer): void {
   registerTool(
     server,
     'create_group_recipe',
-    'Create a new recipe in a group.',
+    'Create a new recipe in a group. Pass searchNames for localized/alternate labels (e.g. ["palačinky"] on a "Pancakes" recipe) so the recipe is findable in Czech or other languages.',
     {
       groupId: z.string(),
       name: z.string().min(1),
       description: z.string().optional(),
       icon: z.string().optional(),
       ingredients: z.array(ingredientSchema),
-      instructions: z.array(z.string()).optional()
+      instructions: z.array(z.string()).optional(),
+      searchNames: z.array(z.string()).optional()
     },
     async (args) => {
       return apiRequest({
@@ -97,7 +98,7 @@ export function registerRecipeTools(server: McpServer): void {
   registerTool(
     server,
     'update_group_recipe',
-    'Update a group recipe.',
+    'Update a group recipe. searchNames replaces the whole list of alternate search labels.',
     {
       groupId: z.string(),
       recipeId: z.string(),
@@ -105,7 +106,8 @@ export function registerRecipeTools(server: McpServer): void {
       description: z.string().optional(),
       icon: z.string().optional(),
       ingredients: z.array(ingredientSchema).optional(),
-      instructions: z.array(z.string()).optional()
+      instructions: z.array(z.string()).optional(),
+      searchNames: z.array(z.string()).optional()
     },
     async ({ groupId, recipeId, ...fields }) => {
       return apiRequest({

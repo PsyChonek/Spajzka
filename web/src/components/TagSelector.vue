@@ -137,6 +137,15 @@
             maxlength="2"
             class="q-mt-md"
           />
+
+          <q-input
+            v-model="tagForm.searchNames"
+            label="Alternative names"
+            hint="Comma-separated, matched diacritic-insensitively"
+            outlined
+            dense
+            class="q-mt-md"
+          />
         </q-card-section>
 
         <q-card-actions align="right">
@@ -175,6 +184,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useTagsStore } from '@/stores/tagsStore'
 import { useQuasar } from 'quasar'
+import { matchesQuery } from '@/utils/search'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 
 interface Props {
@@ -205,7 +215,8 @@ const editingTagId = ref<string | null>(null)
 const tagForm = ref({
   name: '',
   color: '#6200EA',
-  icon: ''
+  icon: '',
+  searchNames: ''
 })
 const showDeleteDialog = ref(false)
 const searchQuery = ref('')
@@ -215,19 +226,18 @@ const tagOptions = computed(() => {
     label: tag.name,
     value: tag._id!,
     color: tag.color || '#6200EA',
-    icon: tag.icon
+    icon: tag.icon,
+    searchNames: tag.searchNames || []
   }))
 })
 
 const filteredTagOptions = computed(() => {
   if (searchQuery.value === '') {
     return tagOptions.value
-  } else {
-    const needle = searchQuery.value.toLowerCase()
-    return tagOptions.value.filter(opt =>
-      opt.label.toLowerCase().includes(needle)
-    )
   }
+  return tagOptions.value.filter(opt =>
+    matchesQuery(searchQuery.value, opt.label, ...opt.searchNames)
+  )
 })
 
 onMounted(async () => {
@@ -275,7 +285,8 @@ function openCreateDialog() {
   tagForm.value = {
     name: searchQuery.value || '',
     color: '#6200EA',
-    icon: ''
+    icon: '',
+    searchNames: ''
   }
   showDialog.value = true
 }
@@ -286,7 +297,8 @@ function openEditDialog(opt: any) {
   tagForm.value = {
     name: opt.label,
     color: opt.color,
-    icon: opt.icon || ''
+    icon: opt.icon || '',
+    searchNames: Array.isArray(opt.searchNames) ? opt.searchNames.join(', ') : ''
   }
   showDialog.value = true
 }
@@ -300,12 +312,18 @@ async function saveTag() {
     return
   }
 
+  const parsedSearchNames = tagForm.value.searchNames
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean)
+
   try {
     if (dialogMode.value === 'create') {
       const newTag = await tagsStore.createTag({
         name: tagForm.value.name.trim(),
         color: tagForm.value.color,
-        icon: tagForm.value.icon.trim() || undefined
+        icon: tagForm.value.icon.trim() || undefined,
+        searchNames: parsedSearchNames
       })
 
       // Add the new tag to selection
@@ -333,7 +351,8 @@ async function saveTag() {
       await tagsStore.updateTag(editingTagId.value!, {
         name: tagForm.value.name.trim(),
         color: tagForm.value.color,
-        icon: tagForm.value.icon.trim() || undefined
+        icon: tagForm.value.icon.trim() || undefined,
+        searchNames: parsedSearchNames
       })
 
       // Update the selected tags if this tag is selected

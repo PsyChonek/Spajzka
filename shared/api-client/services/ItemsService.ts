@@ -13,17 +13,23 @@ export class ItemsService {
      * Get all items
      * Get group items for user's active group
      * @param includeGlobal Include global items (requires global_items:view permission)
+     * @param search Case- and diacritic-insensitive substring match against name and searchNames
+     * @param limit Max results per bucket (group/global), capped at 200
      * @returns Item List of items
      * @throws ApiError
      */
     public static getApiItems(
         includeGlobal?: boolean,
+        search?: string,
+        limit?: number,
     ): CancelablePromise<Array<Item>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/items',
             query: {
                 'includeGlobal': includeGlobal,
+                'search': search,
+                'limit': limit,
             },
         });
     }
