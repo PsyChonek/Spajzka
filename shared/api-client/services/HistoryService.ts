@@ -41,4 +41,57 @@ export class HistoryService {
             },
         });
     }
+    /**
+     * Bulk delete history entries
+     * Delete history entries for the active group (requires history:delete
+     * permission). Scope is defined by query parameters:
+     * - no parameters → **clear all** entries for the group
+     * - `before` only → delete entries strictly older than this timestamp
+     * - `after` only → delete entries strictly newer than this timestamp
+     * - `before` + `after` → delete entries inside the inclusive time range
+     *
+     * @param before
+     * @param after
+     * @param groupId
+     * @returns any Number of entries deleted
+     * @throws ApiError
+     */
+    public static deleteApiHistory(
+        before?: string,
+        after?: string,
+        groupId?: string,
+    ): CancelablePromise<{
+        deletedCount?: number;
+    }> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/history',
+            query: {
+                'before': before,
+                'after': after,
+                'groupId': groupId,
+            },
+        });
+    }
+    /**
+     * Delete a single history entry
+     * Remove one history log entry by ID (requires history:delete permission).
+     * @param id
+     * @returns void
+     * @throws ApiError
+     */
+    public static deleteApiHistory1(
+        id: string,
+    ): CancelablePromise<void> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/history/{id}',
+            path: {
+                'id': id,
+            },
+            errors: {
+                404: `Entry not found`,
+            },
+        });
+    }
 }

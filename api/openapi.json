@@ -2381,6 +2381,95 @@
             }
           }
         }
+      },
+      "delete": {
+        "summary": "Bulk delete history entries",
+        "description": "Delete history entries for the active group (requires history:delete\npermission). Scope is defined by query parameters:\n  - no parameters → **clear all** entries for the group\n  - `before` only → delete entries strictly older than this timestamp\n  - `after` only → delete entries strictly newer than this timestamp\n  - `before` + `after` → delete entries inside the inclusive time range\n",
+        "tags": [
+          "History"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "before",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "in": "query",
+            "name": "after",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "in": "query",
+            "name": "groupId",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Number of entries deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "deletedCount": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/history/{id}": {
+      "delete": {
+        "summary": "Delete a single history entry",
+        "description": "Remove one history log entry by ID (requires history:delete permission).",
+        "tags": [
+          "History"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Entry deleted"
+          },
+          "404": {
+            "description": "Entry not found"
+          }
+        }
       }
     },
     "/api/items": {

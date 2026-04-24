@@ -63,7 +63,7 @@ Claude.ai) to their Spajzka account.
   Bearer token.
 - **Connection URL:** set via `MCP_PUBLIC_URL` env var on the mcp container;
   displayed to users on the profile card.
-- **Tools:** 39, covering pantry/shopping/items/recipes/tags/groups/meal-plan/history. Every
+- **Tools:** 41, covering pantry/shopping/items/recipes/tags/groups/meal-plan/history. Every
   group-scoped tool requires `groupId` — the LLM should call `list_groups`
   first to discover IDs.
 - **Rate limit:** 60 requests/minute per PAT (configurable via

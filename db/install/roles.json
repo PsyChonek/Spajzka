@@ -41,7 +41,8 @@
 				"meal_plan:create",
 				"meal_plan:update",
 				"meal_plan:delete",
-				"history:read"
+				"history:read",
+				"history:delete"
 			]
 		},
 		{
@@ -66,7 +67,8 @@
 				"meal_plan:create",
 				"meal_plan:update",
 				"meal_plan:delete",
-				"history:read"
+				"history:read",
+				"history:delete"
 			]
 		},
 		{

@@ -5,6 +5,13 @@ import { authMiddleware, AuthRequest } from '../middleware/auth';
 import { requirePermission } from '../rbac/middleware';
 import { resolveGroupId, handleGroupResolutionError } from '../utils/resolveGroup';
 
+function parseIsoDate(raw: unknown): Date | null | 'invalid' {
+  if (typeof raw !== 'string' || raw.length === 0) return null;
+  const d = new Date(raw);
+  if (isNaN(d.getTime())) return 'invalid';
+  return d;
+}
+
 const router = Router();
 
 const VALID_ENTITY_TYPES = new Set([
@@ -206,6 +213,130 @@ router.get('/history', authMiddleware, requirePermission('history:read'), async 
     if (handleGroupResolutionError(error, res)) return;
     console.error('Error fetching history:', error);
     res.status(500).json({ message: 'Failed to fetch history', code: 'FETCH_ERROR' });
+  }
+});
+
+/**
+ * @openapi
+ * /api/history/{id}:
+ *   delete:
+ *     summary: Delete a single history entry
+ *     description: Remove one history log entry by ID (requires history:delete permission).
+ *     tags:
+ *       - History
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       204:
+ *         description: Entry deleted
+ *       404:
+ *         description: Entry not found
+ */
+router.delete('/history/:id', authMiddleware, requirePermission('history:delete'), async (req: AuthRequest, res: Response) => {
+  try {
+    const db = getDatabase();
+    const { id } = req.params;
+
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'Invalid entry ID', code: 'INVALID_ID' });
+    }
+
+    const groupId = await resolveGroupId(db, req, req.userId!);
+
+    const result = await db.collection('historyLog').deleteOne({
+      _id: new ObjectId(id),
+      groupId
+    });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: 'History entry not found', code: 'NOT_FOUND' });
+    }
+
+    res.status(204).send();
+  } catch (error) {
+    if (handleGroupResolutionError(error, res)) return;
+    console.error('Error deleting history entry:', error);
+    res.status(500).json({ message: 'Failed to delete history entry', code: 'DELETE_ERROR' });
+  }
+});
+
+/**
+ * @openapi
+ * /api/history:
+ *   delete:
+ *     summary: Bulk delete history entries
+ *     description: |
+ *       Delete history entries for the active group (requires history:delete
+ *       permission). Scope is defined by query parameters:
+ *         - no parameters → **clear all** entries for the group
+ *         - `before` only → delete entries strictly older than this timestamp
+ *         - `after` only → delete entries strictly newer than this timestamp
+ *         - `before` + `after` → delete entries inside the inclusive time range
+ *     tags:
+ *       - History
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: before
+ *         required: false
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *       - in: query
+ *         name: after
+ *         required: false
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *       - in: query
+ *         name: groupId
+ *         required: false
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Number of entries deleted
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 deletedCount:
+ *                   type: integer
+ */
+router.delete('/history', authMiddleware, requirePermission('history:delete'), async (req: AuthRequest, res: Response) => {
+  try {
+    const db = getDatabase();
+    const groupId = await resolveGroupId(db, req, req.userId!);
+
+    const before = parseIsoDate(req.query.before);
+    const after = parseIsoDate(req.query.after);
+
+    if (before === 'invalid' || after === 'invalid') {
+      return res.status(400).json({ message: 'Invalid before/after timestamp', code: 'VALIDATION_ERROR' });
+    }
+
+    const filter: any = { groupId };
+    if (before || after) {
+      filter.timestamp = {};
+      if (after) filter.timestamp.$gte = after;
+      if (before) filter.timestamp.$lte = before;
+    }
+
+    const result = await db.collection('historyLog').deleteMany(filter);
+
+    res.json({ deletedCount: result.deletedCount ?? 0 });
+  } catch (error) {
+    if (handleGroupResolutionError(error, res)) return;
+    console.error('Error bulk-deleting history:', error);
+    res.status(500).json({ message: 'Failed to delete history entries', code: 'DELETE_ERROR' });
   }
 });
 

@@ -27,4 +27,35 @@ export function registerHistoryTools(server: McpServer): void {
       return apiRequest({ method: 'GET', path: '/api/history', params });
     }
   );
+
+  registerTool(
+    server,
+    'delete_history_entry',
+    'Delete a single history entry by its ID. Destructive and irreversible — requires history:delete permission on the group.',
+    {
+      groupId: z.string().describe('MongoDB ObjectId of the group'),
+      entryId: z.string().describe('MongoDB ObjectId of the history entry to delete')
+    },
+    async ({ groupId, entryId }) => {
+      await apiRequest({ method: 'DELETE', path: `/api/history/${entryId}`, params: { groupId } });
+      return { ok: true };
+    }
+  );
+
+  registerTool(
+    server,
+    'clear_history',
+    'Bulk delete history entries for a group. Destructive and irreversible — requires history:delete permission. With no time parameters, clears ALL entries. Use `before` to delete entries older than a timestamp, `after` for newer, or both to delete entries inside an inclusive time range.',
+    {
+      groupId: z.string().describe('MongoDB ObjectId of the group'),
+      before: z.string().optional().describe('ISO-8601 timestamp; delete entries at or before this time'),
+      after: z.string().optional().describe('ISO-8601 timestamp; delete entries at or after this time')
+    },
+    async ({ groupId, before, after }) => {
+      const params: Record<string, string> = { groupId };
+      if (before) params.before = before;
+      if (after) params.after = after;
+      return apiRequest({ method: 'DELETE', path: '/api/history', params });
+    }
+  );
 }

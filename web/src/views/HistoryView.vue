@@ -1,8 +1,15 @@
 <script setup lang="ts">
-import { onMounted, computed } from 'vue'
+import { onMounted, computed, ref } from 'vue'
+import { useQuasar } from 'quasar'
 import { useHistoryStore, type HistoryEntityFilter, type HistoryActionFilter } from '@/stores/historyStore'
 import type { HistoryEntry } from '@shared/api-client'
 import PageWrapper from '@/components/PageWrapper.vue'
+
+const $q = useQuasar()
+
+const showClearRangeDialog = ref(false)
+const rangeFrom = ref<string>('')
+const rangeTo = ref<string>('')
 
 const historyStore = useHistoryStore()
 
@@ -109,6 +116,69 @@ function clearFilters() {
   historyStore.setAction(null)
 }
 
+function confirmClearAll() {
+  $q.dialog({
+    title: 'Clear all history?',
+    message: 'This will permanently delete every history entry for this group. This cannot be undone.',
+    cancel: true,
+    persistent: true,
+    ok: { label: 'Clear all', color: 'negative' }
+  }).onOk(() => {
+    historyStore.clearHistory()
+  })
+}
+
+function confirmClearOlderThan(days: number) {
+  const cutoff = new Date(Date.now() - days * 86_400_000)
+  $q.dialog({
+    title: `Clear entries older than ${days} days?`,
+    message: `This will permanently delete entries from before ${cutoff.toLocaleDateString()}.`,
+    cancel: true,
+    persistent: true,
+    ok: { label: 'Clear', color: 'negative' }
+  }).onOk(() => {
+    historyStore.clearHistory({ before: cutoff.toISOString() })
+  })
+}
+
+function openClearRangeDialog() {
+  const now = new Date()
+  const weekAgo = new Date(now.getTime() - 7 * 86_400_000)
+  rangeFrom.value = weekAgo.toISOString().slice(0, 10)
+  rangeTo.value = now.toISOString().slice(0, 10)
+  showClearRangeDialog.value = true
+}
+
+function confirmClearRange() {
+  if (!rangeFrom.value && !rangeTo.value) return
+  const after = rangeFrom.value ? new Date(rangeFrom.value + 'T00:00:00').toISOString() : undefined
+  const before = rangeTo.value ? new Date(rangeTo.value + 'T23:59:59.999').toISOString() : undefined
+  showClearRangeDialog.value = false
+  $q.dialog({
+    title: 'Clear entries in this range?',
+    message: `Delete entries between ${rangeFrom.value || '(any)'} and ${rangeTo.value || '(any)'}. This cannot be undone.`,
+    cancel: true,
+    persistent: true,
+    ok: { label: 'Clear', color: 'negative' }
+  }).onOk(() => {
+    historyStore.clearHistory({ before, after })
+  })
+}
+
+function confirmDeleteEntry(entry: HistoryEntry) {
+  if (!entry._id) return
+  const id = entry._id
+  $q.dialog({
+    title: 'Delete entry?',
+    message: `Delete the history entry for "${entry.entityName ?? 'this item'}"?`,
+    cancel: true,
+    persistent: true,
+    ok: { label: 'Delete', color: 'negative' }
+  }).onOk(() => {
+    historyStore.deleteEntry(id)
+  })
+}
+
 onMounted(() => {
   historyStore.fetchInitial()
 })
@@ -126,6 +196,34 @@ onMounted(() => {
         :loading="historyStore.loading"
         @click="historyStore.fetchInitial()"
       />
+      <q-btn flat icon="more_vert" aria-label="More actions">
+        <q-menu>
+          <q-list style="min-width: 220px">
+            <q-item clickable v-close-popup @click="confirmClearOlderThan(7)">
+              <q-item-section avatar><q-icon name="schedule" /></q-item-section>
+              <q-item-section>Clear older than 7 days</q-item-section>
+            </q-item>
+            <q-item clickable v-close-popup @click="confirmClearOlderThan(30)">
+              <q-item-section avatar><q-icon name="schedule" /></q-item-section>
+              <q-item-section>Clear older than 30 days</q-item-section>
+            </q-item>
+            <q-item clickable v-close-popup @click="confirmClearOlderThan(90)">
+              <q-item-section avatar><q-icon name="schedule" /></q-item-section>
+              <q-item-section>Clear older than 90 days</q-item-section>
+            </q-item>
+            <q-separator />
+            <q-item clickable v-close-popup @click="openClearRangeDialog">
+              <q-item-section avatar><q-icon name="date_range" /></q-item-section>
+              <q-item-section>Clear by date range…</q-item-section>
+            </q-item>
+            <q-separator />
+            <q-item clickable v-close-popup class="text-negative" @click="confirmClearAll">
+              <q-item-section avatar><q-icon name="delete_forever" /></q-item-section>
+              <q-item-section>Clear all history</q-item-section>
+            </q-item>
+          </q-list>
+        </q-menu>
+      </q-btn>
     </div>
 
     <div class="q-mb-md">
@@ -199,6 +297,18 @@ onMounted(() => {
               {{ entry.userEmail ?? 'unknown user' }} · {{ formatTimestamp(entry.timestamp) }}
             </q-item-label>
           </q-item-section>
+          <q-item-section side>
+            <q-btn
+              flat
+              round
+              dense
+              size="sm"
+              icon="delete"
+              color="grey-7"
+              aria-label="Delete entry"
+              @click.stop="confirmDeleteEntry(entry)"
+            />
+          </q-item-section>
         </template>
         <div class="q-pa-md bg-grey-1">
           <pre class="changes-pre">{{ JSON.stringify(entry.changes, null, 2) }}</pre>
@@ -218,6 +328,45 @@ onMounted(() => {
         @click="historyStore.fetchMore()"
       />
     </div>
+
+    <q-dialog v-model="showClearRangeDialog">
+      <q-card style="min-width: 320px">
+        <q-card-section>
+          <div class="text-h6">Clear by date range</div>
+          <div class="text-caption text-grey-7">
+            Delete entries between these dates (inclusive). Leave either blank for an open-ended range.
+          </div>
+        </q-card-section>
+        <q-card-section class="q-gutter-sm">
+          <q-input
+            v-model="rangeFrom"
+            label="From"
+            type="date"
+            outlined
+            dense
+            stack-label
+          />
+          <q-input
+            v-model="rangeTo"
+            label="To"
+            type="date"
+            outlined
+            dense
+            stack-label
+          />
+        </q-card-section>
+        <q-card-actions align="right">
+          <q-btn flat label="Cancel" v-close-popup />
+          <q-btn
+            flat
+            color="negative"
+            label="Delete range"
+            :disable="!rangeFrom && !rangeTo"
+            @click="confirmClearRange"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </PageWrapper>
 </template>
 

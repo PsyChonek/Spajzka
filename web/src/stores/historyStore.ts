@@ -45,12 +45,8 @@ export const useHistoryStore = defineStore('history', () => {
     if (!isOnline()) return
     loading.value = true
     try {
-      // Do NOT pass a client-side groupId — the server resolves it from
-      // user.activeGroupId, same as pantry/shopping/meal-plan reads. Passing
-      // groupsStore.currentGroupId here risks a mismatch when local state
-      // hasn't caught up with the server's active group.
       const res = await HistoryService.getApiHistory(
-        undefined,
+        groupsStore.currentGroupId || undefined,
         filterEntityTypes.value.length > 0 ? filterEntityTypes.value.join(',') : undefined,
         filterAction.value ?? undefined,
         PAGE_SIZE,
@@ -77,7 +73,7 @@ export const useHistoryStore = defineStore('history', () => {
     loadingMore.value = true
     try {
       const res = await HistoryService.getApiHistory(
-        undefined,
+        groupsStore.currentGroupId || undefined,
         filterEntityTypes.value.length > 0 ? filterEntityTypes.value.join(',') : undefined,
         filterAction.value ?? undefined,
         PAGE_SIZE,
@@ -102,6 +98,50 @@ export const useHistoryStore = defineStore('history', () => {
   function setAction(action: HistoryActionFilter | null) {
     filterAction.value = action
     fetchInitial()
+  }
+
+  async function deleteEntry(id: string) {
+    if (!isOnline()) {
+      Notify.create({ type: 'warning', message: 'Offline — connect to delete history entries', timeout: 2000 })
+      return
+    }
+    try {
+      await HistoryService.deleteApiHistory1(id)
+      entries.value = entries.value.filter(e => e._id !== id)
+      Notify.create({ type: 'positive', message: 'Entry deleted', timeout: 1500 })
+    } catch (error) {
+      const classified = classifyFetchError(error)
+      logFetchError('history', 'deleteEntry', classified)
+      Notify.create({ type: 'negative', message: 'Failed to delete entry', timeout: 2500 })
+    }
+  }
+
+  /**
+   * Bulk-delete history entries. Pass no arguments to clear everything, or
+   * any combination of `before` / `after` ISO timestamps to constrain the range.
+   */
+  async function clearHistory(options: { before?: string; after?: string } = {}) {
+    if (!isOnline()) {
+      Notify.create({ type: 'warning', message: 'Offline — connect to clear history', timeout: 2000 })
+      return
+    }
+    try {
+      const result = await HistoryService.deleteApiHistory(
+        options.before,
+        options.after,
+        groupsStore.currentGroupId || undefined
+      )
+      Notify.create({
+        type: 'positive',
+        message: `Deleted ${result.deletedCount ?? 0} entries`,
+        timeout: 1800
+      })
+      await fetchInitial()
+    } catch (error) {
+      const classified = classifyFetchError(error)
+      logFetchError('history', 'clearHistory', classified)
+      Notify.create({ type: 'negative', message: 'Failed to clear history', timeout: 2500 })
+    }
   }
 
   function $reset() {
@@ -129,6 +169,8 @@ export const useHistoryStore = defineStore('history', () => {
     fetchMore,
     setEntityTypes,
     setAction,
+    deleteEntry,
+    clearHistory,
     $reset
   }
 })
