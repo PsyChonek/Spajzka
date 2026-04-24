@@ -2,6 +2,7 @@ import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from 'axios';
 import { config } from './config';
 import { currentContext } from './context';
 import { AuthError, evictPat, getJwtForPat } from './auth';
+
 import { logger } from './logging';
 
 const client: AxiosInstance = axios.create({
@@ -92,10 +93,10 @@ export async function apiRequest<T>({ method, path, params, body, nullOn404 = fa
       const status = err.response.status;
       const payload = err.response.data as { message?: string; code?: string } | undefined;
 
-      if (status === 401 && attempt === 0) {
-        // JWT likely expired mid-session. Evict, re-exchange, retry once.
-        evictPat(ctx.pat);
-        const fresh = await getJwtForPat(ctx.pat, { forceRefresh: true });
+      if (status === 401 && attempt === 0 && ctx.tokenType === 'pat') {
+        // PAT-issued JWT expired mid-session. Evict cache, re-exchange, retry.
+        evictPat(ctx.token);
+        const fresh = await getJwtForPat(ctx.token, { forceRefresh: true });
         ctx.jwt = fresh.jwt;
         continue;
       }

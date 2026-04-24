@@ -42,6 +42,7 @@ services:
       - MONGO_URL=mongodb://${MONGO_USERNAME:-admin}:${MONGO_PASSWORD:-password}@mongodb:27017
       - DB_NAME=spajzka
       - JWT_SECRET=${JWT_SECRET}
+      - PUBLIC_URL=${PUBLIC_URL:-https://spajzka.vazac.dev}
     depends_on:
       mongodb:
         condition: service_started

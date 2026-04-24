@@ -1,7 +1,10 @@
 import { AsyncLocalStorage } from 'async_hooks';
 
 export interface RequestContext {
-  pat: string;
+  /** Raw credential: either a PAT (spk_mcp_...) or an OAuth access token (JWT). */
+  token: string;
+  /** Differentiates the two auth paths for retry/refresh logic. */
+  tokenType: 'pat' | 'oauth';
   userId: string;
   jwt: string;
   traceId: string;

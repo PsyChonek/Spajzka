@@ -7,7 +7,7 @@ import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
 
 import { config } from './config';
 import { logger, newTraceId } from './logging';
-import { AuthError, extractBearer, getJwtForPat } from './auth';
+import { AuthError, extractBearer, getJwtForPat, verifyOAuthJwt } from './auth';
 import { contextStorage, type RequestContext } from './context';
 import { createRateLimiter } from './rateLimit';
 import { registerAllTools } from './tools';
@@ -26,7 +26,8 @@ const transports = new Map<string, StreamableHTTPServerTransport>();
 // Per-session auth, populated on session init and reused across requests in
 // the same session (MCP clients attach the Authorization header only on the
 // first request of a session).
-const sessionAuth = new Map<string, { pat: string; userId: string }>();
+// `cachedJwt` is set for OAuth sessions so we skip re-verification after init.
+const sessionAuth = new Map<string, { token: string; tokenType: 'pat' | 'oauth'; userId: string; cachedJwt?: string }>();
 
 function createServer(): McpServer {
   const server = new McpServer({
@@ -37,7 +38,29 @@ function createServer(): McpServer {
   return server;
 }
 
+// Computed once at startup from stable config values.
+const MCP_URL = config.publicUrl || 'http://localhost:3001/mcp';
+const API_ORIGIN = config.publicOrigin || 'http://localhost:3000';
+const RESOURCE_METADATA_URL = `${MCP_URL}/.well-known/oauth-protected-resource`;
+
+// ── OAuth 2.0 Protected Resource Metadata (RFC 9728) ─────────────────────────
+// Served at /mcp/.well-known/oauth-protected-resource so that after nginx
+// forwards https://spajzka.vazac.dev/mcp/... → http://mcp:3001/mcp/... the
+// path remains intact.
+app.get('/mcp/.well-known/oauth-protected-resource', (_req, res) => {
+  res.json({
+    resource: MCP_URL,
+    authorization_servers: [`${API_ORIGIN}/api`],
+    scopes_supported: ['mcp:tools'],
+    bearer_methods_supported: ['header']
+  });
+});
+
 function sendAuthError(res: Response, message: string) {
+  res.set(
+    'WWW-Authenticate',
+    `Bearer realm="Spajzka MCP", resource_metadata="${RESOURCE_METADATA_URL}"`
+  );
   res.status(401).json({
     jsonrpc: '2.0',
     error: { code: -32001, message }
@@ -47,23 +70,29 @@ function sendAuthError(res: Response, message: string) {
 async function handleMcpRequest(req: Request, res: Response): Promise<void> {
   const sessionId = req.headers['mcp-session-id'] as string | undefined;
 
-  let pat: string | null = null;
+  let token: string | null = null;
+  let tokenType: 'pat' | 'oauth' = 'pat';
   let userId: string | undefined;
+  let cachedJwt: string | undefined;
 
   if (sessionId && sessionAuth.has(sessionId)) {
     const prev = sessionAuth.get(sessionId)!;
-    pat = prev.pat;
+    token = prev.token;
+    tokenType = prev.tokenType;
     userId = prev.userId;
+    cachedJwt = prev.cachedJwt;
   } else {
-    pat = extractBearer(req.headers.authorization);
-    if (!pat) {
-      sendAuthError(res, 'Missing Authorization: Bearer spk_mcp_... header');
+    const extracted = extractBearer(req.headers.authorization);
+    if (!extracted) {
+      sendAuthError(res, 'Missing or unsupported Authorization header. Use Bearer spk_mcp_... (PAT) or a valid OAuth access token.');
       return;
     }
+    token = extracted.token;
+    tokenType = extracted.kind;
   }
 
-  // Rate limit per PAT.
-  if (!limiter.consume(pat)) {
+  // Rate limit per credential.
+  if (!limiter.consume(token)) {
     res.status(429).json({
       jsonrpc: '2.0',
       error: { code: -32002, message: 'Rate limit exceeded. Try again shortly.' }
@@ -71,12 +100,22 @@ async function handleMcpRequest(req: Request, res: Response): Promise<void> {
     return;
   }
 
-  // Exchange PAT for JWT (cached).
+  // Resolve JWT and userId depending on token type.
+  // For OAuth sessions after init, reuse the cached JWT to avoid re-running the HMAC.
   let jwt: string;
   try {
-    const cached = await getJwtForPat(pat);
-    jwt = cached.jwt;
-    userId = cached.userId;
+    if (tokenType === 'oauth' && cachedJwt) {
+      jwt = cachedJwt;
+    } else if (tokenType === 'oauth') {
+      const verified = verifyOAuthJwt(token);
+      jwt = verified.jwt;
+      userId = verified.userId;
+      cachedJwt = jwt;
+    } else {
+      const resolved = await getJwtForPat(token);
+      jwt = resolved.jwt;
+      userId = resolved.userId;
+    }
   } catch (err) {
     const message = err instanceof AuthError ? err.message : 'Authentication failed';
     sendAuthError(res, message);
@@ -84,7 +123,7 @@ async function handleMcpRequest(req: Request, res: Response): Promise<void> {
   }
 
   const traceId = newTraceId();
-  const ctx: RequestContext = { pat, userId: userId!, jwt, traceId };
+  const ctx: RequestContext = { token, tokenType, userId: userId!, jwt, traceId };
 
   // Reuse transport when session exists, otherwise bootstrap a new one.
   let transport: StreamableHTTPServerTransport | undefined;
@@ -95,7 +134,12 @@ async function handleMcpRequest(req: Request, res: Response): Promise<void> {
       sessionIdGenerator: () => randomUUID(),
       onsessioninitialized: (sid) => {
         transports.set(sid, transport!);
-        sessionAuth.set(sid, { pat: ctx.pat, userId: ctx.userId });
+        sessionAuth.set(sid, {
+          token: ctx.token,
+          tokenType: ctx.tokenType,
+          userId: ctx.userId,
+          cachedJwt: ctx.tokenType === 'oauth' ? ctx.jwt : undefined
+        });
       }
     });
     transport.onclose = () => {

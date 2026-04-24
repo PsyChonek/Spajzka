@@ -57,6 +57,13 @@ const routes: RouteRecordRaw[] = [
     path: '/profile',
     name: 'Profile',
     component: () => import('../views/ProfileView.vue')
+  },
+  {
+    // OAuth 2.0 consent page — must not trigger store refresh or auth redirect.
+    path: '/oauth/authorize',
+    name: 'OAuthAuthorize',
+    meta: { skipStoreRefresh: true },
+    component: () => import('../views/OAuthAuthorizeView.vue')
   }
 ]
 
@@ -79,6 +86,9 @@ const router = createRouter({
 
 // Add navigation guard to refresh stores on each page navigation
 router.beforeEach(async (to, from) => {
+  // OAuth consent page manages its own auth — skip global refresh.
+  if (to.meta.skipStoreRefresh) return
+
   // Only refresh if navigating to a different route
   if (to.path !== from.path) {
     // Ensure auth is initialized before trying to refresh stores

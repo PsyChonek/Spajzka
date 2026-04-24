@@ -15,6 +15,7 @@ import rolesRouter from './routes/roles';
 import tagsRouter from './routes/tags';
 import mealPlanRouter from './routes/mealPlan';
 import historyRouter from './routes/history';
+import oauthRouter from './routes/oauth';
 
 // Load environment variables
 dotenv.config();
@@ -54,6 +55,7 @@ app.use('/api', mealPlanRouter);
 app.use('/api', rolesRouter);
 app.use('/api', tagsRouter);
 app.use('/api', historyRouter);
+app.use('/api', oauthRouter);
 
 // Root endpoint
 app.get('/', (req: Request, res: Response) => {
