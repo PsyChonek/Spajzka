@@ -11,7 +11,12 @@ const authStore = useAuthStore()
 const mcpPublicUrl = computed(() => {
   const configured = import.meta.env.VITE_MCP_PUBLIC_URL as string | undefined
   if (configured) return configured
-  // Best-effort fallback when env var is not set (dev setups).
+  // Fallback when env var is not set. HTTPS implies a reverse proxy terminates
+  // TLS and forwards /mcp to the internal container, so use same-origin.
+  // HTTP is the local dev setup where the mcp container is on :3001.
+  if (window.location.protocol === 'https:') {
+    return `${window.location.origin}/mcp`
+  }
   return `${window.location.protocol}//${window.location.hostname}:3001/mcp`
 })
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 // The dist default export is the Quasar plugin wrapper `{ QCalendarMonth, install, … }`
 // — not the component itself. Pull the component off the plugin object.
 // (The package's .d.ts only declares the default, so named imports fail type-check.)
@@ -25,6 +25,9 @@ type CalendarView = 'month' | 'week' | 'agenda'
 const calendarView = ref<CalendarView>('month')
 const selectedDate = ref<string>(toISODate(new Date()))
 const todayStr = computed(() => toISODate(new Date()))
+
+// Week starts Monday: [1,2,3,4,5,6,0] (Quasar uses 0=Sunday).
+const weekdaysMondayFirst = [1, 2, 3, 4, 5, 6, 0]
 
 // --- Header labels ---
 const monthLabel = computed(() => {
@@ -95,11 +98,13 @@ const showEntryDialog = ref(false)
 const entryDialogMode = ref<'add' | 'edit'>('add')
 const entryInitialData = ref<Partial<MealPlanEntry> | undefined>(undefined)
 const entryDefaultCookDate = ref<string | undefined>(undefined)
+const entryDefaultEatDates = ref<string[] | undefined>(undefined)
 
-function openAddEntry(cookDate?: string) {
+function openAddEntry(cookDate?: string, eatDates?: string[]) {
   entryDialogMode.value = 'add'
   entryInitialData.value = undefined
   entryDefaultCookDate.value = cookDate ?? selectedDate.value
+  entryDefaultEatDates.value = eatDates
   showEntryDialog.value = true
 }
 
@@ -107,6 +112,7 @@ function openEditEntry(entry: MealPlanEntry) {
   entryDialogMode.value = 'edit'
   entryInitialData.value = entry
   entryDefaultCookDate.value = undefined
+  entryDefaultEatDates.value = undefined
   showEntryDialog.value = true
 }
 
@@ -152,14 +158,75 @@ const shoppingTo = computed(() => {
   return toISODate(d)
 })
 
-// --- Day click ---
-function onDayClick(data: any) {
-  const date = data?.scope?.timestamp?.date ?? data?.timestamp?.date ?? data?.date
-  if (date) {
-    selectedDate.value = date
-    openAddEntry(date)
+// --- Day click / drag-select ---
+// A single click on a day and a drag across days share one gesture:
+// pointerdown seeds the range, pointerenter extends it while the button is
+// held, pointerup finalises it and opens the Add Meal dialog with
+// cookDate = first selected day, eatDates = every day in the range.
+const dragStart = ref<string | null>(null)
+const dragEnd = ref<string | null>(null)
+const isDragging = ref(false)
+
+const dragRange = computed<string[]>(() => {
+  if (!dragStart.value || !dragEnd.value) return []
+  const [a, b] = dragStart.value <= dragEnd.value
+    ? [dragStart.value, dragEnd.value]
+    : [dragEnd.value, dragStart.value]
+  return [a, b]
+})
+
+const dragSelectedDates = computed<string[]>(() => {
+  const [a, b] = dragRange.value
+  if (!a || !b) return []
+  const out: string[] = []
+  const cur = new Date(a + 'T00:00:00Z')
+  const end = new Date(b + 'T00:00:00Z')
+  while (cur <= end) {
+    out.push(toISODate(cur))
+    cur.setUTCDate(cur.getUTCDate() + 1)
   }
+  return out
+})
+
+function onDayPointerDown(dateStr: string, event: PointerEvent) {
+  // Only primary button / touch / pen strokes start a selection.
+  if (event.button !== undefined && event.button !== 0) return
+  isDragging.value = true
+  dragStart.value = dateStr
+  dragEnd.value = dateStr
 }
+
+function onDayPointerEnter(dateStr: string) {
+  if (!isDragging.value) return
+  dragEnd.value = dateStr
+}
+
+function finalizeDrag() {
+  if (!isDragging.value) return
+  const dates = dragSelectedDates.value
+  isDragging.value = false
+  dragStart.value = null
+  dragEnd.value = null
+  if (dates.length === 0) return
+  selectedDate.value = dates[0]!
+  openAddEntry(dates[0], dates.length > 1 ? dates : undefined)
+}
+
+function cancelDrag() {
+  isDragging.value = false
+  dragStart.value = null
+  dragEnd.value = null
+}
+
+onMounted(() => {
+  window.addEventListener('pointerup', finalizeDrag)
+  window.addEventListener('pointercancel', cancelDrag)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('pointerup', finalizeDrag)
+  window.removeEventListener('pointercancel', cancelDrag)
+})
 
 // --- Render helpers ---
 function entriesForDate(dateStr: string): MealPlanEntry[] {
@@ -323,17 +390,17 @@ onMounted(async () => {
           v-model="selectedDate"
           no-outside-days
           :short-weekday-label="false"
+          :weekdays="weekdaysMondayFirst"
+          :selected-start-end-dates="dragRange"
           class="mp-calendar mp-calendar--month"
           @change="onCalendarChange"
-          @click:day="onDayClick"
         >
           <template #day="{ scope }">
             <div
               class="mp-day"
-              :class="{
-                'mp-day--today': scope.timestamp.date === todayStr,
-                'mp-day--weekend': scope.timestamp.weekday === 0 || scope.timestamp.weekday === 6
-              }"
+              :class="{ 'mp-day--today': scope.timestamp.date === todayStr }"
+              @pointerdown="onDayPointerDown(scope.timestamp.date, $event)"
+              @pointerenter="onDayPointerEnter(scope.timestamp.date)"
             >
               <div class="mp-day-entries">
                 <div
@@ -342,6 +409,7 @@ onMounted(async () => {
                   class="mp-chip"
                   :class="{ 'mp-chip--leftover': isLeftover(entry, scope.timestamp.date) }"
                   :style="chipStyle(entry.recipeId, isLeftover(entry, scope.timestamp.date))"
+                  @pointerdown.stop
                   @click.stop="openEditEntry(entry)"
                 >
                   <q-icon
@@ -367,20 +435,23 @@ onMounted(async () => {
           v-else
           v-model="selectedDate"
           :view="calendarView === 'week' ? 'week' : 'day'"
+          :weekdays="weekdaysMondayFirst"
           class="mp-calendar mp-calendar--agenda"
           @change="onCalendarChange"
-          @click:day="onDayClick"
         >
           <template #day="{ scope }">
             <div
               class="mp-agenda-day"
               :class="{ 'mp-agenda-day--today': scope.timestamp.date === todayStr }"
+              @pointerdown="onDayPointerDown(scope.timestamp.date, $event)"
+              @pointerenter="onDayPointerEnter(scope.timestamp.date)"
             >
               <div
                 v-for="entry in entriesForDate(scope.timestamp.date)"
                 :key="entry._id"
                 class="mp-agenda-row"
                 :style="chipStyle(entry.recipeId, isLeftover(entry, scope.timestamp.date))"
+                @pointerdown.stop
                 @click.stop="openEditEntry(entry)"
               >
                 <div class="mp-agenda-icon">
@@ -456,6 +527,7 @@ onMounted(async () => {
         :mode="entryDialogMode"
         :initial-data="entryInitialData"
         :default-cook-date="entryDefaultCookDate"
+        :default-eat-dates="entryDefaultEatDates"
         @save="handleEntrySave"
         @delete="handleEntryDelete"
       />
@@ -647,16 +719,14 @@ onMounted(async () => {
   font-weight: 700;
 }
 
-/* Weekend soft tint */
-.mp-day--weekend {
-  background-color: rgba(99, 102, 241, 0.025);
-}
-
 /* Day cell contents */
 .mp-day {
   width: 100%;
   min-height: 96px;
   padding: 4px 6px 6px;
+  /* Drag-select: keep touch gestures from scrolling the page mid-drag. */
+  touch-action: none;
+  user-select: none;
 }
 
 .mp-day-entries {
