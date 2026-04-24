@@ -150,10 +150,18 @@ async function handleMcpRequest(req: Request, res: Response): Promise<void> {
     };
     const server = createServer();
     await server.connect(transport);
+  } else if (sessionId) {
+    // Per MCP Streamable HTTP spec: unknown session ID → 404 so the client drops
+    // the stale session and sends a fresh initialize request (e.g. after server restart).
+    res.status(404).json({
+      jsonrpc: '2.0',
+      error: { code: -32600, message: 'Session not found. Please reinitialize.' }
+    });
+    return;
   } else {
     res.status(400).json({
       jsonrpc: '2.0',
-      error: { code: -32600, message: 'Invalid request: missing session or initialize' }
+      error: { code: -32600, message: 'Invalid request: expected initialize' }
     });
     return;
   }
