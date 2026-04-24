@@ -136,6 +136,11 @@ const VALID_ACTIONS = new Set([
  */
 router.get('/history', authMiddleware, requirePermission('history:read'), async (req: AuthRequest, res: Response) => {
   try {
+    // History is append-only and frequently updated — never serve a stale
+    // cached response, otherwise the browser's conditional-GET cache hides
+    // entries added since the first load.
+    res.setHeader('Cache-Control', 'no-store');
+
     const db = getDatabase();
     const groupId = await resolveGroupId(db, req, req.userId!);
 

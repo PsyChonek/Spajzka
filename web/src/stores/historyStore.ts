@@ -45,8 +45,12 @@ export const useHistoryStore = defineStore('history', () => {
     if (!isOnline()) return
     loading.value = true
     try {
+      // Do NOT pass a client-side groupId — the server resolves it from
+      // user.activeGroupId, same as pantry/shopping/meal-plan reads. Passing
+      // groupsStore.currentGroupId here risks a mismatch when local state
+      // hasn't caught up with the server's active group.
       const res = await HistoryService.getApiHistory(
-        groupsStore.currentGroupId || undefined,
+        undefined,
         filterEntityTypes.value.length > 0 ? filterEntityTypes.value.join(',') : undefined,
         filterAction.value ?? undefined,
         PAGE_SIZE,
@@ -73,7 +77,7 @@ export const useHistoryStore = defineStore('history', () => {
     loadingMore.value = true
     try {
       const res = await HistoryService.getApiHistory(
-        groupsStore.currentGroupId || undefined,
+        undefined,
         filterEntityTypes.value.length > 0 ? filterEntityTypes.value.join(',') : undefined,
         filterAction.value ?? undefined,
         PAGE_SIZE,

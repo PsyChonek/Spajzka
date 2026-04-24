@@ -14,6 +14,23 @@ npm run dev                       # api:3000 + web:5173 + mcp:3001 concurrently
 
 Environment files: `api/.env`, `web/.env`, `mcp/.env`. See `CLAUDE.md` for required vars.
 
+## Production
+
+Host: Oracle ARM64 (linux-arm64-musl) at `130.61.191.51`, user `opc`, repo at `~/spajzka`. Public URL `https://spajzka.vazac.dev` (host nginx terminates TLS → forwards to internal container ports).
+
+```bash
+# Deploy (pull + rebuild + recreate containers)
+ssh -i ~/.ssh/vazy-desktop opc@130.61.191.51 'cd ~/spajzka && git pull && docker compose up -d --build'
+
+# Check container status
+ssh -i ~/.ssh/vazy-desktop opc@130.61.191.51 'docker ps --format "{{.Names}}\t{{.Status}}" | grep spajzka'
+
+# Query prod Mongo via the api container (has MONGO_URL env)
+ssh -i ~/.ssh/vazy-desktop opc@130.61.191.51 'docker exec spajzka-api node -e "…"'
+```
+
+SSH key: `~/.ssh/vazy-desktop` (PC key). Do not commit secrets; redact `MONGO_URL` password if logging env.
+
 ## Architecture
 
 REST API (`api/`) exposes the domain, persists to MongoDB, and emits an OpenAPI spec via Swagger JSDoc → generates `shared/api-client/` (committed). Both `web/` and `mcp/` consume that client. The web frontend is **offline-first**: Pinia stores apply changes locally, queue them in `pendingChanges`, and sync via `useOnlineSync` when back online. MCP server (`mcp/`) is a stateless Streamable-HTTP translator that exchanges a user PAT for a short-lived JWT and forwards calls to the API.
