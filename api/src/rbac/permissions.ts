@@ -33,7 +33,9 @@ export type Permission =
   // Meal plan permissions
   | 'meal_plan:create'
   | 'meal_plan:update'
-  | 'meal_plan:delete';
+  | 'meal_plan:delete'
+  // History log permissions
+  | 'history:read';
 
 export type RoleId = 'system_moderator' | 'admin' | 'moderator' | 'member';
 

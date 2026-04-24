@@ -4,6 +4,7 @@ import { ObjectId } from 'mongodb';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
 import { requirePermission } from '../rbac/middleware';
 import { resolveGroupId, handleGroupResolutionError } from '../utils/resolveGroup';
+import { logHistory, computeDiff } from '../utils/historyLog';
 
 const router = Router();
 
@@ -213,6 +214,17 @@ router.post('/pantry', authMiddleware, requirePermission('pantry:create'), async
 
     const createdItem = createdItems[0];
 
+    await logHistory(db, {
+      groupId,
+      userId: req.userId!,
+      userEmail: req.userEmail,
+      action: 'create',
+      entityType: 'pantry',
+      entityId: createdItem._id,
+      entityName: createdItem.item?.name || 'Unknown Item',
+      changes: { after: { quantity: createdItem.quantity, itemType: createdItem.itemType } }
+    });
+
     res.status(201).json({
       _id: createdItem._id.toString(),
       groupId: createdItem.groupId.toString(),
@@ -281,6 +293,11 @@ router.put('/pantry/:id', authMiddleware, requirePermission('pantry:update'), as
 
     if (quantity !== undefined) updateData.quantity = quantity;
 
+    const before = await db.collection('pantry').findOne({ _id: new ObjectId(id), groupId });
+    if (!before) {
+      return res.status(404).json({ message: 'Item not found', code: 'NOT_FOUND' });
+    }
+
     const pantryItem = await db.collection('pantry').findOneAndUpdate(
       { _id: new ObjectId(id), groupId },
       { $set: updateData },
@@ -289,6 +306,21 @@ router.put('/pantry/:id', authMiddleware, requirePermission('pantry:update'), as
 
     if (!pantryItem) {
       return res.status(404).json({ message: 'Item not found', code: 'NOT_FOUND' });
+    }
+
+    const itemDetails = await db.collection('items').findOne({ _id: pantryItem.itemId });
+    const diff = computeDiff(before, pantryItem, ['quantity']);
+    if (diff) {
+      await logHistory(db, {
+        groupId,
+        userId: req.userId!,
+        userEmail: req.userEmail,
+        action: 'update',
+        entityType: 'pantry',
+        entityId: pantryItem._id,
+        entityName: itemDetails?.name || 'Unknown Item',
+        changes: diff
+      });
     }
 
     res.json({
@@ -335,6 +367,11 @@ router.delete('/pantry/:id', authMiddleware, requirePermission('pantry:delete'),
 
     const groupId = await resolveGroupId(db, req, req.userId!);
 
+    const before = await db.collection('pantry').findOne({ _id: new ObjectId(id), groupId });
+    if (!before) {
+      return res.status(404).json({ message: 'Item not found', code: 'NOT_FOUND' });
+    }
+
     const result = await db.collection('pantry').deleteOne({
       _id: new ObjectId(id),
       groupId
@@ -343,6 +380,18 @@ router.delete('/pantry/:id', authMiddleware, requirePermission('pantry:delete'),
     if (result.deletedCount === 0) {
       return res.status(404).json({ message: 'Item not found', code: 'NOT_FOUND' });
     }
+
+    const itemDetails = await db.collection('items').findOne({ _id: before.itemId });
+    await logHistory(db, {
+      groupId,
+      userId: req.userId!,
+      userEmail: req.userEmail,
+      action: 'delete',
+      entityType: 'pantry',
+      entityId: before._id,
+      entityName: itemDetails?.name || 'Unknown Item',
+      changes: { before: { quantity: before.quantity, itemType: before.itemType } }
+    });
 
     res.status(204).send();
   } catch (error) {

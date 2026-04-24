@@ -5,6 +5,7 @@ import { authMiddleware, AuthRequest } from '../middleware/auth';
 import { requirePermission } from '../rbac/middleware';
 import { resolveGroupId, handleGroupResolutionError } from '../utils/resolveGroup';
 import { insertShoppingItem } from '../utils/shoppingHelpers';
+import { logHistory, computeDiff } from '../utils/historyLog';
 
 const router = Router();
 
@@ -162,6 +163,17 @@ router.post('/shopping', authMiddleware, requirePermission('shopping:create'), a
       quantity: quantity || 1
     });
 
+    await logHistory(db, {
+      groupId,
+      userId: req.userId!,
+      userEmail: req.userEmail,
+      action: 'create',
+      entityType: 'shopping',
+      entityId: created._id,
+      entityName: created.name,
+      changes: { after: { quantity: created.quantity, itemType: created.itemType, completed: false } }
+    });
+
     res.status(201).json(created);
   } catch (error: any) {
     if (handleGroupResolutionError(error, res)) return;
@@ -223,6 +235,11 @@ router.put('/shopping/:id', authMiddleware, requirePermission('shopping:update')
     if (quantity !== undefined) updateData.quantity = quantity;
     if (completed !== undefined) updateData.completed = completed;
 
+    const before = await db.collection('shopping').findOne({ _id: new ObjectId(id), groupId });
+    if (!before) {
+      return res.status(404).json({ message: 'Item not found', code: 'NOT_FOUND' });
+    }
+
     const shoppingItem = await db.collection('shopping').findOneAndUpdate(
       { _id: new ObjectId(id), groupId },
       { $set: updateData },
@@ -235,6 +252,20 @@ router.put('/shopping/:id', authMiddleware, requirePermission('shopping:update')
 
     // Populate item details from the unified items collection
     const itemDetails = await db.collection('items').findOne({ _id: shoppingItem.itemId });
+
+    const diff = computeDiff(before, shoppingItem, ['quantity', 'completed']);
+    if (diff) {
+      await logHistory(db, {
+        groupId,
+        userId: req.userId!,
+        userEmail: req.userEmail,
+        action: 'update',
+        entityType: 'shopping',
+        entityId: shoppingItem._id,
+        entityName: itemDetails?.name || 'Unknown Item',
+        changes: diff
+      });
+    }
 
     res.json({
       ...shoppingItem,
@@ -284,6 +315,11 @@ router.delete('/shopping/:id', authMiddleware, requirePermission('shopping:delet
 
     const groupId = await resolveGroupId(db, req, req.userId!);
 
+    const before = await db.collection('shopping').findOne({ _id: new ObjectId(id), groupId });
+    if (!before) {
+      return res.status(404).json({ message: 'Item not found', code: 'NOT_FOUND' });
+    }
+
     const result = await db.collection('shopping').deleteOne({
       _id: new ObjectId(id),
       groupId
@@ -292,6 +328,18 @@ router.delete('/shopping/:id', authMiddleware, requirePermission('shopping:delet
     if (result.deletedCount === 0) {
       return res.status(404).json({ message: 'Item not found', code: 'NOT_FOUND' });
     }
+
+    const itemDetails = await db.collection('items').findOne({ _id: before.itemId });
+    await logHistory(db, {
+      groupId,
+      userId: req.userId!,
+      userEmail: req.userEmail,
+      action: 'delete',
+      entityType: 'shopping',
+      entityId: before._id,
+      entityName: itemDetails?.name || 'Unknown Item',
+      changes: { before: { quantity: before.quantity, completed: before.completed, itemType: before.itemType } }
+    });
 
     res.status(204).send();
   } catch (error) {

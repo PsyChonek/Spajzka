@@ -7,6 +7,7 @@ import { hasPermission } from '../rbac/permissions';
 import { resolveGroupId, handleGroupResolutionError } from '../utils/resolveGroup';
 import { aggregateMealPlanShopping } from '../utils/mealPlanAggregator';
 import { insertShoppingItem } from '../utils/shoppingHelpers';
+import { logHistory, computeDiff } from '../utils/historyLog';
 
 const router = Router();
 
@@ -452,6 +453,25 @@ router.post(
       const result = await db.collection('mealPlan').insertOne(newEntry);
       const created = await db.collection('mealPlan').findOne({ _id: result.insertedId });
 
+      await logHistory(db, {
+        groupId,
+        userId: req.userId!,
+        userEmail: req.userEmail,
+        action: 'create',
+        entityType: 'mealPlan',
+        entityId: result.insertedId,
+        entityName: newEntry.recipeName,
+        changes: {
+          after: {
+            cookDate: newEntry.cookDate.toISOString(),
+            servings: newEntry.servings,
+            mealTypes: newEntry.mealTypes,
+            eatDates: newEntry.eatDates.map(d => d.toISOString()),
+            notes: newEntry.notes ?? null
+          }
+        }
+      });
+
       res.status(201).json(serializeEntry(created!));
     } catch (error: any) {
       if (handleGroupResolutionError(error, res)) return;
@@ -554,6 +574,11 @@ router.patch(
       }
       if (notes !== undefined) updateData.notes = notes?.trim() || undefined;
 
+      const before = await db.collection('mealPlan').findOne({ _id: new ObjectId(id), groupId });
+      if (!before) {
+        return res.status(404).json({ message: 'Meal-plan entry not found', code: 'NOT_FOUND' });
+      }
+
       const updated = await db.collection('mealPlan').findOneAndUpdate(
         { _id: new ObjectId(id), groupId },
         { $set: updateData },
@@ -562,6 +587,20 @@ router.patch(
 
       if (!updated) {
         return res.status(404).json({ message: 'Meal-plan entry not found', code: 'NOT_FOUND' });
+      }
+
+      const diff = computeDiff(before, updated, ['cookDate', 'servings', 'eatDates', 'mealTypes', 'notes']);
+      if (diff) {
+        await logHistory(db, {
+          groupId,
+          userId: req.userId!,
+          userEmail: req.userEmail,
+          action: 'update',
+          entityType: 'mealPlan',
+          entityId: updated._id,
+          entityName: updated.recipeName,
+          changes: diff
+        });
       }
 
       res.json(serializeEntry(updated));
@@ -648,6 +687,7 @@ router.delete(
       }
 
       // If caller wants to cascade-delete shopping items, verify permission first
+      let cascadedShoppingCount = 0;
       if (removeShoppingItems && entry.shoppingBatchId) {
         const perms = await getUserPermissions(req.userId!, groupId.toString());
         if (!hasPermission(perms, 'shopping:delete')) {
@@ -656,13 +696,35 @@ router.delete(
             code: 'INSUFFICIENT_PERMISSIONS'
           });
         }
-        await db.collection('shopping').deleteMany({
+        const cascadeResult = await db.collection('shopping').deleteMany({
           groupId,
           'mealPlanRefs.batchId': entry.shoppingBatchId
         });
+        cascadedShoppingCount = cascadeResult.deletedCount ?? 0;
       }
 
       await db.collection('mealPlan').deleteOne({ _id: new ObjectId(id), groupId });
+
+      await logHistory(db, {
+        groupId,
+        userId: req.userId!,
+        userEmail: req.userEmail,
+        action: 'delete',
+        entityType: 'mealPlan',
+        entityId: entry._id,
+        entityName: entry.recipeName,
+        changes: {
+          before: {
+            cookDate: entry.cookDate instanceof Date ? entry.cookDate.toISOString() : entry.cookDate,
+            servings: entry.servings,
+            mealTypes: entry.mealTypes ?? [],
+            notes: entry.notes ?? null
+          }
+        },
+        metadata: cascadedShoppingCount > 0
+          ? { cascadedShoppingCount, batchId: entry.shoppingBatchId }
+          : undefined
+      });
 
       res.status(204).send();
     } catch (error) {
@@ -813,11 +875,22 @@ router.post(
       for (const row of aggregated) {
         if (row.toAdd <= 0) continue;
 
-        await insertShoppingItem(db, groupId, {
+        const created = await insertShoppingItem(db, groupId, {
           itemId: row.itemId,
           itemType: row.itemType,
           quantity: row.toAdd,
           mealPlanRef: { batchId }
+        });
+        await logHistory(db, {
+          groupId,
+          userId: req.userId!,
+          userEmail: req.userEmail,
+          action: 'create',
+          entityType: 'shopping',
+          entityId: created._id,
+          entityName: created.name,
+          changes: { after: { quantity: created.quantity, itemType: created.itemType, completed: false } },
+          metadata: { batchId, source: 'generate-shopping' }
         });
         addedCount++;
       }

@@ -19,6 +19,7 @@ const navLinks: NavLink[] = [
   { to: '/items', label: 'Items', icon: 'inventory' },
   { to: '/recipes', label: 'Recipes', icon: 'restaurant_menu' },
   { to: '/meal-plan', label: 'Meal Plan', icon: 'event' },
+  { to: '/history', label: 'History', icon: 'history' },
   { to: '/groups', label: 'Groups', icon: 'group' },
   { to: '/profile', label: 'Profile', icon: 'lock' }
 ]

@@ -3,6 +3,7 @@ import { getDatabase } from '../config/database';
 import { ObjectId } from 'mongodb';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
 import { resolveGroupId, handleGroupResolutionError } from '../utils/resolveGroup';
+import { logHistory, computeDiff } from '../utils/historyLog';
 
 const router = Router();
 
@@ -185,6 +186,17 @@ router.post('/tags', authMiddleware, async (req: AuthRequest, res: Response) => 
     const result = await db.collection('tags').insertOne(newTag);
     const createdTag = await db.collection('tags').findOne({ _id: result.insertedId });
 
+    await logHistory(db, {
+      groupId,
+      userId: req.userId!,
+      userEmail: req.userEmail,
+      action: 'create',
+      entityType: 'tag',
+      entityId: result.insertedId,
+      entityName: newTag.name,
+      changes: { after: { color: newTag.color, icon: newTag.icon } }
+    });
+
     res.status(201).json({
       ...createdTag,
       _id: createdTag!._id.toString(),
@@ -304,6 +316,20 @@ router.put('/tags/:id', authMiddleware, async (req: AuthRequest, res: Response) 
       });
     }
 
+    const diff = computeDiff(tag, result, ['name', 'color', 'icon', 'searchNames']);
+    if (diff) {
+      await logHistory(db, {
+        groupId: result.groupId,
+        userId: req.userId!,
+        userEmail: req.userEmail,
+        action: 'update',
+        entityType: 'tag',
+        entityId: result._id,
+        entityName: result.name,
+        changes: diff
+      });
+    }
+
     res.json({
       ...result,
       _id: result._id.toString(),
@@ -399,6 +425,17 @@ router.delete('/tags/:id', authMiddleware, async (req: AuthRequest, res: Respons
         { $pull: { tags: tagId } } as any
       )
     ]);
+
+    await logHistory(db, {
+      groupId: tag.groupId,
+      userId: req.userId!,
+      userEmail: req.userEmail,
+      action: 'delete',
+      entityType: 'tag',
+      entityId: tag._id,
+      entityName: tag.name,
+      changes: { before: { color: tag.color, icon: tag.icon } }
+    });
 
     res.status(204).send();
   } catch (error) {

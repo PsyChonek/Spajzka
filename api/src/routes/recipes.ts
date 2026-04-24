@@ -4,6 +4,7 @@ import { ObjectId } from 'mongodb';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
 import { requirePermission, requireGlobalPermission } from '../rbac/middleware';
 import { resolveGroupId, handleGroupResolutionError } from '../utils/resolveGroup';
+import { logHistory, computeDiff } from '../utils/historyLog';
 
 const router = Router();
 
@@ -734,6 +735,17 @@ router.post('/recipes/group', authMiddleware, requirePermission('group_recipes:c
     const result = await db.collection('recipes').insertOne(newRecipe);
     const createdRecipe = await db.collection('recipes').findOne({ _id: result.insertedId });
 
+    await logHistory(db, {
+      groupId,
+      userId: req.userId!,
+      userEmail: req.userEmail,
+      action: 'create',
+      entityType: 'recipe',
+      entityId: result.insertedId,
+      entityName: newRecipe.name,
+      changes: { after: { servings: newRecipe.servings, ingredientCount: newRecipe.ingredients.length } }
+    });
+
     res.status(201).json({
       ...createdRecipe,
       _id: createdRecipe!._id.toString(),
@@ -821,6 +833,18 @@ router.put('/recipes/group/:id', authMiddleware, requirePermission('group_recipe
         : [];
     }
 
+    const before = await db.collection('recipes').findOne({
+      _id: new ObjectId(id),
+      recipeType: 'group',
+      groupId
+    });
+    if (!before) {
+      return res.status(404).json({
+        message: 'Group recipe not found',
+        code: 'NOT_FOUND'
+      });
+    }
+
     const result = await db.collection('recipes').findOneAndUpdate(
       {
         _id: new ObjectId(id),
@@ -835,6 +859,20 @@ router.put('/recipes/group/:id', authMiddleware, requirePermission('group_recipe
       return res.status(404).json({
         message: 'Group recipe not found',
         code: 'NOT_FOUND'
+      });
+    }
+
+    const diff = computeDiff(before, result, ['name', 'description', 'servings', 'ingredients', 'instructions', 'tags', 'icon']);
+    if (diff) {
+      await logHistory(db, {
+        groupId,
+        userId: req.userId!,
+        userEmail: req.userEmail,
+        action: 'update',
+        entityType: 'recipe',
+        entityId: result._id,
+        entityName: result.name,
+        changes: diff
       });
     }
 
@@ -890,6 +928,18 @@ router.delete('/recipes/group/:id', authMiddleware, requirePermission('group_rec
 
     const groupId = await resolveGroupId(db, req, req.userId!);
 
+    const before = await db.collection('recipes').findOne({
+      _id: new ObjectId(id),
+      recipeType: 'group',
+      groupId
+    });
+    if (!before) {
+      return res.status(404).json({
+        message: 'Group recipe not found',
+        code: 'NOT_FOUND'
+      });
+    }
+
     const result = await db.collection('recipes').deleteOne({
       _id: new ObjectId(id),
       recipeType: 'group',
@@ -902,6 +952,17 @@ router.delete('/recipes/group/:id', authMiddleware, requirePermission('group_rec
         code: 'NOT_FOUND'
       });
     }
+
+    await logHistory(db, {
+      groupId,
+      userId: req.userId!,
+      userEmail: req.userEmail,
+      action: 'delete',
+      entityType: 'recipe',
+      entityId: before._id,
+      entityName: before.name,
+      changes: { before: { servings: before.servings, ingredientCount: before.ingredients?.length ?? 0 } }
+    });
 
     res.status(204).send();
   } catch (error) {

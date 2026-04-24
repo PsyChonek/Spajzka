@@ -4,6 +4,7 @@ import { ObjectId } from 'mongodb';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
 import { requirePermission } from '../rbac/middleware';
 import crypto from 'crypto';
+import { logHistory } from '../utils/historyLog';
 
 const router = Router();
 
@@ -568,6 +569,17 @@ router.post('/groups/join', authMiddleware, async (req: AuthRequest, res: Respon
       { returnDocument: 'after' }
     );
 
+    await logHistory(db, {
+      groupId: group._id,
+      userId: req.userId!,
+      userEmail: req.userEmail,
+      action: 'join',
+      entityType: 'group',
+      entityId: group._id,
+      entityName: group.name,
+      metadata: { role: 'member' }
+    });
+
     res.json({
       ...updatedGroup,
       _id: updatedGroup!._id.toString(),
@@ -670,6 +682,17 @@ router.post('/groups/:id/leave', authMiddleware, async (req: AuthRequest, res: R
         $set: { updatedAt: new Date() }
       }
     );
+
+    await logHistory(db, {
+      groupId: group._id,
+      userId: req.userId!,
+      userEmail: req.userEmail,
+      action: 'leave',
+      entityType: 'group',
+      entityId: group._id,
+      entityName: group.name,
+      metadata: { previousRole: member.role }
+    });
 
     res.json({ message: 'Successfully left group' });
   } catch (error) {
@@ -844,6 +867,17 @@ router.delete('/groups/:id/kick/:userId', authMiddleware, requirePermission('gro
       }
     );
 
+    await logHistory(db, {
+      groupId: group._id,
+      userId: req.userId!,
+      userEmail: req.userEmail,
+      action: 'kick',
+      entityType: 'group',
+      entityId: group._id,
+      entityName: group.name,
+      metadata: { kickedUserId: userId, previousRole: memberToKick.role }
+    });
+
     res.json({ message: 'User kicked successfully' });
   } catch (error) {
     console.error('Error kicking user:', error);
@@ -926,6 +960,8 @@ router.put('/groups/:id/members/:userId/role', authMiddleware, requirePermission
       });
     }
 
+    const previousRole = group.members[memberIndex].role;
+
     // Update the member's role
     await db.collection('groups').updateOne(
       { _id: new ObjectId(id), 'members.userId': new ObjectId(userId) },
@@ -936,6 +972,20 @@ router.put('/groups/:id/members/:userId/role', authMiddleware, requirePermission
         }
       }
     );
+
+    if (previousRole !== role) {
+      await logHistory(db, {
+        groupId: group._id,
+        userId: req.userId!,
+        userEmail: req.userEmail,
+        action: 'role_change',
+        entityType: 'group',
+        entityId: group._id,
+        entityName: group.name,
+        changes: { before: { role: previousRole }, after: { role } },
+        metadata: { targetUserId: userId }
+      });
+    }
 
     res.json({ message: 'Role assigned successfully', role });
   } catch (error) {

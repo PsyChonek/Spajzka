@@ -7,6 +7,7 @@ import { registerRecipeTools } from './recipes';
 import { registerTagTools } from './tags';
 import { registerGroupTools } from './groups';
 import { registerMealPlanTools } from './mealPlan';
+import { registerHistoryTools } from './history';
 
 export function registerAllTools(server: McpServer): void {
   registerDiscoveryTools(server);
@@ -17,4 +18,5 @@ export function registerAllTools(server: McpServer): void {
   registerTagTools(server);
   registerGroupTools(server);
   registerMealPlanTools(server);
+  registerHistoryTools(server);
 }

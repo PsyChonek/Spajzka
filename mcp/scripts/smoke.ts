@@ -54,6 +54,9 @@ async function main() {
   console.log(`\n=== preview_meal_plan_shopping (groupId=${groupId}) ===`);
   console.log(await client.callTool({ name: 'preview_meal_plan_shopping', arguments: { groupId, from: today, to: in30, missingOnly: true } }));
 
+  console.log(`\n=== list_history (groupId=${groupId}) ===`);
+  console.log(await client.callTool({ name: 'list_history', arguments: { groupId, limit: 10 } }));
+
   await client.close();
   console.log('\nSmoke test complete.');
 }

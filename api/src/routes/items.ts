@@ -4,6 +4,7 @@ import { ObjectId } from 'mongodb';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
 import { requirePermission, requireGlobalPermission } from '../rbac/middleware';
 import { resolveGroupId, handleGroupResolutionError } from '../utils/resolveGroup';
+import { logHistory, computeDiff } from '../utils/historyLog';
 
 const router = Router();
 
@@ -680,6 +681,17 @@ router.post('/items/group', authMiddleware, requirePermission('group_items:creat
     const result = await db.collection('items').insertOne(newItem);
     const createdItem = await db.collection('items').findOne({ _id: result.insertedId });
 
+    await logHistory(db, {
+      groupId,
+      userId: req.userId!,
+      userEmail: req.userEmail,
+      action: 'create',
+      entityType: 'item',
+      entityId: result.insertedId,
+      entityName: newItem.name,
+      changes: { after: { category: newItem.category, defaultUnit: newItem.defaultUnit } }
+    });
+
     res.status(201).json({
       ...createdItem,
       _id: createdItem!._id.toString(),
@@ -755,6 +767,14 @@ router.put('/items/group/:id', authMiddleware, requirePermission('group_items:up
       updateData.tags = Array.isArray(tags) ? tags.filter(Boolean).map((t: string) => new ObjectId(t)) : [];
     }
 
+    const before = await db.collection('items').findOne({ _id: new ObjectId(id), itemType: 'group', groupId });
+    if (!before) {
+      return res.status(404).json({
+        message: 'Group item not found',
+        code: 'NOT_FOUND'
+      });
+    }
+
     const result = await db.collection('items').findOneAndUpdate(
       { _id: new ObjectId(id), itemType: 'group', groupId },
       { $set: updateData },
@@ -765,6 +785,20 @@ router.put('/items/group/:id', authMiddleware, requirePermission('group_items:up
       return res.status(404).json({
         message: 'Group item not found',
         code: 'NOT_FOUND'
+      });
+    }
+
+    const diff = computeDiff(before, result, ['name', 'category', 'icon', 'defaultUnit', 'barcode', 'searchNames', 'tags']);
+    if (diff) {
+      await logHistory(db, {
+        groupId,
+        userId: req.userId!,
+        userEmail: req.userEmail,
+        action: 'update',
+        entityType: 'item',
+        entityId: result._id,
+        entityName: result.name,
+        changes: diff
       });
     }
 
@@ -821,6 +855,14 @@ router.delete('/items/group/:id', authMiddleware, requirePermission('group_items
     const groupId = await resolveGroupId(db, req, req.userId!);
     const itemId = new ObjectId(id);
 
+    const before = await db.collection('items').findOne({ _id: itemId, itemType: 'group', groupId });
+    if (!before) {
+      return res.status(404).json({
+        message: 'Group item not found',
+        code: 'NOT_FOUND'
+      });
+    }
+
     const result = await db.collection('items').deleteOne({
       _id: itemId,
       itemType: 'group',
@@ -835,7 +877,7 @@ router.delete('/items/group/:id', authMiddleware, requirePermission('group_items
     }
 
     // Cascade delete: Remove all references in pantry and shopping for this group
-    await Promise.all([
+    const [pantryCascade, shoppingCascade] = await Promise.all([
       db.collection('pantry').deleteMany({
         itemId: itemId,
         itemType: 'group',
@@ -847,6 +889,23 @@ router.delete('/items/group/:id', authMiddleware, requirePermission('group_items
         groupId
       })
     ]);
+
+    await logHistory(db, {
+      groupId,
+      userId: req.userId!,
+      userEmail: req.userEmail,
+      action: 'delete',
+      entityType: 'item',
+      entityId: before._id,
+      entityName: before.name,
+      changes: { before: { category: before.category, defaultUnit: before.defaultUnit } },
+      metadata: (pantryCascade.deletedCount || shoppingCascade.deletedCount)
+        ? {
+            cascadedPantryCount: pantryCascade.deletedCount ?? 0,
+            cascadedShoppingCount: shoppingCascade.deletedCount ?? 0
+          }
+        : undefined
+    });
 
     res.status(204).send();
   } catch (error) {
