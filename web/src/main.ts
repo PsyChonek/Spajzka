@@ -4,7 +4,7 @@ import piniaPluginPersistedstate from "pinia-plugin-persistedstate";
 import App from "./App.vue";
 import router from "./router";
 import { registerSW } from "virtual:pwa-register";
-import { Quasar, Notify } from 'quasar';
+import { Quasar, Notify, Dialog } from 'quasar';
 import { OpenAPI } from '@shared/api-client';
 
 // Import icon libraries
@@ -28,7 +28,8 @@ app.use(pinia);
 app.use(router);
 app.use(Quasar, {
 	plugins: {
-		Notify
+		Notify,
+		Dialog
 	}, // import Quasar plugins and add here
 });
 

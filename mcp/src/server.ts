@@ -163,6 +163,25 @@ async function handleMcpRequest(req: Request, res: Response): Promise<void> {
   });
 }
 
+// GET /mcp: used by MCP clients for SSE-based server-to-client notifications.
+// Return 401 with discovery headers so Claude.ai can start the OAuth flow
+// even when it probes with GET before POST.
+app.get('/mcp', (req, res) => {
+  const sessionId = req.headers['mcp-session-id'] as string | undefined;
+  if (sessionId && transports.has(sessionId)) {
+    // Existing session — let the transport handle SSE.
+    const transport = transports.get(sessionId)!;
+    contextStorage.run(sessionAuth.get(sessionId) as any, async () => {
+      await transport.handleRequest(req, res, undefined as any);
+    }).catch(err => {
+      logger.error({ err }, 'Unhandled MCP GET error');
+      if (!res.headersSent) res.status(500).end();
+    });
+  } else {
+    sendAuthError(res, 'Authentication required. Connect with an OAuth token or MCP PAT.');
+  }
+});
+
 app.post('/mcp', (req, res) => {
   handleMcpRequest(req, res).catch(err => {
     logger.error({ err }, 'Unhandled MCP request error');
