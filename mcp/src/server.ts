@@ -8,7 +8,7 @@ import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
 import { config } from './config';
 import { logger, newTraceId } from './logging';
 import { AuthError, extractBearer, getJwtForPat, verifyOAuthJwt } from './auth';
-import { contextStorage, type RequestContext } from './context';
+import { type RequestContext } from './context';
 import { createRateLimiter } from './rateLimit';
 import { registerAllTools } from './tools';
 
@@ -158,9 +158,10 @@ async function handleMcpRequest(req: Request, res: Response): Promise<void> {
     return;
   }
 
-  await contextStorage.run(ctx, async () => {
-    await transport!.handleRequest(req, res, req.body);
-  });
+  // Attach ctx as req.auth so SDK passes it through the Hono Node→Web adapter
+  // as extra.authInfo in tool handlers (AsyncLocalStorage doesn't survive that conversion).
+  (req as any).auth = ctx;
+  await transport!.handleRequest(req, res, req.body);
 }
 
 // GET /mcp: used by MCP clients for SSE-based server-to-client notifications.
@@ -171,9 +172,7 @@ app.get('/mcp', (req, res) => {
   if (sessionId && transports.has(sessionId)) {
     // Existing session — let the transport handle SSE.
     const transport = transports.get(sessionId)!;
-    contextStorage.run(sessionAuth.get(sessionId) as any, async () => {
-      await transport.handleRequest(req, res, undefined as any);
-    }).catch(err => {
+    transport.handleRequest(req, res, undefined as any).catch(err => {
       logger.error({ err }, 'Unhandled MCP GET error');
       if (!res.headersSent) res.status(500).end();
     });
