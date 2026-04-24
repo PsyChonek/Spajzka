@@ -14,11 +14,12 @@ export function registerMealPlanTools(server: McpServer): void {
       to: z.string().optional()
     },
     async ({ groupId, from, to }) => {
-      return apiRequest({
+      const meals = await apiRequest({
         method: 'GET',
         path: '/api/meal-plan',
         params: { groupId, from, to }
       });
+      return { meals };
     }
   );
 

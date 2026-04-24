@@ -23,10 +23,11 @@ export function registerGroupTools(server: McpServer): void {
     "List a group's members with their roles.",
     { groupId: z.string() },
     async ({ groupId }) => {
-      return apiRequest({
+      const members = await apiRequest({
         method: 'GET',
         path: `/api/groups/${groupId}/members`
       });
+      return { members };
     }
   );
 

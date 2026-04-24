@@ -24,7 +24,8 @@ export function registerHistoryTools(server: McpServer): void {
       if (action) params.action = action;
       if (limit !== undefined) params.limit = limit;
       if (before) params.before = before;
-      return apiRequest({ method: 'GET', path: '/api/history', params });
+      const entries = await apiRequest({ method: 'GET', path: '/api/history', params });
+      return { entries };
     }
   );
 

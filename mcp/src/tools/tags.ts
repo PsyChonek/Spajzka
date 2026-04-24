@@ -10,11 +10,12 @@ export function registerTagTools(server: McpServer): void {
     "List the tags defined in a group.",
     { groupId: z.string() },
     async ({ groupId }) => {
-      return apiRequest({
+      const tags = await apiRequest({
         method: 'GET',
         path: '/api/tags',
         params: { groupId }
       });
+      return { tags };
     }
   );
 

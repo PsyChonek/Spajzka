@@ -14,11 +14,12 @@ export function registerItemsTools(server: McpServer): void {
       limit: z.number().int().positive().max(50).optional()
     },
     async ({ query, groupId, limit }) => {
-      return apiRequest({
+      const items = await apiRequest({
         method: 'GET',
         path: '/api/items',
         params: { search: query, groupId, limit }
       });
+      return { items };
     }
   );
 
@@ -32,11 +33,12 @@ export function registerItemsTools(server: McpServer): void {
       offset: z.number().int().nonnegative().optional()
     },
     async ({ category, limit, offset }) => {
-      return apiRequest({
+      const items = await apiRequest({
         method: 'GET',
         path: '/api/items/global',
         params: { category, limit, offset }
       });
+      return { items };
     }
   );
 
@@ -46,11 +48,12 @@ export function registerItemsTools(server: McpServer): void {
     "List a group's custom items (its private extension of the catalog).",
     { groupId: z.string() },
     async ({ groupId }) => {
-      return apiRequest({
+      const items = await apiRequest({
         method: 'GET',
         path: '/api/items/group',
         params: { groupId }
       });
+      return { items };
     }
   );
 

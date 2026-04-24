@@ -12,7 +12,8 @@ export function registerPantryTools(server: McpServer): void {
     'List items currently in the pantry for a given group.',
     groupIdSchema,
     async ({ groupId }) => {
-      return apiRequest({ method: 'GET', path: '/api/pantry', params: { groupId } });
+      const items = await apiRequest({ method: 'GET', path: '/api/pantry', params: { groupId } });
+      return { items };
     }
   );
 

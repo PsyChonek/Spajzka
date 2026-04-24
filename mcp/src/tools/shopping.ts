@@ -25,11 +25,12 @@ export function registerShoppingTools(server: McpServer): void {
       includeCompleted: z.boolean().optional()
     },
     async ({ groupId, includeCompleted }) => {
-      return apiRequest({
+      const items = await apiRequest({
         method: 'GET',
         path: '/api/shopping',
         params: { groupId, includeCompleted }
       });
+      return { items };
     }
   );
 

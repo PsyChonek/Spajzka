@@ -9,7 +9,8 @@ export function registerDiscoveryTools(server: McpServer): void {
     "List all groups (households) the authenticated user belongs to. Always call this first in a conversation to resolve group names to IDs — most other tools require a groupId.",
     {},
     async () => {
-      return apiRequest({ method: 'GET', path: '/api/groups/my' });
+      const groups = await apiRequest({ method: 'GET', path: '/api/groups/my' });
+      return { groups };
     }
   );
 

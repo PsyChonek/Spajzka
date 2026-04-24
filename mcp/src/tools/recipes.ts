@@ -34,11 +34,12 @@ export function registerRecipeTools(server: McpServer): void {
     "List all recipes available to a group: global recipes plus the group's own recipes, merged.",
     { groupId: z.string() },
     async ({ groupId }) => {
-      return apiRequest({
+      const recipes = await apiRequest({
         method: 'GET',
         path: '/api/recipes',
         params: { groupId }
       });
+      return { recipes };
     }
   );
 
@@ -51,11 +52,12 @@ export function registerRecipeTools(server: McpServer): void {
       offset: z.number().int().nonnegative().optional()
     },
     async ({ limit, offset }) => {
-      return apiRequest({
+      const recipes = await apiRequest({
         method: 'GET',
         path: '/api/recipes/global',
         params: { limit, offset }
       });
+      return { recipes };
     }
   );
 
@@ -65,11 +67,12 @@ export function registerRecipeTools(server: McpServer): void {
     "List a group's custom recipes.",
     { groupId: z.string() },
     async ({ groupId }) => {
-      return apiRequest({
+      const recipes = await apiRequest({
         method: 'GET',
         path: '/api/recipes/group',
         params: { groupId }
       });
+      return { recipes };
     }
   );
 
@@ -82,8 +85,9 @@ export function registerRecipeTools(server: McpServer): void {
       name: z.string().min(1),
       description: z.string().optional(),
       icon: z.string().optional(),
+      servings: z.number().positive(),
       ingredients: z.array(ingredientSchema),
-      instructions: z.array(z.string()).optional(),
+      instructions: z.array(z.string()).min(1),
       searchNames: z.array(z.string()).optional()
     },
     async (args) => {
@@ -105,6 +109,7 @@ export function registerRecipeTools(server: McpServer): void {
       name: z.string().min(1).optional(),
       description: z.string().optional(),
       icon: z.string().optional(),
+      servings: z.number().positive().optional(),
       ingredients: z.array(ingredientSchema).optional(),
       instructions: z.array(z.string()).optional(),
       searchNames: z.array(z.string()).optional()
