@@ -591,21 +591,10 @@ router.delete('/items/global/:id', authMiddleware, requireGlobalPermission('glob
 router.get('/items/group', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const db = getDatabase();
-
-    // Get user's group
-    const userGroup = await db.collection('groups').findOne({
-      'members.userId': new ObjectId(req.userId)
-    });
-
-    if (!userGroup) {
-      return res.status(404).json({
-        message: 'User has no group',
-        code: 'NO_GROUP'
-      });
-    }
+    const groupId = await resolveGroupId(db, req, req.userId!);
 
     const groupItems = await db.collection('items')
-      .find({ itemType: 'group', groupId: userGroup._id })
+      .find({ itemType: 'group', groupId })
       .toArray();
 
     res.json(groupItems.map(item => ({
@@ -615,6 +604,7 @@ router.get('/items/group', authMiddleware, async (req: AuthRequest, res: Respons
       createdBy: item.createdBy?.toString()
     })));
   } catch (error) {
+    if (handleGroupResolutionError(error, res)) return;
     console.error('Error fetching group items:', error);
     res.status(500).json({
       message: 'Failed to fetch group items',

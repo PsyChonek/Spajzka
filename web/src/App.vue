@@ -1,16 +1,15 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
-import { RouterView } from 'vue-router'
+import { RouterView, useRoute } from 'vue-router'
 import { useOnlineSync } from '@/composables/useOnlineSync'
 import { useAuthStore } from '@/stores/authStore'
-import NavBar from '@/components/NavBar.vue'
+import AppShell from '@/components/common/AppShell.vue'
 
-// Initialize online sync once at the app level
 useOnlineSync()
 
 const authStore = useAuthStore()
+const route = useRoute()
 
-// Initialize auth on app mount
 onMounted(async () => {
   await authStore.initialize()
 })
@@ -18,12 +17,10 @@ onMounted(async () => {
 
 <template>
   <div id="app">
-    <q-layout view="hHh lpR fFf">
-      <NavBar />
-
-      <q-page-container>
-        <RouterView />
-      </q-page-container>
-    </q-layout>
+    <!-- OAuth consent page renders standalone (no shell) -->
+    <RouterView v-if="route.meta?.standalone" />
+    <AppShell v-else>
+      <RouterView />
+    </AppShell>
   </div>
 </template>

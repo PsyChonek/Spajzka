@@ -3,6 +3,8 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { GroupsService } from '@shared/api-client'
 import type { GroupMember } from '@shared/api-client'
 import PageWrapper from '@/components/PageWrapper.vue'
+import PageHeader from '@/components/common/PageHeader.vue'
+import SectionCard from '@/components/common/SectionCard.vue'
 import GroupActions from '@/components/GroupActions.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import { Notify, useQuasar } from 'quasar'
@@ -281,48 +283,6 @@ const showInvite = () => {
   showInviteDialog.value = true
 }
 
-const allMemberColumns = [
-  {
-    name: 'name',
-    label: 'Name',
-    align: 'left' as const,
-    field: (row: GroupMember) => row.name,
-    sortable: true
-  },
-  {
-    name: 'email',
-    label: 'Email',
-    align: 'left' as const,
-    field: (row: GroupMember) => row.email,
-    sortable: true,
-    hideOnMobile: true
-  },
-  {
-    name: 'role',
-    label: 'Role',
-    align: 'center' as const,
-    field: (row: GroupMember) => row.role === 'admin' ? 'Admin' : 'Member',
-    sortable: true,
-    style: 'width: 100px',
-    headerStyle: 'width: 100px'
-  },
-  {
-    name: 'actions',
-    label: 'Actions',
-    align: 'center' as const,
-    field: '',
-    style: 'width: 100px',
-    headerStyle: 'width: 100px'
-  }
-]
-
-const memberColumns = computed(() => {
-  if ($q.screen.lt.md) {
-    return allMemberColumns.filter(col => !col.hideOnMobile)
-  }
-  return allMemberColumns
-})
-
 const currentUserRole = computed(() => {
   if (!groupsStore.currentGroup) return null
   const userId = authStore.user?._id
@@ -335,23 +295,62 @@ const currentUserPermissions = computed(() => {
   // Return group permissions from the user object (already fetched via /auth/me)
   return authStore.user?.groupPermissions || []
 })
+
+/** First two initials from a display name */
+const initials = (name: string) => {
+  return name
+    .split(' ')
+    .slice(0, 2)
+    .map(w => w[0]?.toUpperCase() ?? '')
+    .join('')
+}
 </script>
 
 <template>
-  <PageWrapper>
-    <div class="groups-view">
-      <div class="q-mb-lg">
-        <h4 class="q-my-md">Group Management</h4>
-      </div>
+  <q-page>
+    <PageWrapper>
+      <PageHeader
+        title="Groups"
+        icon="group"
+        :subtitle="groupsStore.groups.length
+          ? `${groupsStore.groups.length} ${groupsStore.groups.length === 1 ? 'group' : 'groups'}`
+          : undefined"
+      >
+        <template #actions>
+          <template v-if="groupsStore.currentGroup && !authStore.isAnonymous">
+            <q-btn
+              v-if="isAdmin"
+              unelevated
+              no-caps
+              icon="edit"
+              label="Rename"
+              color="primary"
+              class="lt-md"
+              size="sm"
+              @click="openEditDialog"
+            />
+            <q-btn
+              v-if="!groupsStore.currentGroup.isPersonal"
+              unelevated
+              no-caps
+              icon="link"
+              label="Invite"
+              color="primary"
+              size="sm"
+              @click="showInvite"
+            />
+          </template>
+        </template>
+      </PageHeader>
 
       <!-- Loading State -->
       <div v-if="loading && groupsStore.groups.length === 0 && !authStore.isAnonymous" class="text-center q-pa-xl">
         <q-spinner size="50px" color="primary" />
-        <div class="q-mt-md text-grey-7">Loading...</div>
+        <div class="q-mt-md sp-text-muted">Loading...</div>
       </div>
 
       <!-- No Group State -->
-      <div v-else-if="groupsStore.groups.length === 0 && !authStore.isAnonymous" class="no-group-container">
+      <div v-else-if="groupsStore.groups.length === 0 && !authStore.isAnonymous">
         <GroupActions
           @group-created="handleGroupCreatedOrJoined"
           @group-joined="handleGroupCreatedOrJoined"
@@ -359,137 +358,139 @@ const currentUserPermissions = computed(() => {
       </div>
 
       <!-- Has Groups State -->
-      <div v-else-if="groupsStore.currentGroup && !authStore.isAnonymous">
-        <!-- Group Info Card -->
-        <q-card class="q-mb-lg">
-          <q-card-section>
-            <div class="row items-center justify-between">
-              <div>
-                <div class="text-h5">{{ groupsStore.currentGroup.name }}</div>
-                <div class="text-caption text-grey-7">
-                  {{ members.length }} {{ members.length === 1 ? 'member' : 'members' }}
-                </div>
-              </div>
-              <div class="row q-gutter-sm">
-                <q-btn
-                  v-if="isAdmin"
-                  flat
-                  icon="edit"
-                  color="primary"
-                  @click="openEditDialog"
-                >
-                  <q-tooltip>Edit Group</q-tooltip>
-                </q-btn>
-                <q-btn
-                  v-if="!groupsStore.currentGroup.isPersonal"
-                  flat
-                  icon="link"
-                  color="primary"
-                  @click="showInvite"
-                >
-                  <q-tooltip>Invite Code</q-tooltip>
-                </q-btn>
-                <q-btn
-                  flat
-                  icon="exit_to_app"
-                  color="negative"
-                  @click="leaveGroup"
-                >
-                  <q-tooltip>Leave Group</q-tooltip>
-                </q-btn>
-                <q-btn
-                  v-if="isAdmin && !groupsStore.currentGroup.isPersonal"
-                  flat
-                  icon="delete"
-                  color="negative"
-                  @click="deleteGroup"
-                >
-                  <q-tooltip>Delete Group</q-tooltip>
-                </q-btn>
-              </div>
-            </div>
-          </q-card-section>
-        </q-card>
+      <div v-else-if="groupsStore.currentGroup && !authStore.isAnonymous" class="sp-groups-content">
 
-        <!-- Members Table -->
-        <q-card class="q-mb-lg">
-          <q-card-section>
-            <div class="text-h6 q-mb-md">Members</div>
-            <q-table
-              :rows="members"
-              :columns="memberColumns"
-              row-key="_id"
+        <!-- Group Info -->
+        <SectionCard :title="groupsStore.currentGroup.name">
+          <template #actions>
+            <q-btn
+              v-if="isAdmin"
+              unelevated
+              no-caps
               dense
-              flat
-              bordered
+              icon="edit"
+              color="primary"
+              class="gt-sm"
+              @click="openEditDialog"
             >
-              <template v-slot:body-cell-role="props">
-                <q-td :props="props">
+              <q-tooltip>Rename group</q-tooltip>
+            </q-btn>
+            <q-btn
+              v-if="!groupsStore.currentGroup.isPersonal"
+              unelevated
+              no-caps
+              dense
+              icon="link"
+              color="primary"
+              class="gt-sm"
+              @click="showInvite"
+            >
+              <q-tooltip>Invite code</q-tooltip>
+            </q-btn>
+            <q-btn
+              unelevated
+              no-caps
+              dense
+              icon="exit_to_app"
+              color="negative"
+              @click="leaveGroup"
+            >
+              <q-tooltip>Leave group</q-tooltip>
+            </q-btn>
+            <q-btn
+              v-if="isAdmin && !groupsStore.currentGroup.isPersonal"
+              unelevated
+              no-caps
+              dense
+              icon="delete"
+              color="negative"
+              @click="deleteGroup"
+            >
+              <q-tooltip>Delete group</q-tooltip>
+            </q-btn>
+          </template>
+
+          <div class="sp-group-meta">
+            <q-icon name="people" size="16px" color="primary" />
+            <span class="sp-text-muted">
+              {{ members.length }} {{ members.length === 1 ? 'member' : 'members' }}
+            </span>
+          </div>
+        </SectionCard>
+
+        <!-- Members -->
+        <SectionCard title="Members">
+          <q-list separator>
+            <q-item
+              v-for="member in members"
+              :key="member._id"
+              class="sp-member-item"
+            >
+              <q-item-section avatar>
+                <q-avatar
+                  size="40px"
+                  :color="member.role === 'admin' ? 'primary' : 'grey-4'"
+                  :text-color="member.role === 'admin' ? 'white' : 'grey-8'"
+                  class="sp-member-avatar"
+                >
+                  {{ initials(member.name || '') }}
+                </q-avatar>
+              </q-item-section>
+
+              <q-item-section>
+                <q-item-label class="sp-member-name">{{ member.name }}</q-item-label>
+                <q-item-label caption class="sp-text-muted">{{ member.email }}</q-item-label>
+              </q-item-section>
+
+              <q-item-section side>
+                <div class="row items-center q-gutter-xs">
                   <q-badge
-                    :color="props.row.role === 'admin' ? 'primary' : 'grey-6'"
-                    :label="props.row.role === 'admin' ? 'Admin' : 'Member'"
+                    :color="member.role === 'admin' ? 'primary' : 'grey-5'"
+                    :text-color="member.role === 'admin' ? 'white' : 'grey-9'"
+                    :label="member.role === 'admin' ? 'Admin' : 'Member'"
+                    class="sp-role-badge"
                   />
-                </q-td>
-              </template>
-              <template v-slot:body-cell-actions="props">
-                <q-td :props="props">
                   <q-btn
-                    v-if="isAdmin && props.row.role !== 'admin'"
+                    v-if="isAdmin && member.role !== 'admin'"
                     flat
                     dense
                     round
-                    color="negative"
                     icon="person_remove"
+                    color="negative"
                     size="sm"
-                    @click="kickMember(props.row._id, props.row.name)"
+                    @click="kickMember(member._id || '', member.name || '')"
                   >
                     <q-tooltip>Remove from group</q-tooltip>
                   </q-btn>
-                </q-td>
-              </template>
-            </q-table>
-          </q-card-section>
-        </q-card>
+                </div>
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </SectionCard>
 
-        <!-- Group Permissions -->
-        <q-card class="q-mb-lg">
-          <q-card-section>
-            <div class="text-h6 q-mb-md">Your Permissions</div>
-            <q-list bordered separator>
-              <q-item>
-                <q-item-section avatar>
-                  <q-icon name="shield" color="primary" />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label>Group Permissions</q-item-label>
-                  <q-item-label caption>
-                    <div v-if="currentUserPermissions.length > 0" class="permissions-list">
-                      <q-chip
-                        v-for="permission in currentUserPermissions"
-                        :key="permission"
-                        size="sm"
-                        color="primary"
-                        text-color="white"
-                        icon="check_circle"
-                        class="q-ma-xs"
-                      >
-                        {{ permission }}
-                      </q-chip>
-                    </div>
-                    <span v-else class="text-grey-6">No group permissions</span>
-                  </q-item-label>
-                </q-item-section>
-              </q-item>
-            </q-list>
+        <!-- Your Permissions -->
+        <SectionCard title="Your Permissions">
+          <div class="sp-permissions-row">
+            <q-icon name="shield" size="18px" color="primary" class="q-mr-sm" />
+            <span class="sp-text-muted q-mr-sm">Role: <strong class="sp-text">{{ currentUserRole || 'N/A' }}</strong></span>
+          </div>
+          <div v-if="currentUserPermissions.length > 0" class="sp-chips q-mt-sm">
+            <q-chip
+              v-for="permission in currentUserPermissions"
+              :key="permission"
+              size="sm"
+              color="primary"
+              text-color="white"
+              icon="check_circle"
+            >
+              {{ permission }}
+            </q-chip>
+          </div>
+          <div v-else class="sp-text-muted q-mt-xs">No group permissions assigned.</div>
+        </SectionCard>
 
-            <div class="text-caption text-grey-6 q-mt-sm q-px-md">
-              These permissions are based on your role: {{ currentUserRole || 'N/A' }}
-            </div>
-          </q-card-section>
-        </q-card>
-
-        <!-- Group Actions Panel -->
-        <GroupActions 
+        <!-- Group Actions Panel (create/join another group) -->
+        <GroupActions
           @group-created="handleGroupCreatedOrJoined"
           @group-joined="handleGroupCreatedOrJoined"
         />
@@ -497,24 +498,27 @@ const currentUserPermissions = computed(() => {
 
       <!-- Edit Group Dialog -->
       <q-dialog v-model="showEditDialog" :full-width="$q.screen.lt.sm" :maximized="$q.screen.lt.sm">
-        <q-card :style="$q.screen.lt.sm ? 'height: 100vh; max-height: 100vh; display: flex; flex-direction: column' : 'width: 100%; max-width: 400px'">
+        <q-card class="sp-dialog" :style="$q.screen.lt.sm ? '' : 'width: 100%; max-width: 400px'">
           <q-card-section>
-            <div class="text-h6">Edit Group</div>
+            <div class="sp-dialog-title">Edit Group</div>
           </q-card-section>
 
-          <q-card-section class="q-pt-none" :style="$q.screen.lt.sm ? 'flex: 1; overflow-y: auto' : ''">
+          <q-card-section class="q-pt-none">
             <q-input
               v-model="editGroupName"
               outlined
+              dense
               label="Group Name"
               autofocus
               @keyup.enter="updateGroup"
             />
           </q-card-section>
 
-          <q-card-actions align="right">
-            <q-btn flat label="Cancel" color="primary" v-close-popup />
+          <q-card-actions align="right" class="q-px-md q-pb-md">
+            <q-btn flat no-caps label="Cancel" color="primary" v-close-popup />
             <q-btn
+              unelevated
+              no-caps
               label="Save"
               color="primary"
               @click="updateGroup"
@@ -527,38 +531,34 @@ const currentUserPermissions = computed(() => {
 
       <!-- Invite Code Dialog -->
       <q-dialog v-model="showInviteDialog" :full-width="$q.screen.lt.sm" :maximized="$q.screen.lt.sm">
-        <q-card :style="$q.screen.lt.sm ? 'height: 100vh; max-height: 100vh; display: flex; flex-direction: column' : 'width: 100%; max-width: 400px'">
+        <q-card class="sp-dialog" :style="$q.screen.lt.sm ? '' : 'width: 100%; max-width: 420px'">
           <q-card-section>
-            <div class="text-h6">Invite Code</div>
+            <div class="sp-dialog-title">Invite Code</div>
           </q-card-section>
 
-          <q-card-section class="q-pt-none" :style="$q.screen.lt.sm ? 'flex: 1; overflow-y: auto' : ''">
-            <div class="q-mb-md">
-              <div class="text-caption text-grey-7 q-mb-sm">Share this code with others to invite them:</div>
-              <div class="invite-code-display">
-                <div class="text-h4 text-primary text-weight-bold">
-                  {{ groupsStore.currentGroup?.inviteCode }}
-                </div>
-                <q-btn
-                  flat
-                  dense
-                  round
-                  icon="content_copy"
-                  color="primary"
-                  @click="copyInviteCode"
-                >
-                  <q-tooltip>Copy to clipboard</q-tooltip>
-                </q-btn>
-              </div>
+          <q-card-section class="q-pt-none">
+            <div class="sp-text-muted q-mb-sm">Share this code with others to invite them:</div>
+            <div class="sp-invite-code-box">
+              <span class="sp-invite-code-text">{{ groupsStore.currentGroup?.inviteCode }}</span>
+              <q-btn
+                flat
+                dense
+                round
+                icon="content_copy"
+                color="primary"
+                @click="copyInviteCode"
+              >
+                <q-tooltip>Copy to clipboard</q-tooltip>
+              </q-btn>
             </div>
 
-            <div v-if="isAdmin" class="q-mt-lg">
-              <q-separator class="q-mb-md" />
-              <div class="text-subtitle2 q-mb-sm">Admin Actions</div>
-
+            <template v-if="isAdmin">
+              <q-separator class="q-my-md" />
+              <div class="sp-dialog-subtitle q-mb-sm">Admin Actions</div>
               <div class="row q-gutter-sm q-mb-sm">
                 <q-btn
-                  outline
+                  unelevated
+                  no-caps
                   color="primary"
                   label="Regenerate Code"
                   icon="refresh"
@@ -566,7 +566,8 @@ const currentUserPermissions = computed(() => {
                   :loading="loading"
                 />
                 <q-btn
-                  :outline="!groupsStore.currentGroup?.inviteEnabled"
+                  unelevated
+                  no-caps
                   :color="groupsStore.currentGroup?.inviteEnabled ? 'positive' : 'negative'"
                   :label="groupsStore.currentGroup?.inviteEnabled ? 'Invites Enabled' : 'Invites Disabled'"
                   :icon="groupsStore.currentGroup?.inviteEnabled ? 'check_circle' : 'block'"
@@ -574,43 +575,45 @@ const currentUserPermissions = computed(() => {
                   :loading="loading"
                 />
               </div>
-              <div class="text-caption text-grey-7">
+              <div class="sp-text-muted text-caption">
                 {{ groupsStore.currentGroup?.inviteEnabled
                   ? 'Users can join with the invite code'
                   : 'Invites are currently disabled' }}
               </div>
-            </div>
+            </template>
           </q-card-section>
 
-          <q-card-actions align="right">
-            <q-btn flat label="Close" color="primary" v-close-popup />
+          <q-card-actions align="right" class="q-px-md q-pb-md">
+            <q-btn flat no-caps label="Close" color="primary" v-close-popup />
           </q-card-actions>
         </q-card>
       </q-dialog>
 
       <!-- Authentication Required Dialog -->
       <q-dialog v-model="showAuthRequiredDialog" persistent :full-width="$q.screen.lt.sm" :maximized="$q.screen.lt.sm">
-        <q-card :style="$q.screen.lt.sm ? 'height: 100vh; max-height: 100vh; display: flex; flex-direction: column' : 'width: 100%; max-width: 400px'">
+        <q-card class="sp-dialog" :style="$q.screen.lt.sm ? '' : 'width: 100%; max-width: 400px'">
           <q-card-section class="text-center q-pt-lg">
-            <q-icon name="lock" size="60px" color="orange" class="q-mb-md" />
-            <div class="text-h6">Authentication Required</div>
+            <q-icon name="lock" size="52px" color="secondary" class="q-mb-md" />
+            <div class="sp-dialog-title">Authentication Required</div>
           </q-card-section>
 
-          <q-card-section class="q-pt-none text-center" :style="$q.screen.lt.sm ? 'flex: 1; overflow-y: auto' : ''">
-            <p class="text-body1 q-mb-md">
+          <q-card-section class="q-pt-none text-center">
+            <p class="text-body1 q-mb-sm">
               Groups feature requires you to be logged in to sync data across devices and share with other users.
             </p>
-            <p class="text-body2 text-grey-7">
+            <p class="sp-text-muted text-body2">
               Please log in or create an account to use this feature.
             </p>
           </q-card-section>
 
           <q-card-actions align="center" class="q-pb-lg">
             <q-btn
+              unelevated
+              no-caps
               label="Go to Login"
               color="primary"
               icon="login"
-              size="lg"
+              size="md"
               @click="goToLogin"
             />
           </q-card-actions>
@@ -654,50 +657,95 @@ const currentUserPermissions = computed(() => {
         confirm-label="Regenerate"
         @confirm="confirmRegenerateInviteCode"
       />
-    </div>
-  </PageWrapper>
+    </PageWrapper>
+  </q-page>
 </template>
 
 <style scoped>
-.groups-view {
-  max-width: 1200px;
-  margin: 0 auto;
+.sp-groups-content {
+  max-width: 720px;
 }
 
-.no-group-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 60vh;
-}
-
-.no-group-card {
-  max-width: 600px;
-  width: 100%;
-}
-
-.invite-code-display {
+.sp-group-meta {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 1rem;
-  background: rgba(var(--q-primary-rgb), 0.1);
-  border-radius: 8px;
+  gap: 6px;
+  font-size: 0.9rem;
 }
 
-/* Compact table cells */
-:deep(.q-table tbody td) {
-  padding: 4px 8px;
+/* Member list */
+.sp-member-item {
+  padding: 10px 0;
 }
 
-:deep(.q-table thead th) {
-  padding: 8px 8px;
+.sp-member-name {
+  font-weight: 600;
+  color: var(--sp-text);
 }
 
-.permissions-list {
+.sp-member-avatar {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.sp-role-badge {
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+/* Permissions section */
+.sp-permissions-row {
+  display: flex;
+  align-items: center;
+}
+
+.sp-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
-  margin-top: 8px;
+}
+
+/* Invite code box */
+.sp-invite-code-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: var(--sp-primary-soft);
+  border-radius: var(--sp-r-md);
+  border: 1px solid var(--sp-border);
+}
+
+.sp-invite-code-text {
+  font-family: 'Manrope', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--sp-primary);
+  letter-spacing: 0.08em;
+}
+
+/* Dialog */
+.sp-dialog-title {
+  font-family: 'Manrope', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--sp-text);
+}
+
+.sp-dialog-subtitle {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--sp-text);
+}
+
+/* Utility */
+.sp-text-muted {
+  color: var(--sp-text-muted);
+}
+
+.sp-text {
+  color: var(--sp-text);
 }
 </style>

@@ -15,6 +15,9 @@ import 'quasar/dist/quasar.css';
 import '@quasar/quasar-ui-qcalendar/QCalendarMonth.css';
 import '@quasar/quasar-ui-qcalendar/QCalendarAgenda.css';
 
+// Spajzka global styles (palette tokens, layout helpers, component refinements)
+import './css/app.css';
+
 // Configure OpenAPI client
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 OpenAPI.BASE = API_BASE_URL

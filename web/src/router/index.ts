@@ -62,7 +62,7 @@ const routes: RouteRecordRaw[] = [
     // OAuth 2.0 consent page — must not trigger store refresh or auth redirect.
     path: '/oauth/authorize',
     name: 'OAuthAuthorize',
-    meta: { skipStoreRefresh: true },
+    meta: { skipStoreRefresh: true, standalone: true },
     component: () => import('../views/OAuthAuthorizeView.vue')
   }
 ]

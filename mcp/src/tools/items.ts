@@ -64,11 +64,12 @@ export function registerItemsTools(server: McpServer): void {
     {
       groupId: z.string(),
       name: z.string().min(1),
-      category: z.string().optional(),
+      category: z.string().min(1),
       icon: z.string().optional(),
       defaultUnit: z.string().optional(),
       barcode: z.string().optional(),
-      searchNames: z.array(z.string()).optional()
+      searchNames: z.array(z.string()).optional(),
+      tags: z.array(z.string()).optional()
     },
     async (args) => {
       return apiRequest({
@@ -91,7 +92,8 @@ export function registerItemsTools(server: McpServer): void {
       icon: z.string().optional(),
       defaultUnit: z.string().optional(),
       barcode: z.string().optional(),
-      searchNames: z.array(z.string()).optional()
+      searchNames: z.array(z.string()).optional(),
+      tags: z.array(z.string()).optional()
     },
     async ({ groupId, itemId, ...fields }) => {
       return apiRequest({

@@ -1,8 +1,12 @@
 <script setup lang="ts">
 interface Props {
+  /** Reserved for backwards compat — ignored by the new shell. */
   maxWidth?: string
+  /** Reserved for backwards compat — ignored by the new shell. */
   minHeight?: string
+  /** Reserved for backwards compat — ignored by the new shell. */
   padding?: string
+  /** Reserved for backwards compat — ignored by the new shell. */
   centered?: boolean
 }
 
@@ -15,29 +19,7 @@ withDefaults(defineProps<Props>(), {
 </script>
 
 <template>
-  <div
-    class="page-wrapper"
-    :class="[
-      `q-pa-${padding}`,
-      { 'page-wrapper--centered': centered }
-    ]"
-    :style="{
-      maxWidth,
-      minHeight
-    }"
-  >
+  <div class="sp-page sp-page--with-bottom-nav">
     <slot />
   </div>
 </template>
-
-<style scoped>
-.page-wrapper {
-  margin: 0 auto;
-}
-
-.page-wrapper--centered {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-</style>

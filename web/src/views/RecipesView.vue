@@ -5,6 +5,9 @@ import { useRouter } from 'vue-router'
 import { useRecipesStore, type Recipe } from '@/stores/recipesStore'
 import { useAuthStore } from '@/stores/authStore'
 import PageWrapper from '@/components/PageWrapper.vue'
+import PageHeader from '@/components/common/PageHeader.vue'
+import EmptyState from '@/components/common/EmptyState.vue'
+import FabAdd from '@/components/common/FabAdd.vue'
 import SearchInput from '@/components/SearchInput.vue'
 import RecipeDialog, { type RecipeFormData } from '@/components/RecipeDialog.vue'
 import TagFilter from '@/components/TagFilter.vue'
@@ -23,56 +26,33 @@ const selectedTagIds = ref<string[]>([])
 const showRecipeDialog = ref(false)
 const editingRecipe = ref<Recipe | null>(null)
 
-// Computed
 const displayedRecipes = computed(() => {
   let recipes = recipesStore.sortedItems
-
-  // Filter by search query
   if (searchQuery.value) {
-    recipes = recipes.filter(recipe =>
-      matchesQuery(
-        searchQuery.value,
-        recipe.name,
-        recipe.description,
-        ...((recipe.searchNames as string[] | undefined) ?? [])
-      )
+    recipes = recipes.filter(r =>
+      matchesQuery(searchQuery.value, r.name, r.description, ...((r.searchNames as string[] | undefined) ?? []))
     )
   }
-
-  // Filter by tags
   if (selectedTagIds.value.length > 0) {
-    recipes = recipes.filter(recipe => {
-      if (!recipe.tags || recipe.tags.length === 0) return false
-      // Recipe must have at least one of the selected tags
-      return recipe.tags.some(tagId => selectedTagIds.value.includes(tagId))
+    recipes = recipes.filter(r => {
+      if (!r.tags || r.tags.length === 0) return false
+      return r.tags.some(t => selectedTagIds.value.includes(t))
     })
   }
-
   return recipes
 })
 
-function getContrastColor(hexColor: string): string {
-  const r = parseInt(hexColor.slice(1, 3), 16)
-  const g = parseInt(hexColor.slice(3, 5), 16)
-  const b = parseInt(hexColor.slice(5, 7), 16)
-  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
-  return luminance > 0.5 ? '#000000' : '#FFFFFF'
+function getContrastColor(hex: string): string {
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.5 ? '#000' : '#FFF'
 }
 
-const canCreateGlobalRecipe = computed(() => {
-  return authStore.hasGlobalPermission('global_recipes:create')
-})
+const canCreateGlobalRecipe = computed(() => authStore.hasGlobalPermission('global_recipes:create'))
+const canEditGlobalRecipe = computed(() => authStore.hasGlobalPermission('global_recipes:update'))
+const canDeleteGlobalRecipe = computed(() => authStore.hasGlobalPermission('global_recipes:delete'))
 
-const canEditGlobalRecipe = computed(() => {
-  return authStore.hasGlobalPermission('global_recipes:update')
-})
-
-const canDeleteGlobalRecipe = computed(() => {
-  return authStore.hasGlobalPermission('global_recipes:delete')
-})
-
-
-// Dialog actions
 const openAddDialog = () => {
   editingRecipe.value = null
   showRecipeDialog.value = true
@@ -83,143 +63,145 @@ const openEditDialog = (recipe: Recipe) => {
   showRecipeDialog.value = true
 }
 
-const handleSaveRecipe = async (recipeData: RecipeFormData) => {
+const handleSaveRecipe = async (data: RecipeFormData) => {
   if (editingRecipe.value) {
-    // Update existing recipe
     if (!editingRecipe.value._id) return
-    await recipesStore.updateRecipe(editingRecipe.value._id, recipeData)
+    await recipesStore.updateRecipe(editingRecipe.value._id, data)
   } else {
-    // Create new recipe
-    if (recipeData.recipeType === GlobalRecipe.recipeType.GLOBAL) {
+    if (data.recipeType === GlobalRecipe.recipeType.GLOBAL) {
       if (!canCreateGlobalRecipe.value) {
-        $q.notify({
-          type: 'negative',
-          message: 'You do not have permission to create global recipes'
-        })
+        $q.notify({ type: 'negative', message: 'You do not have permission to create global recipes' })
         return
       }
-      await recipesStore.addGlobalRecipe(recipeData)
+      await recipesStore.addGlobalRecipe(data)
     } else {
-      await recipesStore.addGroupRecipe(recipeData)
+      await recipesStore.addGroupRecipe(data)
     }
   }
-
-  // Clear search after adding
   searchQuery.value = ''
   editingRecipe.value = null
 }
 
-const deleteRecipe = (recipeId: string) => {
-  recipesStore.deleteRecipe(recipeId)
-}
+const deleteRecipe = (id: string) => recipesStore.deleteRecipe(id)
+const canEditRecipe = (r: Recipe) => r.recipeType === GlobalRecipe.recipeType.GLOBAL ? canEditGlobalRecipe.value : true
+const canDeleteRecipe = (r: Recipe) => r.recipeType === GlobalRecipe.recipeType.GLOBAL ? canDeleteGlobalRecipe.value : true
 
-const canEditRecipe = (recipe: Recipe) => {
-  if (recipe.recipeType === GlobalRecipe.recipeType.GLOBAL) return canEditGlobalRecipe.value
-  return true // Group recipes can always be edited
-}
+const openRecipe = (id: string) => router.push(`/cook/${id}`)
 
-const canDeleteRecipe = (recipe: Recipe) => {
-  if (recipe.recipeType === GlobalRecipe.recipeType.GLOBAL) return canDeleteGlobalRecipe.value
-  return true // Group recipes can always be deleted
-}
-
-const openRecipe = (recipeId: string) => {
-  router.push(`/cook/${recipeId}`)
-}
-
+const subtitle = computed(() => {
+  const total = recipesStore.sortedItems.length
+  if (searchQuery.value || selectedTagIds.value.length > 0) {
+    return `${displayedRecipes.value.length} of ${total} recipe${total !== 1 ? 's' : ''}`
+  }
+  return total === 0 ? 'Build your recipe collection' : `${total} recipe${total !== 1 ? 's' : ''} in collection`
+})
 </script>
 
 <template>
-  <PageWrapper>
-    <div class="recipes-view">
-      <div class="search-container">
+  <q-page>
+    <PageWrapper>
+      <PageHeader title="Recipes" :subtitle="subtitle" icon="restaurant_menu">
+        <template #actions>
+          <q-btn
+            color="primary"
+            unelevated
+            no-caps
+            icon="add"
+            label="Add"
+            class="gt-sm"
+            aria-label="Add recipe"
+            @click="openAddDialog"
+          />
+        </template>
+      </PageHeader>
+
+      <div class="sp-recipes__filters">
         <SearchInput v-model="searchQuery" placeholder="Search recipes..." @add="openAddDialog" />
-      </div>
-
-      <div class="filter-container q-mt-md">
-        <TagFilter v-model="selectedTagIds" />
-      </div>
-
-      <div class="recipes-grid q-mt-lg">
-        <q-card
-          v-for="recipe in displayedRecipes"
-          :key="recipe._id"
-          class="recipe-card"
-        >
-          <q-card-section class="recipe-content">
-            <div class="recipe-header">
-              <div class="recipe-icon">{{ recipe.icon || '🍽️' }}</div>
-              <div class="recipe-info">
-                <div class="recipe-name text-weight-medium">{{ recipe.name }}</div>
-              </div>
-            </div>
-
-            <!-- Tags -->
-            <div v-if="recipe.tags && recipe.tags.length > 0" class="recipe-tags q-mt-sm">
-              <q-chip
-                v-for="tagId in recipe.tags"
-                :key="tagId"
-                dense
-                size="sm"
-                :style="{
-                  backgroundColor: tagsStore.getTagById(tagId)?.color || '#6200EA',
-                  color: getContrastColor(tagsStore.getTagById(tagId)?.color || '#6200EA'),
-                  padding: '6px 12px'
-                }"
-              >
-                <span v-if="tagsStore.getTagById(tagId)?.icon" style="margin-right: 6px">{{ tagsStore.getTagById(tagId)?.icon }}</span>
-                <span>{{ tagsStore.getTagById(tagId)?.name }}</span>
-              </q-chip>
-            </div>
-
-            <div class="action-buttons q-mt-md">
-              <q-btn
-                flat
-                dense
-                round
-                color="positive"
-                icon="soup_kitchen"
-                size="md"
-                @click="recipe._id && openRecipe(recipe._id)"
-                :disable="!recipe._id"
-              >
-                <q-tooltip>Cook this recipe</q-tooltip>
-              </q-btn>
-              <q-btn
-                flat
-                dense
-                round
-                color="primary"
-                icon="edit"
-                size="md"
-                @click="openEditDialog(recipe)"
-                :disable="!canEditRecipe(recipe)"
-              >
-                <q-tooltip>Edit Recipe</q-tooltip>
-              </q-btn>
-              <q-btn
-                flat
-                dense
-                round
-                color="negative"
-                icon="delete"
-                size="md"
-                @click="recipe._id && deleteRecipe(recipe._id)"
-                :disable="!canDeleteRecipe(recipe) || !recipe._id"
-              >
-                <q-tooltip>Delete recipe</q-tooltip>
-              </q-btn>
-            </div>
-          </q-card-section>
-        </q-card>
-
-        <div v-if="displayedRecipes.length === 0" class="no-recipes">
-          <q-icon size="3em" name="restaurant_menu" />
-          <span class="text-h6 q-mt-md">No recipes yet</span>
+        <div class="q-mt-sm">
+          <TagFilter v-model="selectedTagIds" />
         </div>
       </div>
 
-      <!-- Recipe Dialog -->
+      <EmptyState
+        v-if="displayedRecipes.length === 0"
+        :icon="searchQuery ? 'search_off' : 'restaurant_menu'"
+        :title="searchQuery ? 'No recipes found' : 'No recipes yet'"
+        :hint="searchQuery ? 'Try a different search.' : 'Save your favorite dishes here. Tap Add to get started.'"
+      >
+        <template #action>
+          <q-btn color="primary" unelevated no-caps icon="add" label="Add recipe" @click="openAddDialog" />
+        </template>
+      </EmptyState>
+
+      <div v-else class="sp-recipes__grid">
+        <q-card
+          v-for="recipe in displayedRecipes"
+          :key="recipe._id"
+          flat
+          bordered
+          class="sp-recipe-card"
+          @click="recipe._id && openRecipe(recipe._id)"
+        >
+          <div class="sp-recipe-card__hero">
+            <div class="sp-recipe-card__icon">{{ recipe.icon || '🍽️' }}</div>
+            <q-badge
+              v-if="recipe.recipeType === GlobalRecipe.recipeType.GLOBAL"
+              color="secondary"
+              class="sp-recipe-card__badge"
+            >
+              Global
+            </q-badge>
+          </div>
+          <q-card-section class="sp-recipe-card__body">
+            <div class="sp-recipe-card__name">{{ recipe.name }}</div>
+            <div v-if="recipe.description" class="sp-recipe-card__desc">
+              {{ recipe.description }}
+            </div>
+            <div v-if="recipe.tags && recipe.tags.length > 0" class="sp-recipe-card__tags">
+              <q-chip
+                v-for="tagId in recipe.tags.slice(0, 3)"
+                :key="tagId"
+                dense size="sm"
+                :style="{
+                  backgroundColor: tagsStore.getTagById(tagId)?.color || '#6200EA',
+                  color: getContrastColor(tagsStore.getTagById(tagId)?.color || '#6200EA')
+                }"
+              >
+                <span v-if="tagsStore.getTagById(tagId)?.icon" style="margin-right: 4px">
+                  {{ tagsStore.getTagById(tagId)?.icon }}
+                </span>
+                {{ tagsStore.getTagById(tagId)?.name }}
+              </q-chip>
+            </div>
+          </q-card-section>
+          <q-card-actions class="sp-recipe-card__actions">
+            <q-btn
+              flat dense color="primary" no-caps
+              icon="soup_kitchen" label="Cook"
+              :disable="!recipe._id"
+              @click.stop="recipe._id && openRecipe(recipe._id)"
+            />
+            <q-space />
+            <q-btn
+              flat dense round color="grey-7" icon="edit"
+              :disable="!canEditRecipe(recipe)"
+              @click.stop="openEditDialog(recipe)"
+            >
+              <q-tooltip>Edit</q-tooltip>
+            </q-btn>
+            <q-btn
+              flat dense round color="negative" icon="delete"
+              :disable="!canDeleteRecipe(recipe) || !recipe._id"
+              @click.stop="recipe._id && deleteRecipe(recipe._id)"
+            >
+              <q-tooltip>Delete</q-tooltip>
+            </q-btn>
+          </q-card-actions>
+        </q-card>
+      </div>
+
+      <FabAdd class="lt-md" aria-label="Add recipe" @click="openAddDialog" />
+
       <RecipeDialog
         v-model="showRecipeDialog"
         :editing-recipe="editingRecipe"
@@ -227,115 +209,96 @@ const openRecipe = (recipeId: string) => {
         :read-only="editingRecipe ? !canEditRecipe(editingRecipe) : false"
         @save="handleSaveRecipe"
       />
-    </div>
-  </PageWrapper>
+    </PageWrapper>
+  </q-page>
 </template>
 
 <style scoped>
-.recipes-view {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
+.sp-recipes__filters { margin-bottom: 16px; }
 
-.search-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.recipes-grid {
+.sp-recipes__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1rem;
-  padding: 0.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
 }
 
-.recipe-card {
-  transition: all 0.2s ease;
-}
-
-.recipe-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.recipe-content {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.recipe-header {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-}
-
-.recipe-icon {
-  font-size: 3rem;
-  line-height: 1;
-  flex-shrink: 0;
-}
-
-.recipe-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.recipe-name {
-  font-size: 1.1rem;
-  line-height: 1.3;
-  word-wrap: break-word;
-  word-break: break-word;
-}
-
-.action-buttons {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: center;
-  padding-top: 0.5rem;
-  border-top: 1px solid rgba(0, 0, 0, 0.12);
-}
-
-.no-recipes {
-  grid-column: 1 / -1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem;
-  color: rgba(0, 0, 0, 0.4);
-}
-
-/* Mobile styles */
 @media (max-width: 599px) {
-  .recipes-grid {
+  .sp-recipes__grid {
     grid-template-columns: 1fr;
   }
-
-  .recipe-icon {
-    font-size: 2.5rem;
-  }
-
-  .recipe-name {
-    font-size: 1rem;
-  }
 }
 
-/* Tablet styles */
-@media (min-width: 600px) and (max-width: 1023px) {
-  .recipes-grid {
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  }
+.sp-recipe-card {
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  transition: border-color 0.18s, box-shadow 0.18s, transform 0.18s;
+  overflow: hidden;
 }
 
-/* Large screens */
-@media (min-width: 1024px) {
-  .recipes-grid {
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  }
+.sp-recipe-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(47, 125, 95, 0.3);
+  box-shadow: var(--sp-shadow-2);
+}
+
+.sp-recipe-card__hero {
+  background: linear-gradient(135deg, var(--sp-primary-soft) 0%, #F5E9DC 100%);
+  height: 110px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.sp-recipe-card__icon {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.sp-recipe-card__badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
+.sp-recipe-card__body {
+  flex: 1;
+  padding: 14px 16px 8px;
+}
+
+.sp-recipe-card__name {
+  font-family: 'Manrope', sans-serif;
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--sp-text);
+  line-height: 1.25;
+  margin-bottom: 4px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.sp-recipe-card__desc {
+  font-size: 0.85rem;
+  color: var(--sp-text-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.sp-recipe-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.sp-recipe-card__actions {
+  padding: 4px 8px 8px;
+  border-top: 1px solid var(--sp-divider);
+  background: var(--sp-surface);
 }
 </style>

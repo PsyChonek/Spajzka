@@ -6,6 +6,9 @@ import { useItemsStore } from '@/stores/itemsStore'
 import { useAuthStore } from '@/stores/authStore'
 import type { PantryItem } from '@shared/api-client'
 import PageWrapper from '@/components/PageWrapper.vue'
+import PageHeader from '@/components/common/PageHeader.vue'
+import EmptyState from '@/components/common/EmptyState.vue'
+import FabAdd from '@/components/common/FabAdd.vue'
 import ItemSuggestions from '@/components/ItemSuggestions.vue'
 import AddItemDialog, { type ItemFormData } from '@/components/AddItemDialog.vue'
 import SearchInput from '@/components/SearchInput.vue'
@@ -17,162 +20,64 @@ const pantryStore = usePantryStore()
 const itemsStore = useItemsStore()
 const authStore = useAuthStore()
 
-// Note: No need to fetch items on mount - the router guard handles this
-
 const searchQuery = ref('')
 const selectedTagIds = ref<string[]>([])
 const showAddDialog = ref(false)
 const showEditDialog = ref(false)
 const editingItem = ref<PantryItem | null>(null)
 const initialFormData = ref<Partial<ItemFormData>>({})
+const focusField = ref<'name' | 'quantity' | 'icon' | 'unit' | 'category'>('name')
 
 const allColumns = [
-  {
-    name: 'icon',
-    label: '',
-    align: 'center' as const,
-    field: (row: PantryItem) => row.icon || '',
-    sortable: false,
-    classes: 'col-icon',
-    headerClasses: 'col-icon'
-  },
-  {
-    name: 'name',
-    required: true,
-    label: 'Name',
-    align: 'left' as const,
-    field: (row: PantryItem) => row.name || 'Unknown Item',
-    sortable: true,
-    classes: 'col-name',
-    headerClasses: 'col-name'
-  },
-  {
-    name: 'quantity',
-    label: 'Quantity',
-    align: 'left' as const,
-    field: (row: PantryItem) => row.quantity || 0,
-    sortable: true,
-    classes: 'col-quantity',
-    headerClasses: 'col-quantity'
-  },
-  {
-    name: 'unit',
-    label: 'Unit',
-    align: 'left' as const,
-    field: (row: PantryItem) => row.defaultUnit || 'pcs',
-    sortable: true,
-    classes: 'col-unit',
-    headerClasses: 'col-unit'
-  },
-  {
-    name: 'createdAt',
-    label: 'Created',
-    align: 'left' as const,
-    field: (row: PantryItem) => row.createdAt,
-    format: (val: string) => new Date(val).toLocaleDateString(),
-    sortable: true,
-    hideOnMobile: true,
-    classes: 'col-created',
-    headerClasses: 'col-created'
-  },
-  {
-    name: 'actions',
-    label: 'Actions',
-    align: 'center' as const,
-    field: '',
-    sortable: false,
-    hideOnMobile: true,
-    classes: 'col-actions',
-    headerClasses: 'col-actions'
-  }
+  { name: 'icon', label: '', align: 'center' as const, field: (r: PantryItem) => r.icon || '', sortable: false, classes: 'col-icon', headerClasses: 'col-icon' },
+  { name: 'name', required: true, label: 'Name', align: 'left' as const, field: (r: PantryItem) => r.name || 'Unknown Item', sortable: true, classes: 'col-name', headerClasses: 'col-name' },
+  { name: 'quantity', label: 'Quantity', align: 'left' as const, field: (r: PantryItem) => r.quantity || 0, sortable: true, classes: 'col-quantity', headerClasses: 'col-quantity' },
+  { name: 'unit', label: 'Unit', align: 'left' as const, field: (r: PantryItem) => r.defaultUnit || 'pcs', sortable: true, classes: 'col-unit', headerClasses: 'col-unit' },
+  { name: 'createdAt', label: 'Added', align: 'left' as const, field: (r: PantryItem) => r.createdAt, format: (v: string) => new Date(v).toLocaleDateString(), sortable: true, hideOnMobile: true, classes: 'col-created', headerClasses: 'col-created' },
+  { name: 'actions', label: '', align: 'center' as const, field: '', sortable: false, hideOnMobile: true, classes: 'col-actions', headerClasses: 'col-actions' }
 ]
 
-const columns = computed(() => {
-  if ($q.screen.lt.md) {
-    return allColumns.filter(col => !col.hideOnMobile)
-  }
-  return allColumns
-})
+const columns = computed(() => $q.screen.lt.md ? allColumns.filter(c => !c.hideOnMobile) : allColumns)
 
 const filteredItems = computed(() => {
   let filtered = pantryStore.sortedItems
-
   if (searchQuery.value) {
     filtered = filtered.filter(item => {
-      const underlyingItem = itemsStore.sortedItems.find((i: any) => i._id === item.itemId)
-      return matchesQuery(
-        searchQuery.value,
-        item.name,
-        ...((underlyingItem?.searchNames as string[] | undefined) ?? [])
-      )
+      const u = itemsStore.sortedItems.find((i: any) => i._id === item.itemId)
+      return matchesQuery(searchQuery.value, item.name, ...((u?.searchNames as string[] | undefined) ?? []))
     })
   }
-
-  // Filter by tags
   if (selectedTagIds.value.length > 0) {
-    filtered = filtered.filter(pantryItem => {
-      // Find the underlying item by itemId
-      const underlyingItem = itemsStore.sortedItems.find((item: any) => item._id === pantryItem.itemId)
-      if (!underlyingItem || !underlyingItem.tags || underlyingItem.tags.length === 0) return false
-      // Item must have at least one of the selected tags
-      return underlyingItem.tags.some((tagId: string) => selectedTagIds.value.includes(tagId))
+    filtered = filtered.filter(p => {
+      const u = itemsStore.sortedItems.find((i: any) => i._id === p.itemId)
+      if (!u || !u.tags || u.tags.length === 0) return false
+      return u.tags.some((t: string) => selectedTagIds.value.includes(t))
     })
   }
-
   return filtered
 })
 
-// Suggest items from master Items list
 const suggestedItems = computed(() => {
-  if (!searchQuery.value) {
-    return []
-  }
-
-  // Get items from master list that aren't already in pantry (normalized compare)
-  const pantryItemKeys = new Set(
-    pantryStore.sortedItems.map(item => normalizeForSearch(item.name || '').trim())
-  )
-
+  if (!searchQuery.value) return []
+  const keys = new Set(pantryStore.sortedItems.map(i => normalizeForSearch(i.name || '').trim()))
   return itemsStore.sortedItems
-    .filter(item => {
-      const key = normalizeForSearch(item.name).trim()
-      return (
-        matchesQuery(
-          searchQuery.value,
-          item.name,
-          item.category,
-          ...((item.searchNames as string[] | undefined) ?? [])
-        ) && !pantryItemKeys.has(key)
-      )
+    .filter(i => {
+      const k = normalizeForSearch(i.name).trim()
+      return matchesQuery(searchQuery.value, i.name, i.category, ...((i.searchNames as string[] | undefined) ?? [])) && !keys.has(k)
     })
-    .slice(0, 5) // Limit to 5 suggestions
+    .slice(0, 5)
+})
+
+const canEditItemFields = computed(() => {
+  if (!editingItem.value) return false
+  if (editingItem.value.itemType === 'global') return authStore.hasGlobalPermission('global_items:update')
+  return authStore.hasGlobalPermission('group_items:update')
 })
 
 const openAddDialog = () => {
-  initialFormData.value = {
-    name: searchQuery.value,
-    defaultUnit: 'pcs',
-    category: '',
-    quantity: 1
-  }
+  initialFormData.value = { name: searchQuery.value, defaultUnit: 'pcs', category: '', quantity: 1 }
   showAddDialog.value = true
 }
-
-const focusField = ref<'name' | 'quantity' | 'icon' | 'unit' | 'category'>('name')
-
-// Check if user can edit item fields (not just quantity)
-const canEditItemFields = computed(() => {
-  if (!editingItem.value) return false
-
-  // For global items, check if user has global_items:update permission
-  if (editingItem.value.itemType === 'global') {
-    return authStore.hasGlobalPermission('global_items:update')
-  }
-
-  // For group items, check if user has group_items:update permission
-  // Note: This checks global permissions, but could be extended to check group-level permissions
-  return authStore.hasGlobalPermission('group_items:update')
-})
 
 const openEditDialog = (item: PantryItem, field: 'name' | 'quantity' | 'icon' | 'unit' | 'category' = 'name') => {
   editingItem.value = item
@@ -188,63 +93,31 @@ const openEditDialog = (item: PantryItem, field: 'name' | 'quantity' | 'icon' | 
 }
 
 const addFromSuggestion = async (item: any) => {
-  // Add item directly without showing modal
-  // Determine itemType based on the type property
-  const itemType = item.type || 'global'
-
   await pantryStore.addItem({
     itemId: item._id,
-    itemType: itemType as any,
+    itemType: (item.type || 'global') as any,
     quantity: 1
   })
-
-  // Mark item as recently used
   itemsStore.markItemsAsUsed([item._id])
-
   searchQuery.value = ''
 }
 
 const saveNewItem = async (data: ItemFormData) => {
-  // First, find if this item exists in the items store
-  const existingItem = itemsStore.sortedItems.find(item =>
-    item.name.toLowerCase().trim() === data.name.toLowerCase().trim()
-  )
-
-  if (existingItem && existingItem._id) {
-    // Item exists, add reference to pantry
-    const itemType = existingItem.type
-    await pantryStore.addItem({
-      itemId: existingItem._id,
-      itemType: itemType as any,
-      quantity: data.quantity || 1
-    })
-
-    // Mark item as recently used
-    itemsStore.markItemsAsUsed([existingItem._id])
+  const existing = itemsStore.sortedItems.find(i => i.name.toLowerCase().trim() === data.name.toLowerCase().trim())
+  if (existing && existing._id) {
+    await pantryStore.addItem({ itemId: existing._id, itemType: existing.type as any, quantity: data.quantity || 1 })
+    itemsStore.markItemsAsUsed([existing._id])
   } else {
-    // Item doesn't exist, create it first as a group item
     await itemsStore.addGroupItem({
       name: data.name,
       category: data.category || 'Other',
       icon: data.icon || '📦',
       defaultUnit: data.defaultUnit || 'pcs'
     })
-
-    // Find the newly created item (it will have a temp ID or real ID)
-    const newItem = itemsStore.sortedItems.find(item =>
-      item.name === data.name && item.type === 'group'
-    )
-
-    if (newItem) {
-      // Add it to the pantry
-      await pantryStore.addItem({
-        itemId: newItem._id!,
-        itemType: 'group' as any,
-        quantity: data.quantity || 1
-      })
-
-      // Mark item as recently used
-      itemsStore.markItemsAsUsed([newItem._id!])
+    const created = itemsStore.sortedItems.find(i => i.name === data.name && i.type === 'group')
+    if (created) {
+      await pantryStore.addItem({ itemId: created._id!, itemType: 'group' as any, quantity: data.quantity || 1 })
+      itemsStore.markItemsAsUsed([created._id!])
     }
   }
   searchQuery.value = ''
@@ -252,306 +125,242 @@ const saveNewItem = async (data: ItemFormData) => {
 
 const saveEditedItem = async (data: ItemFormData) => {
   if (editingItem.value && editingItem.value._id) {
-    // Update the pantry quantity
-    await pantryStore.updateItem(editingItem.value._id, {
-      quantity: data.quantity || 1
-    })
-
-    // If user has permission and item fields changed, update the underlying item
+    await pantryStore.updateItem(editingItem.value._id, { quantity: data.quantity || 1 })
     if (canEditItemFields.value && editingItem.value.itemId) {
-      const itemChanged =
+      const changed =
         data.name !== editingItem.value.name ||
         data.defaultUnit !== editingItem.value.defaultUnit ||
         data.category !== editingItem.value.category ||
         data.icon !== editingItem.value.icon
-
-      if (itemChanged) {
-        const itemUpdates = {
-          name: data.name,
-          defaultUnit: data.defaultUnit,
-          category: data.category,
-          icon: data.icon
-        }
-
+      if (changed) {
+        const updates = { name: data.name, defaultUnit: data.defaultUnit, category: data.category, icon: data.icon }
         if (editingItem.value.itemType === 'global') {
-          await itemsStore.updateGlobalItem(editingItem.value.itemId, itemUpdates)
+          await itemsStore.updateGlobalItem(editingItem.value.itemId, updates)
         } else {
-          await itemsStore.updateGroupItem(editingItem.value.itemId, itemUpdates)
+          await itemsStore.updateGroupItem(editingItem.value.itemId, updates)
         }
-
-        // Refresh pantry to get updated item details
         await pantryStore.fetchItems()
       }
     }
-
     editingItem.value = null
   }
 }
 
-const deleteItem = (itemId: string) => {
-  pantryStore.deleteItem(itemId)
-}
+const deleteItem = (id: string) => pantryStore.deleteItem(id)
+const handleDeleteFromDialog = () => editingItem.value?._id && deleteItem(editingItem.value._id)
 
-const handleDeleteFromDialog = () => {
-  if (!editingItem.value?._id) return
-  deleteItem(editingItem.value._id)
-}
+const itemCount = computed(() => filteredItems.value.length)
+const subtitle = computed(() => {
+  const total = pantryStore.sortedItems.length
+  if (searchQuery.value || selectedTagIds.value.length > 0) {
+    return `${itemCount.value} of ${total} item${total !== 1 ? 's' : ''}`
+  }
+  return total === 0 ? 'Track what you have at home' : `${total} item${total !== 1 ? 's' : ''} in stock`
+})
 </script>
 
 <template>
-  <PageWrapper>
-    <div class="items-view">
-    <div class="search-container">
-      <SearchInput v-model="searchQuery" @add="openAddDialog" />
+  <q-page>
+    <PageWrapper>
+      <PageHeader title="Pantry" :subtitle="subtitle" icon="kitchen">
+        <template #actions>
+          <q-btn
+            color="primary"
+            unelevated
+            no-caps
+            icon="add"
+            label="Add"
+            class="gt-sm"
+            @click="openAddDialog"
+            aria-label="Add to pantry"
+          />
+        </template>
+      </PageHeader>
 
-      <!-- Suggestions from Items list -->
-      <ItemSuggestions
-        :suggested-items="suggestedItems"
-        class="q-mt-md"
-        @add-item="addFromSuggestion"
-      />
-    </div>
+      <!-- Search + filter -->
+      <div class="sp-pantry__filters">
+        <SearchInput v-model="searchQuery" @add="openAddDialog" />
+        <ItemSuggestions
+          v-if="suggestedItems.length > 0"
+          :suggested-items="suggestedItems"
+          class="q-mt-sm"
+          @add-item="addFromSuggestion"
+        />
+        <div class="q-mt-sm">
+          <TagFilter v-model="selectedTagIds" />
+        </div>
+      </div>
 
-    <div class="filter-container q-mt-md">
-      <TagFilter v-model="selectedTagIds" />
-    </div>
-
-    <div class="table-container q-mt-lg">
-      <q-table
-        :rows="filteredItems"
-        :columns="columns"
-        row-key="_id"
-        :rows-per-page-options="[10, 25, 50]"
-        dense
-        flat
-        bordered
+      <!-- Empty -->
+      <EmptyState
+        v-if="filteredItems.length === 0"
+        :icon="searchQuery ? 'search_off' : 'kitchen'"
+        :title="searchQuery ? 'No items found' : 'Your pantry is empty'"
+        :hint="searchQuery ? 'Try a different search or tap Add to create a new item.' : 'Start tracking what you have. Tap the + button to add your first item.'"
       >
-        <template v-slot:body-cell-icon="props">
-          <q-td
-            :props="props"
-            class="cursor-pointer"
-            @click="openEditDialog(props.row, 'icon')"
-          >
-            <div class="item-icon">{{ props.row.icon || '📦' }}</div>
-          </q-td>
+        <template #action>
+          <q-btn color="primary" unelevated no-caps icon="add" label="Add item" @click="openAddDialog" />
         </template>
-        <template v-slot:body-cell-name="props">
-          <q-td
-            :props="props"
-            class="cursor-pointer"
-            @click="openEditDialog(props.row, 'name')"
-          >
-            {{ props.row.name || 'Unknown Item' }}
-          </q-td>
-        </template>
-        <template v-slot:body-cell-quantity="props">
-          <q-td
-            :props="props"
-            class="cursor-pointer"
-            @click="openEditDialog(props.row, 'quantity')"
-          >
-            {{ props.row.quantity }}
-          </q-td>
-        </template>
-        <template v-slot:body-cell-unit="props">
-          <q-td
-            :props="props"
-            class="cursor-pointer"
-            @click="openEditDialog(props.row, 'unit')"
-          >
-            {{ props.row.defaultUnit || 'pcs' }}
-          </q-td>
-        </template>
-        <template v-slot:body-cell-actions="props">
-          <q-td :props="props">
-            <div class="action-buttons">
-              <q-btn
-                flat
-                dense
-                round
-                color="primary"
-                icon="edit"
-                size="sm"
-                @click="openEditDialog(props.row)"
-              >
-                <q-tooltip>Edit item</q-tooltip>
-              </q-btn>
-              <q-btn
-                flat
-                dense
-                round
-                color="negative"
-                icon="delete"
-                size="sm"
-                @click="deleteItem(props.row._id)"
-              >
-                <q-tooltip>Delete item</q-tooltip>
-              </q-btn>
+      </EmptyState>
+
+      <!-- Mobile: cards -->
+      <div v-else class="sp-pantry__cards lt-md">
+        <q-card
+          v-for="row in filteredItems"
+          :key="row._id"
+          flat
+          bordered
+          class="sp-pantry-card"
+          @click="openEditDialog(row, 'name')"
+        >
+          <q-card-section class="row items-center q-gutter-md no-wrap">
+            <div class="sp-pantry-card__icon">{{ row.icon || '📦' }}</div>
+            <div class="col">
+              <div class="sp-pantry-card__name">{{ row.name || 'Unknown Item' }}</div>
+              <div class="sp-pantry-card__meta">
+                <span>{{ row.quantity || 0 }} {{ row.defaultUnit || 'pcs' }}</span>
+              </div>
             </div>
-          </q-td>
-        </template>
-        <template v-slot:no-data>
-          <div class="full-width row flex-center q-gutter-sm q-py-lg">
-            <q-icon size="2em" name="inbox" />
-            <span class="text-h6">
-              {{ searchQuery ? 'No items found' : 'No items yet' }}
-            </span>
-          </div>
-        </template>
-      </q-table>
-    </div>
+            <q-btn
+              flat
+              dense
+              round
+              icon="more_vert"
+              aria-label="Item actions"
+              @click.stop="openEditDialog(row, 'quantity')"
+            />
+          </q-card-section>
+        </q-card>
+      </div>
 
-    <!-- Add Item Dialog -->
-    <AddItemDialog
-      v-model="showAddDialog"
-      title="Add New Item"
-      :initial-data="initialFormData"
-      :show-pantry-fields="true"
-      @save="saveNewItem"
-    />
+      <!-- Desktop: table -->
+      <div v-if="filteredItems.length > 0" class="sp-pantry__table sp-table gt-sm">
+        <q-table
+          :rows="filteredItems"
+          :columns="columns"
+          row-key="_id"
+          :rows-per-page-options="[10, 25, 50]"
+          flat
+          bordered
+        >
+          <template v-slot:body-cell-icon="props">
+            <q-td :props="props" class="cursor-pointer" @click="openEditDialog(props.row, 'icon')">
+              <div class="sp-pantry-card__icon">{{ props.row.icon || '📦' }}</div>
+            </q-td>
+          </template>
+          <template v-slot:body-cell-name="props">
+            <q-td :props="props" class="cursor-pointer" @click="openEditDialog(props.row, 'name')">
+              {{ props.row.name || 'Unknown Item' }}
+            </q-td>
+          </template>
+          <template v-slot:body-cell-quantity="props">
+            <q-td :props="props" class="cursor-pointer" @click="openEditDialog(props.row, 'quantity')">
+              <strong>{{ props.row.quantity }}</strong>
+            </q-td>
+          </template>
+          <template v-slot:body-cell-unit="props">
+            <q-td :props="props" class="cursor-pointer" @click="openEditDialog(props.row, 'unit')">
+              {{ props.row.defaultUnit || 'pcs' }}
+            </q-td>
+          </template>
+          <template v-slot:body-cell-actions="props">
+            <q-td :props="props">
+              <q-btn flat dense round color="primary" icon="edit" size="sm" @click="openEditDialog(props.row)">
+                <q-tooltip>Edit</q-tooltip>
+              </q-btn>
+              <q-btn flat dense round color="negative" icon="delete" size="sm" @click="deleteItem(props.row._id)">
+                <q-tooltip>Delete</q-tooltip>
+              </q-btn>
+            </q-td>
+          </template>
+        </q-table>
+      </div>
 
-    <!-- Edit Item Dialog -->
-    <AddItemDialog
-      v-model="showEditDialog"
-      :title="`Edit Item${editingItem ? ` (${editingItem.itemType === 'global' ? 'Global' : 'Group'})` : ''}`"
-      :initial-data="initialFormData"
-      :show-pantry-fields="true"
-      :readonly-item-fields="!canEditItemFields"
-      :focus-field="focusField"
-      :show-delete-button="true"
-      @save="saveEditedItem"
-      @delete="handleDeleteFromDialog"
-    />
-    </div>
-  </PageWrapper>
+      <FabAdd class="lt-md" aria-label="Add to pantry" @click="openAddDialog" />
+
+      <AddItemDialog
+        v-model="showAddDialog"
+        title="Add New Item"
+        :initial-data="initialFormData"
+        :show-pantry-fields="true"
+        @save="saveNewItem"
+      />
+
+      <AddItemDialog
+        v-model="showEditDialog"
+        :title="`Edit Item${editingItem ? ` (${editingItem.itemType === 'global' ? 'Global' : 'Group'})` : ''}`"
+        :initial-data="initialFormData"
+        :show-pantry-fields="true"
+        :readonly-item-fields="!canEditItemFields"
+        :focus-field="focusField"
+        :show-delete-button="true"
+        @save="saveEditedItem"
+        @delete="handleDeleteFromDialog"
+      />
+    </PageWrapper>
+  </q-page>
 </template>
 
 <style scoped>
-.search-container {
+.sp-pantry__filters {
+  margin-bottom: 16px;
+}
+
+.sp-pantry__cards {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  gap: 8px;
 }
 
-.filter-container {
-  display: flex;
-  justify-content: center;
+.sp-pantry-card {
+  cursor: pointer;
+  transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
 }
 
-.table-container {
-  width: 100%;
+.sp-pantry-card:hover {
+  border-color: rgba(47, 125, 95, 0.35);
+  box-shadow: var(--sp-shadow-2);
 }
 
-.action-buttons {
-  display: flex;
-  gap: 2px;
-  justify-content: center;
-}
-
-.item-icon {
-  font-size: 1.5rem;
+.sp-pantry-card__icon {
+  font-size: 1.6rem;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  height: 100%;
+  background: var(--sp-primary-soft);
+  border-radius: 10px;
+  flex-shrink: 0;
 }
 
-/* Table layout */
-:deep(.q-table thead),
-:deep(.q-table tbody),
-:deep(.q-table tr) {
-  width: 100%;
-  display: table;
-  table-layout: fixed;
+.sp-pantry-card__name {
+  font-weight: 600;
+  color: var(--sp-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-:deep(.q-table th),
-:deep(.q-table td) {
-  padding: 8px;
-  box-sizing: border-box;
+.sp-pantry-card__meta {
+  font-size: 0.85rem;
+  color: var(--sp-text-muted);
+  margin-top: 2px;
 }
 
-/* Override Quasar's dense padding for first column */
-:deep(.q-table--dense th:first-child),
-:deep(.q-table--dense td:first-child) {
-  padding-left: 8px;
+.sp-pantry__table {
+  background: var(--sp-surface);
+  border-radius: var(--sp-r-md);
+  overflow: hidden;
 }
 
-/* Center icon column */
-:deep(.q-table .col-icon) {
-  width: 60px;
-  text-align: center;
+:deep(.sp-pantry__table .q-table thead) {
+  background: var(--sp-surface-2);
 }
 
-/* Desktop column widths */
-:deep(.q-table .col-name) {
-  width: auto;
-}
-
-:deep(.q-table .col-quantity) {
-  width: 100px;
-}
-
-:deep(.q-table .col-unit) {
-  width: 80px;
-}
-
-:deep(.q-table .col-created) {
-  width: 120px;
-}
-
-:deep(.q-table .col-actions) {
-  width: 100px;
-}
-
-/* Mobile styles */
-@media (max-width: 1023px) {
-  /* Column widths for mobile (4 columns) */
-  :deep(.q-table .col-icon) {
-    width: 15%;
-  }
-
-  :deep(.q-table .col-name) {
-    width: 40%;
-  }
-
-  :deep(.q-table .col-quantity) {
-    width: 25%;
-  }
-
-  :deep(.q-table .col-unit) {
-    width: 20%;
-  }
-
-  /* Fill viewport height */
-  .items-view {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-  }
-
-  .table-container {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-  }
-
-  .table-container :deep(.q-table) {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .table-container :deep(.q-table__container) {
-    flex: 1;
-    min-height: 0;
-  }
-
-  .table-container :deep(.q-table__middle) {
-    flex: 1;
-    overflow-y: auto;
-  }
-}
+:deep(.q-table .col-icon) { width: 64px; text-align: center; }
+:deep(.q-table .col-quantity) { width: 100px; }
+:deep(.q-table .col-unit) { width: 80px; }
+:deep(.q-table .col-created) { width: 120px; }
+:deep(.q-table .col-actions) { width: 100px; }
 </style>

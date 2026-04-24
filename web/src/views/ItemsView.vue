@@ -3,6 +3,9 @@ import { ref, computed } from 'vue'
 import { useQuasar } from 'quasar'
 import { useItemsStore, type Item } from '@/stores/itemsStore'
 import PageWrapper from '@/components/PageWrapper.vue'
+import PageHeader from '@/components/common/PageHeader.vue'
+import EmptyState from '@/components/common/EmptyState.vue'
+import FabAdd from '@/components/common/FabAdd.vue'
 import { useAuthStore } from '@/stores/authStore'
 import AddItemDialog, { type ItemFormData } from '@/components/AddItemDialog.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
@@ -27,138 +30,45 @@ const initialFormData = ref<Partial<ItemFormData>>({})
 const focusField = ref<'name' | 'icon' | 'unit' | 'category'>('name')
 
 const allColumns = [
-  {
-    name: 'icon',
-    label: '',
-    align: 'center' as const,
-    field: (row: Item) => row.icon || '',
-    sortable: false,
-    classes: 'col-icon',
-    headerClasses: 'col-icon'
-  },
-  {
-    name: 'name',
-    required: true,
-    label: 'Name',
-    align: 'left' as const,
-    field: (row: Item) => row.name,
-    sortable: true,
-    classes: 'col-name',
-    headerClasses: 'col-name'
-  },
-  {
-    name: 'defaultUnit',
-    label: 'Unit',
-    align: 'left' as const,
-    field: (row: Item) => row.defaultUnit || '-',
-    sortable: true,
-    classes: 'col-unit',
-    headerClasses: 'col-unit'
-  },
-  {
-    name: 'category',
-    label: 'Category',
-    align: 'left' as const,
-    field: (row: Item) => row.category || '-',
-    sortable: true,
-    hideOnMobile: true,
-    classes: 'col-category',
-    headerClasses: 'col-category'
-  },
-  {
-    name: 'tags',
-    label: 'Tags',
-    align: 'left' as const,
-    field: (row: Item) => row.tags || [],
-    sortable: false,
-    hideOnMobile: true,
-    classes: 'col-tags',
-    headerClasses: 'col-tags'
-  },
-  {
-    name: 'createdAt',
-    label: 'Created',
-    align: 'left' as const,
-    field: (row: Item) => row.createdAt,
-    format: (val: string | undefined) => val ? new Date(val).toLocaleDateString() : '-',
-    sortable: true,
-    hideOnMobile: true,
-    classes: 'col-created',
-    headerClasses: 'col-created'
-  },
-  {
-    name: 'actions',
-    label: 'Actions',
-    align: 'center' as const,
-    field: '',
-    sortable: false,
-    hideOnMobile: true,
-    classes: 'col-actions',
-    headerClasses: 'col-actions'
-  }
+  { name: 'icon', label: '', align: 'center' as const, field: (r: Item) => r.icon || '', sortable: false, classes: 'col-icon', headerClasses: 'col-icon' },
+  { name: 'name', required: true, label: 'Name', align: 'left' as const, field: (r: Item) => r.name, sortable: true, classes: 'col-name', headerClasses: 'col-name' },
+  { name: 'defaultUnit', label: 'Unit', align: 'left' as const, field: (r: Item) => r.defaultUnit || '-', sortable: true, classes: 'col-unit', headerClasses: 'col-unit' },
+  { name: 'category', label: 'Category', align: 'left' as const, field: (r: Item) => r.category || '-', sortable: true, hideOnMobile: true, classes: 'col-category', headerClasses: 'col-category' },
+  { name: 'tags', label: 'Tags', align: 'left' as const, field: (r: Item) => r.tags || [], sortable: false, hideOnMobile: true, classes: 'col-tags', headerClasses: 'col-tags' },
+  { name: 'actions', label: '', align: 'center' as const, field: '', sortable: false, hideOnMobile: true, classes: 'col-actions', headerClasses: 'col-actions' }
 ]
 
-const columns = computed(() => {
-  if ($q.screen.lt.md) {
-    return allColumns.filter((col: any) => !col.hideOnMobile)
-  }
-  return allColumns
-})
+const columns = computed(() => $q.screen.lt.md ? allColumns.filter((c: any) => !c.hideOnMobile) : allColumns)
 
 const filteredItems = computed(() => {
   let items = itemsStore.sortedItems
-
-  // Filter by search query
   if (searchQuery.value) {
     items = items.filter(item =>
-      matchesQuery(
-        searchQuery.value,
-        item.name,
-        item.defaultUnit,
-        item.category,
-        ...(item.searchNames ?? [])
-      )
+      matchesQuery(searchQuery.value, item.name, item.defaultUnit, item.category, ...(item.searchNames ?? []))
     )
   }
-
-  // Filter by tags
   if (selectedTagIds.value.length > 0) {
     items = items.filter(item => {
       if (!item.tags || item.tags.length === 0) return false
-      // Item must have at least one of the selected tags
-      return item.tags.some(tagId => selectedTagIds.value.includes(tagId))
+      return item.tags.some(t => selectedTagIds.value.includes(t))
     })
   }
-
   return items
 })
 
-function getContrastColor(hexColor: string): string {
-  const r = parseInt(hexColor.slice(1, 3), 16)
-  const g = parseInt(hexColor.slice(3, 5), 16)
-  const b = parseInt(hexColor.slice(5, 7), 16)
-  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
-  return luminance > 0.5 ? '#000000' : '#FFFFFF'
+function getContrastColor(hex: string): string {
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.5 ? '#000' : '#FFF'
 }
 
-const canCreateGlobalItems = computed(() => {
-  return authStore.hasGlobalPermission('global_items:create')
-})
-
-const canUpdateGlobalItems = computed(() => {
-  return authStore.hasGlobalPermission('global_items:update')
-})
-
-const canDeleteGlobalItems = computed(() => {
-  return authStore.hasGlobalPermission('global_items:delete')
-})
+const canCreateGlobalItems = computed(() => authStore.hasGlobalPermission('global_items:create'))
+const canUpdateGlobalItems = computed(() => authStore.hasGlobalPermission('global_items:update'))
+const canDeleteGlobalItems = computed(() => authStore.hasGlobalPermission('global_items:delete'))
 
 const openAddDialog = () => {
-  initialFormData.value = {
-    name: searchQuery.value,
-    defaultUnit: 'pcs',
-    category: ''
-  }
+  initialFormData.value = { name: searchQuery.value, defaultUnit: 'pcs', category: '' }
   showAddDialog.value = true
 }
 
@@ -177,24 +87,15 @@ const openEditDialog = (item: Item, field: 'name' | 'icon' | 'unit' | 'category'
 }
 
 const saveNewItem = async (data: ItemFormData) => {
-  // Check if user wants to create as global item
   if (data.isGlobal) {
     await itemsStore.addGlobalItem({
-      name: data.name,
-      category: data.category || 'Other',
-      defaultUnit: data.defaultUnit || 'pcs',
-      icon: data.icon,
-      searchNames: data.searchNames,
-      tags: data.tags
+      name: data.name, category: data.category || 'Other', defaultUnit: data.defaultUnit || 'pcs',
+      icon: data.icon, searchNames: data.searchNames, tags: data.tags
     })
   } else {
     await itemsStore.addGroupItem({
-      name: data.name,
-      category: data.category || 'Other',
-      defaultUnit: data.defaultUnit || 'pcs',
-      icon: data.icon,
-      searchNames: data.searchNames,
-      tags: data.tags
+      name: data.name, category: data.category || 'Other', defaultUnit: data.defaultUnit || 'pcs',
+      icon: data.icon, searchNames: data.searchNames, tags: data.tags
     })
   }
   searchQuery.value = ''
@@ -203,15 +104,9 @@ const saveNewItem = async (data: ItemFormData) => {
 const saveEditedItem = async (data: ItemFormData) => {
   if (editingItem.value && editingItem.value._id) {
     const updates = {
-      name: data.name,
-      category: data.category || 'Other',
-      defaultUnit: data.defaultUnit || 'pcs',
-      icon: data.icon,
-      searchNames: data.searchNames,
-      tags: data.tags
+      name: data.name, category: data.category || 'Other', defaultUnit: data.defaultUnit || 'pcs',
+      icon: data.icon, searchNames: data.searchNames, tags: data.tags
     }
-
-    // Update based on item type
     if (editingItem.value.type === 'global') {
       await itemsStore.updateGlobalItem(editingItem.value._id, updates)
     } else {
@@ -226,119 +121,142 @@ const deleteItem = (item: Item) => {
   showDeleteDialog.value = true
 }
 
-const handleDeleteFromDialog = () => {
-  if (!editingItem.value) return
-  deleteItem(editingItem.value)
-}
+const handleDeleteFromDialog = () => editingItem.value && deleteItem(editingItem.value)
 
 const confirmDelete = () => {
   if (!deletingItem.value) return
-
-  if (deletingItem.value.type === 'global') {
-    itemsStore.deleteGlobalItem(deletingItem.value._id!)
-  } else {
-    itemsStore.deleteGroupItem(deletingItem.value._id!)
-  }
+  if (deletingItem.value.type === 'global') itemsStore.deleteGlobalItem(deletingItem.value._id!)
+  else itemsStore.deleteGroupItem(deletingItem.value._id!)
   deletingItem.value = null
 }
 
-const cancelDelete = () => {
-  deletingItem.value = null
-}
+const cancelDelete = () => { deletingItem.value = null }
 
 const deleteDialogMessage = computed(() => {
   if (!deletingItem.value) return ''
   return `Are you sure you want to delete "<strong>${deletingItem.value.name}</strong>"?<br><br>This item will be removed from all pantry and shopping lists.`
 })
 
-const canEditItem = (item: Item) => {
-  if (item.type === 'global') {
-    return canUpdateGlobalItems.value
-  }
-  return true // Group items can always be edited by group members
-}
+const canEditItem = (item: Item) => item.type === 'global' ? canUpdateGlobalItems.value : true
+const canDeleteItem = (item: Item) => item.type === 'global' ? canDeleteGlobalItems.value : true
 
-const canDeleteItem = (item: Item) => {
-  if (item.type === 'global') {
-    return canDeleteGlobalItems.value
-  }
-  return true // Group items can always be deleted by group members
-}
-
-// Check if currently editing item can be deleted
-const canDeleteCurrentItem = computed(() => {
-  if (!editingItem.value) return false
-  return canDeleteItem(editingItem.value)
-})
-
-// Check if currently editing item can have its fields edited
+const canDeleteCurrentItem = computed(() => editingItem.value ? canDeleteItem(editingItem.value) : false)
 const canEditItemFields = computed(() => {
   if (!editingItem.value) return false
+  return editingItem.value.type === 'global' ? canUpdateGlobalItems.value : true
+})
 
-  // For global items, check if user has global_items:update permission
-  if (editingItem.value.type === 'global') {
-    return canUpdateGlobalItems.value
+const subtitle = computed(() => {
+  const total = itemsStore.sortedItems.length
+  if (searchQuery.value || selectedTagIds.value.length > 0) {
+    return `${filteredItems.value.length} of ${total} item${total !== 1 ? 's' : ''}`
   }
-
-  // For group items, user can always edit
-  return true
+  return total === 0 ? 'Catalog of all items you can add' : `${total} item${total !== 1 ? 's' : ''} in catalog`
 })
 </script>
 
 <template>
-  <PageWrapper>
-    <div class="items-view">
-      <div class="search-container">
+  <q-page>
+    <PageWrapper>
+      <PageHeader title="Items" :subtitle="subtitle" icon="inventory">
+        <template #actions>
+          <q-btn
+            color="primary"
+            unelevated
+            no-caps
+            icon="add"
+            label="Add"
+            class="gt-sm"
+            aria-label="Add item"
+            @click="openAddDialog"
+          />
+        </template>
+      </PageHeader>
+
+      <div class="sp-items__filters">
         <SearchInput v-model="searchQuery" @add="openAddDialog" />
+        <div class="q-mt-sm">
+          <TagFilter v-model="selectedTagIds" />
+        </div>
       </div>
 
-      <div class="filter-container q-mt-md">
-        <TagFilter v-model="selectedTagIds" />
+      <EmptyState
+        v-if="filteredItems.length === 0"
+        :icon="searchQuery ? 'search_off' : 'inventory_2'"
+        :title="searchQuery ? 'No items found' : 'No items yet'"
+        :hint="searchQuery ? 'Try a different search.' : 'Items in your catalog can be added to pantry or shopping list.'"
+      >
+        <template #action>
+          <q-btn color="primary" unelevated no-caps icon="add" label="Add item" @click="openAddDialog" />
+        </template>
+      </EmptyState>
+
+      <!-- Mobile: cards -->
+      <div v-else class="sp-items__cards lt-md">
+        <q-card
+          v-for="row in filteredItems"
+          :key="row._id"
+          flat
+          bordered
+          class="sp-item-card"
+          @click="openEditDialog(row, 'name')"
+        >
+          <q-card-section class="row items-center q-gutter-md no-wrap">
+            <div class="sp-item-card__icon">{{ row.icon || '📦' }}</div>
+            <div class="col sp-item-card__body">
+              <div class="sp-item-card__name">{{ row.name }}</div>
+              <div class="sp-item-card__meta">
+                <span>{{ row.defaultUnit || '-' }}</span>
+                <span v-if="row.category" class="dot">·</span>
+                <span v-if="row.category">{{ row.category }}</span>
+                <q-badge v-if="row.type === 'global'" color="secondary" class="q-ml-xs">Global</q-badge>
+              </div>
+              <div v-if="row.tags && row.tags.length > 0" class="row q-gutter-xs q-mt-xs">
+                <q-chip
+                  v-for="tagId in row.tags.slice(0, 4)"
+                  :key="tagId"
+                  dense size="sm"
+                  :style="{
+                    backgroundColor: tagsStore.getTagById(tagId)?.color || '#6200EA',
+                    color: getContrastColor(tagsStore.getTagById(tagId)?.color || '#6200EA')
+                  }"
+                >
+                  {{ tagsStore.getTagById(tagId)?.name }}
+                </q-chip>
+              </div>
+            </div>
+            <q-icon name="chevron_right" color="grey-6" />
+          </q-card-section>
+        </q-card>
       </div>
 
-      <div class="table-container q-mt-lg">
+      <!-- Desktop: table -->
+      <div v-if="filteredItems.length > 0" class="sp-items__table sp-table gt-sm">
         <q-table
           :rows="filteredItems"
           :columns="columns"
           row-key="_id"
           :rows-per-page-options="[10, 25, 50]"
-          dense
-          flat
-          bordered
+          flat bordered
         >
           <template v-slot:body-cell-icon="props">
-            <q-td
-              :props="props"
-              class="cursor-pointer"
-              @click="openEditDialog(props.row, 'icon')"
-            >
-              <div class="item-icon">{{ props.row.icon || '📦' }}</div>
+            <q-td :props="props" class="cursor-pointer" @click="openEditDialog(props.row, 'icon')">
+              <div class="sp-item-card__icon">{{ props.row.icon || '📦' }}</div>
             </q-td>
           </template>
           <template v-slot:body-cell-name="props">
-            <q-td
-              :props="props"
-              class="cursor-pointer"
-              @click="openEditDialog(props.row, 'name')"
-            >
-              {{ props.row.name }}
+            <q-td :props="props" class="cursor-pointer" @click="openEditDialog(props.row, 'name')">
+              <strong>{{ props.row.name }}</strong>
+              <q-badge v-if="props.row.type === 'global'" color="secondary" class="q-ml-sm">Global</q-badge>
             </q-td>
           </template>
           <template v-slot:body-cell-defaultUnit="props">
-            <q-td
-              :props="props"
-              class="cursor-pointer"
-              @click="openEditDialog(props.row, 'unit')"
-            >
+            <q-td :props="props" class="cursor-pointer" @click="openEditDialog(props.row, 'unit')">
               {{ props.row.defaultUnit || '-' }}
             </q-td>
           </template>
           <template v-slot:body-cell-category="props">
-            <q-td
-              :props="props"
-              class="cursor-pointer"
-              @click="openEditDialog(props.row, 'category')"
-            >
+            <q-td :props="props" class="cursor-pointer" @click="openEditDialog(props.row, 'category')">
               {{ props.row.category || '-' }}
             </q-td>
           </template>
@@ -348,15 +266,16 @@ const canEditItemFields = computed(() => {
                 <q-chip
                   v-for="tagId in props.row.tags"
                   :key="tagId"
-                  dense
-                  size="sm"
+                  dense size="sm"
                   :style="{
                     backgroundColor: tagsStore.getTagById(tagId)?.color || '#6200EA',
                     color: getContrastColor(tagsStore.getTagById(tagId)?.color || '#6200EA'),
                     padding: '6px 12px'
                   }"
                 >
-                  <span v-if="tagsStore.getTagById(tagId)?.icon" style="margin-right: 6px">{{ tagsStore.getTagById(tagId)?.icon }}</span>
+                  <span v-if="tagsStore.getTagById(tagId)?.icon" style="margin-right: 6px">
+                    {{ tagsStore.getTagById(tagId)?.icon }}
+                  </span>
                   <span>{{ tagsStore.getTagById(tagId)?.name }}</span>
                 </q-chip>
               </div>
@@ -365,46 +284,21 @@ const canEditItemFields = computed(() => {
           </template>
           <template v-slot:body-cell-actions="props">
             <q-td :props="props">
-              <div class="action-buttons">
-                <q-btn
-                  flat
-                  dense
-                  round
-                  color="primary"
-                  icon="edit"
-                  size="sm"
-                  :disable="!canEditItem(props.row)"
-                  @click="openEditDialog(props.row)"
-                >
-                  <q-tooltip>{{ canEditItem(props.row) ? 'Edit item' : 'No permission to edit' }}</q-tooltip>
-                </q-btn>
-                <q-btn
-                  flat
-                  dense
-                  round
-                  color="negative"
-                  icon="delete"
-                  size="sm"
-                  :disable="!canDeleteItem(props.row)"
-                  @click="deleteItem(props.row)"
-                >
-                  <q-tooltip>{{ canDeleteItem(props.row) ? 'Delete item' : 'No permission to delete' }}</q-tooltip>
-                </q-btn>
-              </div>
+              <q-btn flat dense round color="primary" icon="edit" size="sm"
+                :disable="!canEditItem(props.row)" @click="openEditDialog(props.row)">
+                <q-tooltip>{{ canEditItem(props.row) ? 'Edit' : 'No permission' }}</q-tooltip>
+              </q-btn>
+              <q-btn flat dense round color="negative" icon="delete" size="sm"
+                :disable="!canDeleteItem(props.row)" @click="deleteItem(props.row)">
+                <q-tooltip>{{ canDeleteItem(props.row) ? 'Delete' : 'No permission' }}</q-tooltip>
+              </q-btn>
             </q-td>
-          </template>
-          <template v-slot:no-data>
-            <div class="full-width row flex-center q-gutter-sm q-py-lg">
-              <q-icon size="2em" name="inbox" />
-              <span class="text-h6">
-                {{ searchQuery ? 'No items found' : 'No items yet' }}
-              </span>
-            </div>
           </template>
         </q-table>
       </div>
 
-      <!-- Add Item Dialog -->
+      <FabAdd class="lt-md" aria-label="Add item" @click="openAddDialog" />
+
       <AddItemDialog
         v-model="showAddDialog"
         title="Add New Item"
@@ -413,7 +307,6 @@ const canEditItemFields = computed(() => {
         @save="saveNewItem"
       />
 
-      <!-- Edit Item Dialog -->
       <AddItemDialog
         v-model="showEditDialog"
         title="Edit Item"
@@ -425,7 +318,6 @@ const canEditItemFields = computed(() => {
         @delete="handleDeleteFromDialog"
       />
 
-      <!-- Delete Confirmation Dialog -->
       <ConfirmDialog
         v-model="showDeleteDialog"
         title="Delete Item"
@@ -435,127 +327,74 @@ const canEditItemFields = computed(() => {
         @confirm="confirmDelete"
         @cancel="cancelDelete"
       />
-    </div>
-  </PageWrapper>
+    </PageWrapper>
+  </q-page>
 </template>
 
 <style scoped>
-.search-container {
+.sp-items__filters { margin-bottom: 16px; }
+
+.sp-items__cards {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  gap: 8px;
 }
 
-.table-container {
-  width: 100%;
+.sp-item-card {
+  cursor: pointer;
+  transition: border-color 0.18s, box-shadow 0.18s;
 }
 
-.action-buttons {
+.sp-item-card:hover {
+  border-color: rgba(47, 125, 95, 0.3);
+  box-shadow: var(--sp-shadow-2);
+}
+
+.sp-item-card__icon {
+  font-size: 1.4rem;
+  width: 40px;
+  height: 40px;
   display: flex;
-  gap: 2px;
-  justify-content: center;
-}
-
-.item-icon {
-  font-size: 1.5rem;
-  display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  height: 100%;
+  background: var(--sp-primary-soft);
+  border-radius: 10px;
+  flex-shrink: 0;
 }
 
-/* Table layout */
-:deep(.q-table thead),
-:deep(.q-table tbody),
-:deep(.q-table tr) {
-  width: 100%;
-  display: table;
-  table-layout: fixed;
+.sp-item-card__body { min-width: 0; }
+
+.sp-item-card__name {
+  font-weight: 600;
+  color: var(--sp-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-:deep(.q-table th),
-:deep(.q-table td) {
-  padding: 8px;
-  box-sizing: border-box;
+.sp-item-card__meta {
+  font-size: 0.85rem;
+  color: var(--sp-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
-/* Override Quasar's dense padding for first column */
-:deep(.q-table--dense th:first-child),
-:deep(.q-table--dense td:first-child) {
-  padding-left: 8px;
+.sp-item-card__meta .dot { opacity: 0.5; }
+
+.sp-items__table {
+  background: var(--sp-surface);
+  border-radius: var(--sp-r-md);
+  overflow: hidden;
 }
 
-/* Center icon column */
-:deep(.q-table .col-icon) {
-  width: 60px;
-  text-align: center;
+:deep(.sp-items__table .q-table thead) {
+  background: var(--sp-surface-2);
 }
 
-/* Desktop column widths */
-:deep(.q-table .col-name) {
-  width: auto;
-}
-
-:deep(.q-table .col-unit) {
-  width: 80px;
-}
-
-:deep(.q-table .col-category) {
-  width: 120px;
-}
-
-:deep(.q-table .col-created) {
-  width: 110px;
-}
-
-:deep(.q-table .col-actions) {
-  width: 100px;
-}
-
-/* Mobile styles */
-@media (max-width: 1023px) {
-  /* Column widths for mobile (3 columns: icon, name, unit) */
-  :deep(.q-table .col-icon) {
-    width: 12%;
-  }
-
-  :deep(.q-table .col-name) {
-    width: 63%;
-  }
-
-  :deep(.q-table .col-unit) {
-    width: 25%;
-  }
-
-  /* Fill viewport height */
-  .items-view {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-  }
-
-  .table-container {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-  }
-
-  .table-container :deep(.q-table) {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .table-container :deep(.q-table__container) {
-    flex: 1;
-    min-height: 0;
-  }
-
-  .table-container :deep(.q-table__middle) {
-    flex: 1;
-    overflow-y: auto;
-  }
-}
+:deep(.q-table .col-icon) { width: 64px; text-align: center; }
+:deep(.q-table .col-unit) { width: 80px; }
+:deep(.q-table .col-category) { width: 140px; }
+:deep(.q-table .col-tags) { width: 220px; }
+:deep(.q-table .col-actions) { width: 100px; }
 </style>

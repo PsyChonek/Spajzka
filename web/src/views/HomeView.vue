@@ -1,158 +1,224 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import PageWrapper from '@/components/PageWrapper.vue'
+import PageHeader from '@/components/common/PageHeader.vue'
+import Stat from '@/components/common/Stat.vue'
+import SectionCard from '@/components/common/SectionCard.vue'
+import EmptyState from '@/components/common/EmptyState.vue'
+import { usePantryStore } from '@/stores/pantryStore'
+import { useShoppingStore } from '@/stores/shoppingStore'
+import { useRecipesStore } from '@/stores/recipesStore'
+import { useMealPlanStore } from '@/stores/mealPlanStore'
+import { useHistoryStore } from '@/stores/historyStore'
+import { useAuthStore } from '@/stores/authStore'
 
 const router = useRouter()
+const pantryStore = usePantryStore()
+const shoppingStore = useShoppingStore()
+const recipesStore = useRecipesStore()
+const mealPlanStore = useMealPlanStore()
+const historyStore = useHistoryStore()
+const authStore = useAuthStore()
 
-const features = [
-  {
-    icon: 'inventory_2',
-    title: 'Pantry',
-    description: 'Manage your pantry inventory with quantities, prices, and more',
-    route: '/pantry',
-    color: 'primary'
-  },
-  {
-    icon: 'shopping_cart',
-    title: 'Shopping',
-    description: 'Keep track of items you need to buy with a simple checklist',
-    route: '/shopping',
-    color: 'secondary'
-  },
-  {
-    icon: 'restaurant_menu',
-    title: 'Recipes',
-    description: 'Create and manage your personal and group recipes with ingredients and instructions',
-    route: '/recipes',
-    color: 'accent'
-  },
-    {
-    icon: 'event',
-    title: 'Meal Plan',
-    description: 'Schedule meals on your calendar and auto-generate the shopping list',
-    route: '/meal-plan',
-    color: 'purple'
-  },
-  {
-    icon: 'restaurant',
-    title: 'Cook',
-    description: 'Find and cook recipes based on your pantry items',
-    route: '/cook',
-    color: 'orange'
-  }
+const pantryCount = computed(() => pantryStore.items?.length ?? 0)
+const shoppingPending = computed(
+  () => (shoppingStore.items ?? []).filter((i: any) => !i.completed).length
+)
+const recipeCount = computed(() => recipesStore.items?.length ?? 0)
+const upcomingMeals = computed(() => {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const horizon = new Date(today)
+  horizon.setDate(horizon.getDate() + 7)
+  return (mealPlanStore.entries ?? []).filter((e: any) => {
+    const d = new Date(e.eatDate ?? e.date ?? '')
+    return d >= today && d < horizon
+  }).length
+})
+
+const recentActivity = computed(() => (historyStore.entries ?? []).slice(0, 5))
+
+const greeting = computed(() => {
+  const h = new Date().getHours()
+  if (h < 5) return 'Late night'
+  if (h < 12) return 'Good morning'
+  if (h < 18) return 'Good afternoon'
+  return 'Good evening'
+})
+
+const userName = computed(() => {
+  const e = authStore.user?.email
+  if (!e) return ''
+  return e.split('@')[0]
+})
+
+const quickActions = [
+  { icon: 'add_shopping_cart', label: 'Add to shopping', route: '/shopping', color: 'secondary' },
+  { icon: 'restaurant_menu', label: 'Browse recipes', route: '/recipes', color: 'primary' },
+  { icon: 'event', label: 'Plan a meal', route: '/meal-plan', color: 'accent' }
 ]
 
-const navigateTo = (route: string) => {
-  router.push(route)
+const formatActivity = (e: any) => {
+  const action = e.action ?? ''
+  const entity = e.entityType ?? ''
+  const name = e.entityName ?? e.itemName ?? e.metadata?.name ?? ''
+  return `${capitalize(action)} ${entity}${name ? `: ${name}` : ''}`.trim()
 }
+
+const capitalize = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s)
+
+const formatTime = (ts: any) => {
+  if (!ts) return ''
+  const date = new Date(ts)
+  if (isNaN(date.getTime())) return ''
+  const now = new Date()
+  const diff = (now.getTime() - date.getTime()) / 1000
+  if (diff < 60) return 'just now'
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`
+  if (diff < 86400 * 7) return `${Math.floor(diff / 86400)}d ago`
+  return date.toLocaleDateString()
+}
+
+const navigateTo = (path: string) => router.push(path)
 </script>
 
 <template>
-  <PageWrapper max-width="1200px" min-height="80vh">
-    <div class="home">
-      <div class="hero-section">
-        <div class="hero-icon q-mb-lg">
-          <img src="/favicon.svg" alt="Spajzka Logo" class="logo vue q-ml-sm" width="256" height="256" />
-        </div>
-        <h1 class="text-h2 text-weight-bold q-mb-md">Welcome to Spajzka</h1>
-        <p class="text-h5 text-grey-7 q-mb-xl">Your personal pantry and shopping list manager</p>
-      </div>
+  <q-page>
+    <PageWrapper>
+      <PageHeader
+        :title="userName ? `${greeting}, ${userName}` : greeting"
+        subtitle="Here's what's in your kitchen today."
+      />
 
-      <div class="features-section">
-        <div class="row q-col-gutter-lg justify-center">
-          <div
-            v-for="feature in features"
-            :key="feature.route"
-            class="col-12 col-sm-6 col-md-5"
+      <!-- Stats -->
+      <section class="sp-stats-grid sp-section">
+        <Stat
+          label="In pantry"
+          :value="pantryCount"
+          icon="kitchen"
+          color="primary"
+          to="/pantry"
+        />
+        <Stat
+          label="To buy"
+          :value="shoppingPending"
+          icon="shopping_cart"
+          color="secondary"
+          to="/shopping"
+        />
+        <Stat
+          label="Recipes"
+          :value="recipeCount"
+          icon="restaurant_menu"
+          color="accent"
+          to="/recipes"
+        />
+        <Stat
+          label="Meals this week"
+          :value="upcomingMeals"
+          icon="event"
+          color="primary"
+          to="/meal-plan"
+        />
+      </section>
+
+      <!-- Quick actions -->
+      <SectionCard title="Quick actions" subtitle="Jump into common tasks">
+        <div class="sp-quick-grid">
+          <q-btn
+            v-for="action in quickActions"
+            :key="action.route"
+            :icon="action.icon"
+            :label="action.label"
+            :color="action.color"
+            unelevated
+            no-caps
+            class="sp-quick-btn"
+            @click="navigateTo(action.route)"
+          />
+        </div>
+      </SectionCard>
+
+      <!-- Recent activity -->
+      <SectionCard title="Recent activity">
+        <template #actions>
+          <q-btn
+            flat
+            no-caps
+            label="View all"
+            icon-right="chevron_right"
+            color="primary"
+            @click="navigateTo('/history')"
+          />
+        </template>
+
+        <EmptyState
+          v-if="recentActivity.length === 0"
+          icon="history"
+          title="No activity yet"
+          hint="Add an item to your pantry or shopping list to see it here."
+        />
+        <q-list v-else padding separator>
+          <q-item
+            v-for="entry in recentActivity"
+            :key="entry._id"
+            class="sp-activity-item"
           >
-            <q-card
-              class="feature-card cursor-pointer"
-              @click="navigateTo(feature.route)"
-            >
-              <q-card-section class="text-center">
-                <q-icon
-                  :name="feature.icon"
-                  size="64px"
-                  :color="feature.color"
-                  class="q-mb-md"
-                />
-                <div class="text-h5 q-mb-sm">{{ feature.title }}</div>
-                <div class="text-body1 text-grey-7">{{ feature.description }}</div>
-              </q-card-section>
-              <q-card-actions align="center">
-                <q-btn
-                  flat
-                  :color="feature.color"
-                  label="Open"
-                  icon-right="arrow_forward"
-                />
-              </q-card-actions>
-            </q-card>
-          </div>
-        </div>
-      </div>
-
-      <div class="info-section q-mt-xl">
-        <q-banner class="bg-grey-2" rounded>
-          <template v-slot:avatar>
-            <q-icon name="info" color="primary" size="md" />
-          </template>
-          <div class="text-body1">
-            <strong>Getting Started</strong><br />
-            Click on any card above to start managing your pantry list or shopping list.
-          </div>
-        </q-banner>
-      </div>
-    </div>
-  </PageWrapper>
+            <q-item-section avatar>
+              <q-avatar size="36px" color="primary" text-color="white" icon="bolt" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>{{ formatActivity(entry) }}</q-item-label>
+              <q-item-label caption>{{ formatTime(entry.timestamp) }}</q-item-label>
+            </q-item-section>
+          </q-item>
+        </q-list>
+      </SectionCard>
+    </PageWrapper>
+  </q-page>
 </template>
 
 <style scoped>
-.home {
-  display: flex;
-  flex-direction: column;
+.sp-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
 }
 
-.hero-section {
-  text-align: center;
-  padding: 3rem 0;
-}
-
-.hero-icon {
-  animation: float 3s ease-in-out infinite;
-}
-
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-10px);
+@media (min-width: 768px) {
+  .sp-stats-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
   }
 }
 
-.features-section {
-  flex: 1;
-  padding: 2rem 0;
+.sp-quick-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
 }
 
-.feature-card {
-  height: 100%;
-  transition: transform 0.3s, box-shadow 0.3s;
+@media (min-width: 600px) {
+  .sp-quick-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
-.feature-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+.sp-quick-btn {
+  height: 56px;
+  border-radius: 12px;
+  font-weight: 600;
+  justify-content: flex-start;
 }
 
-.info-section {
-  max-width: 800px;
-  margin: 0 auto;
-  width: 100%;
+.sp-quick-btn :deep(.q-btn__content) {
+  justify-content: flex-start;
+  padding-left: 8px;
 }
 
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #FFCC41AA);
+.sp-activity-item {
+  border-radius: 8px;
 }
 </style>

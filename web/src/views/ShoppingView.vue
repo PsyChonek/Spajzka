@@ -4,6 +4,9 @@ import { useShoppingStore } from '@/stores/shoppingStore'
 import { useItemsStore } from '@/stores/itemsStore'
 import { CreateShoppingItemRequest, type ShoppingItem } from '@shared/api-client'
 import PageWrapper from '@/components/PageWrapper.vue'
+import PageHeader from '@/components/common/PageHeader.vue'
+import EmptyState from '@/components/common/EmptyState.vue'
+import FabAdd from '@/components/common/FabAdd.vue'
 import ItemSuggestions from '@/components/ItemSuggestions.vue'
 import AddItemDialog, { type ItemFormData } from '@/components/AddItemDialog.vue'
 import SearchInput from '@/components/SearchInput.vue'
@@ -13,480 +16,334 @@ import { matchesQuery, normalizeForSearch } from '@/utils/search'
 const shoppingStore = useShoppingStore()
 const itemsStore = useItemsStore()
 
-// Note: No need to fetch items on mount - the router guard handles this
-
 const searchQuery = ref('')
 const selectedTagIds = ref<string[]>([])
 const showAddDialog = ref(false)
 const initialFormData = ref<Partial<ItemFormData>>({})
 
-const columns = computed(() => [
-  {
-    name: 'icon',
-    label: '',
-    align: 'center' as const,
-    field: (row: ShoppingItem) => row.icon || '',
-    sortable: false,
-    classes: 'col-icon',
-    headerClasses: 'col-icon'
-  },
-  {
-    name: 'name',
-    required: true,
-    label: 'Item',
-    align: 'left' as const,
-    field: (row: ShoppingItem) => row.name || 'Loading...',
-    sortable: false,
-    classes: 'col-name',
-    headerClasses: 'col-name'
-  },
-  {
-    name: 'quantity',
-    label: 'Quantity',
-    align: 'center' as const,
-    field: (row: ShoppingItem) => row.quantity || 1,
-    sortable: false,
-    classes: 'col-quantity',
-    headerClasses: 'col-quantity'
-  }
-])
-
-const neededItemsCount = computed(() => {
-  return shoppingStore.activeItems.length
-})
-
 const filteredItems = computed(() => {
   let filtered = shoppingStore.sortedItems
-
   if (searchQuery.value) {
     filtered = filtered.filter(item => {
-      const underlyingItem = itemsStore.sortedItems.find((i: any) => i._id === item.itemId)
-      return matchesQuery(
-        searchQuery.value,
-        item.name,
-        ...((underlyingItem?.searchNames as string[] | undefined) ?? [])
-      )
+      const u = itemsStore.sortedItems.find((i: any) => i._id === item.itemId)
+      return matchesQuery(searchQuery.value, item.name, ...((u?.searchNames as string[] | undefined) ?? []))
     })
   }
-
-  // Filter by tags
   if (selectedTagIds.value.length > 0) {
-    filtered = filtered.filter(shoppingItem => {
-      // Find the underlying item by itemId
-      const underlyingItem = itemsStore.sortedItems.find((item: any) => item._id === shoppingItem.itemId)
-      if (!underlyingItem || !underlyingItem.tags || underlyingItem.tags.length === 0) return false
-      // Item must have at least one of the selected tags
-      return underlyingItem.tags.some((tagId: string) => selectedTagIds.value.includes(tagId))
+    filtered = filtered.filter(s => {
+      const u = itemsStore.sortedItems.find((i: any) => i._id === s.itemId)
+      if (!u || !u.tags || u.tags.length === 0) return false
+      return u.tags.some((t: string) => selectedTagIds.value.includes(t))
     })
   }
-
   return filtered
 })
 
-// Suggest items from master Items list
+const pendingItems = computed(() => filteredItems.value.filter((i: any) => !i.completed))
+const completedItems = computed(() => filteredItems.value.filter((i: any) => i.completed))
+
 const suggestedItems = computed(() => {
-  if (!searchQuery.value) {
-    return []
-  }
-
-  // Get items from master list that aren't already in shopping list (normalized compare)
-  const shoppingItemKeys = new Set(
-    shoppingStore.sortedItems
-      .map(item => (item.name ? normalizeForSearch(item.name).trim() : ''))
-      .filter(Boolean)
+  if (!searchQuery.value) return []
+  const keys = new Set(
+    shoppingStore.sortedItems.map(i => (i.name ? normalizeForSearch(i.name).trim() : '')).filter(Boolean)
   )
-
   return itemsStore.sortedItems
-    .filter(item => {
-      const key = normalizeForSearch(item.name).trim()
-      return (
-        matchesQuery(
-          searchQuery.value,
-          item.name,
-          item.category,
-          ...((item.searchNames as string[] | undefined) ?? [])
-        ) && !shoppingItemKeys.has(key)
-      )
+    .filter(i => {
+      const k = normalizeForSearch(i.name).trim()
+      return matchesQuery(searchQuery.value, i.name, i.category, ...((i.searchNames as string[] | undefined) ?? [])) && !keys.has(k)
     })
-    .slice(0, 5) // Limit to 5 suggestions
+    .slice(0, 5)
 })
 
 const openAddDialog = () => {
-  initialFormData.value = {
-    name: searchQuery.value,
-    defaultUnit: 'pcs',
-    category: ''
-  }
+  initialFormData.value = { name: searchQuery.value, defaultUnit: 'pcs', category: '' }
   showAddDialog.value = true
 }
 
 const addFromSuggestion = async (item: any) => {
-  // Add item directly without showing modal
-  // item has _id and type from itemsStore
   await shoppingStore.addItem({
     itemId: item._id,
     itemType: item.type as CreateShoppingItemRequest.itemType,
     quantity: 1
   })
-
-  // Mark item as recently used
   itemsStore.markItemsAsUsed([item._id])
-
   searchQuery.value = ''
 }
 
 const saveNewItem = async (data: ItemFormData) => {
-  // First, create the item in the items store (as a group item)
   await itemsStore.addGroupItem({
     name: data.name,
     category: data.category || 'Other',
     icon: data.icon || '📦',
     defaultUnit: data.defaultUnit || 'pcs'
   })
-
-  // Find the newly created item (it will have a temp ID or real ID)
-  const newItem = itemsStore.sortedItems.find(item =>
-    item.name === data.name && item.type === 'group'
-  )
-
-  if (newItem) {
-    // Add it to the shopping list
-    await shoppingStore.addItem({
-      itemId: newItem._id!,
-      itemType: CreateShoppingItemRequest.itemType.GROUP,
-      quantity: 1
-    })
-
-    // Mark item as recently used
-    itemsStore.markItemsAsUsed([newItem._id!])
+  const created = itemsStore.sortedItems.find(i => i.name === data.name && i.type === 'group')
+  if (created) {
+    await shoppingStore.addItem({ itemId: created._id!, itemType: CreateShoppingItemRequest.itemType.GROUP, quantity: 1 })
+    itemsStore.markItemsAsUsed([created._id!])
   }
-
   searchQuery.value = ''
 }
 
-const toggleItem = (item: ShoppingItem) => {
-  if (item._id) {
-    shoppingStore.toggleItem(item._id)
-  }
-}
+const toggleItem = (item: ShoppingItem) => item._id && shoppingStore.toggleItem(item._id)
 
-const incrementQuantity = async (item: ShoppingItem) => {
-  if (item._id) {
-    const newQuantity = (item.quantity || 1) + 1
-    await shoppingStore.updateItem(item._id, { quantity: newQuantity })
-  }
-}
+const incrementQuantity = (item: ShoppingItem) =>
+  item._id && shoppingStore.updateItem(item._id, { quantity: (item.quantity || 1) + 1 })
 
-const decrementQuantity = async (item: ShoppingItem) => {
+const decrementQuantity = (item: ShoppingItem) => {
   if (item._id && (item.quantity || 1) > 1) {
-    const newQuantity = (item.quantity || 1) - 1
-    await shoppingStore.updateItem(item._id, { quantity: newQuantity })
+    shoppingStore.updateItem(item._id, { quantity: (item.quantity || 1) - 1 })
   }
 }
 
-const updateQuantity = async (item: ShoppingItem, newValue: number | string) => {
+const updateQuantity = async (item: ShoppingItem, val: number | string) => {
   if (!item._id) return
-
-  const quantity = typeof newValue === 'string' ? parseInt(newValue, 10) : newValue
-
-  // Ensure quantity is at least 1
-  if (isNaN(quantity) || quantity < 1) {
-    // Reset to current value if invalid
+  const q = typeof val === 'string' ? parseInt(val, 10) : val
+  if (isNaN(q) || q < 1) {
     item.quantity = item.quantity || 1
     return
   }
-
-  await shoppingStore.updateItem(item._id, { quantity })
+  await shoppingStore.updateItem(item._id, { quantity: q })
 }
+
+const subtitle = computed(() => {
+  const pending = pendingItems.value.length
+  const total = filteredItems.value.length
+  if (pending === 0 && total === 0) return 'Build your shopping list'
+  if (pending === 0) return `All ${total} item${total !== 1 ? 's' : ''} bought`
+  return `${pending} of ${total} item${total !== 1 ? 's' : ''} to buy`
+})
 </script>
 
 <template>
-  <PageWrapper>
-    <div class="shopping-list-view">
-    <div class="search-container">
-      <SearchInput v-model="searchQuery" @add="openAddDialog" />
+  <q-page>
+    <PageWrapper>
+      <PageHeader title="Shopping" :subtitle="subtitle" icon="shopping_cart">
+        <template #actions>
+          <q-btn
+            color="primary"
+            unelevated
+            no-caps
+            icon="add"
+            label="Add"
+            class="gt-sm"
+            aria-label="Add to shopping list"
+            @click="openAddDialog"
+          />
+        </template>
+      </PageHeader>
 
-      <!-- Suggestions from Items list -->
-      <ItemSuggestions
-        :suggested-items="suggestedItems"
-        class="q-mt-md"
-        @add-item="addFromSuggestion"
-      />
-    </div>
+      <div class="sp-shopping__filters">
+        <SearchInput v-model="searchQuery" @add="openAddDialog" />
+        <ItemSuggestions
+          v-if="suggestedItems.length > 0"
+          :suggested-items="suggestedItems"
+          class="q-mt-sm"
+          @add-item="addFromSuggestion"
+        />
+        <div class="q-mt-sm">
+          <TagFilter v-model="selectedTagIds" />
+        </div>
+      </div>
 
-    <div class="filter-container q-mt-md">
-      <TagFilter v-model="selectedTagIds" />
-    </div>
-
-    <!-- Needed Items Count -->
-    <div v-if="!searchQuery && neededItemsCount > 0" class="needed-items-count q-mt-md">
-      <q-chip color="primary" text-color="white" icon="shopping_cart">
-        {{ neededItemsCount }} item{{ neededItemsCount !== 1 ? 's' : '' }} needed
-      </q-chip>
-    </div>
-
-    <div class="table-container q-mt-lg">
-      <q-table
-        :rows="filteredItems"
-        :columns="columns"
-        row-key="_id"
-        :rows-per-page-options="[10, 25, 50]"
-        dense
-        flat
-        bordered
-        hide-header
+      <EmptyState
+        v-if="filteredItems.length === 0"
+        :icon="searchQuery ? 'search_off' : 'shopping_cart'"
+        :title="searchQuery ? 'No items found' : 'Shopping list is empty'"
+        :hint="searchQuery ? 'Try a different search or tap Add to create one.' : 'Tap the + button to add what you need to buy.'"
       >
-        <template v-slot:body-cell-icon="props">
-          <q-td
-            :props="props"
-            class="icon-cell"
-            @click="toggleItem(props.row)"
-          >
-            <div class="item-icon">{{ props.row.icon || '📦' }}</div>
-          </q-td>
+        <template #action>
+          <q-btn color="primary" unelevated no-caps icon="add" label="Add item" @click="openAddDialog" />
         </template>
-        <template v-slot:body-cell-name="props">
-          <q-td
-            :props="props"
-            class="item-name-cell clickable"
-            @click="toggleItem(props.row)"
-          >
-            <span
-              class="item-name"
-              :class="{ 'completed': props.row.completed }"
-            >
-              {{ props.value }}
-            </span>
-          </q-td>
-        </template>
-        <template v-slot:body-cell-quantity="props">
-          <q-td :props="props" class="quantity-cell">
-            <div class="quantity-controls">
+      </EmptyState>
+
+      <!-- Pending list -->
+      <div v-if="pendingItems.length > 0" class="sp-shopping__list">
+        <q-card
+          v-for="row in pendingItems"
+          :key="row._id"
+          flat
+          bordered
+          class="sp-shop-card"
+        >
+          <q-card-section class="row items-center q-gutter-sm no-wrap">
+            <q-checkbox
+              :model-value="!!row.completed"
+              @update:model-value="toggleItem(row)"
+              size="lg"
+              color="primary"
+            />
+            <div class="sp-shop-card__icon">{{ row.icon || '📦' }}</div>
+            <div class="col sp-shop-card__body" @click="toggleItem(row)">
+              <div class="sp-shop-card__name">{{ row.name || 'Loading...' }}</div>
+            </div>
+            <div class="sp-shop-card__qty">
               <q-btn
-                flat
-                dense
-                round
-                size="sm"
-                icon="remove"
-                color="negative"
-                @click.stop="decrementQuantity(props.row)"
-                :disable="(props.row.quantity || 1) <= 1"
+                flat dense round size="sm" icon="remove" color="grey-7"
+                :disable="(row.quantity || 1) <= 1"
+                @click.stop="decrementQuantity(row)"
               />
               <q-input
-                :model-value="props.row.quantity || 1"
-                @update:model-value="(val) => val !== null && updateQuantity(props.row, val)"
-                type="number"
-                min="1"
-                dense
-                borderless
-                input-class="quantity-input"
-                class="quantity-input-wrapper"
+                :model-value="row.quantity || 1"
+                @update:model-value="(v) => v !== null && updateQuantity(row, v)"
+                type="number" min="1" dense borderless
+                input-class="sp-shop-card__qty-input"
+                class="sp-shop-card__qty-wrapper"
                 @click.stop
               />
               <q-btn
-                flat
-                dense
-                round
-                size="sm"
-                icon="add"
-                color="positive"
-                @click.stop="incrementQuantity(props.row)"
+                flat dense round size="sm" icon="add" color="primary"
+                @click.stop="incrementQuantity(row)"
               />
             </div>
-          </q-td>
-        </template>
-        <template v-slot:no-data>
-          <div class="full-width row flex-center q-gutter-sm q-py-lg">
-            <q-icon size="2em" name="inbox" />
-            <span class="text-h6">
-              {{ searchQuery ? 'No items found' : 'No items yet' }}
-            </span>
-          </div>
-        </template>
-      </q-table>
-    </div>
+          </q-card-section>
+        </q-card>
+      </div>
 
-    <!-- Add Item Dialog -->
-    <AddItemDialog
-      v-model="showAddDialog"
-      title="Add New Item"
-      :initial-data="initialFormData"
-      :show-pantry-fields="false"
-      @save="saveNewItem"
-    />
-    </div>
-  </PageWrapper>
+      <!-- Completed list -->
+      <details v-if="completedItems.length > 0" class="sp-shopping__completed">
+        <summary>
+          <q-icon name="check_circle" color="positive" />
+          {{ completedItems.length }} bought
+        </summary>
+        <div class="sp-shopping__list q-mt-sm">
+          <q-card
+            v-for="row in completedItems"
+            :key="row._id"
+            flat
+            bordered
+            class="sp-shop-card sp-shop-card--done"
+          >
+            <q-card-section class="row items-center q-gutter-sm no-wrap">
+              <q-checkbox
+                :model-value="!!row.completed"
+                @update:model-value="toggleItem(row)"
+                size="lg"
+                color="positive"
+              />
+              <div class="sp-shop-card__icon sp-shop-card__icon--muted">{{ row.icon || '📦' }}</div>
+              <div class="col sp-shop-card__body" @click="toggleItem(row)">
+                <div class="sp-shop-card__name sp-shop-card__name--done">{{ row.name || 'Loading...' }}</div>
+              </div>
+              <div class="text-grey-6 q-mr-sm">{{ row.quantity || 1 }}</div>
+            </q-card-section>
+          </q-card>
+        </div>
+      </details>
+
+      <FabAdd class="lt-md" aria-label="Add to shopping list" @click="openAddDialog" />
+
+      <AddItemDialog
+        v-model="showAddDialog"
+        title="Add New Item"
+        :initial-data="initialFormData"
+        :show-pantry-fields="false"
+        @save="saveNewItem"
+      />
+    </PageWrapper>
+  </q-page>
 </template>
 
 <style scoped>
-.search-container {
+.sp-shopping__filters { margin-bottom: 16px; }
+
+.sp-shopping__list {
   display: flex;
   flex-direction: column;
+  gap: 8px;
+}
+
+.sp-shop-card {
+  transition: border-color 0.18s, box-shadow 0.18s;
+}
+
+.sp-shop-card:hover {
+  border-color: rgba(47, 125, 95, 0.3);
+}
+
+.sp-shop-card--done {
+  background: var(--sp-surface-2);
+}
+
+.sp-shop-card__icon {
+  font-size: 1.4rem;
+  width: 36px;
+  height: 36px;
+  display: flex;
   align-items: center;
-}
-
-.filter-container {
-  display: flex;
   justify-content: center;
+  background: var(--sp-primary-soft);
+  border-radius: 8px;
+  flex-shrink: 0;
 }
 
-.needed-items-count {
-  display: flex;
-  justify-content: center;
+.sp-shop-card__icon--muted { background: transparent; opacity: 0.45; }
+
+.sp-shop-card__body { cursor: pointer; min-width: 0; }
+
+.sp-shop-card__name {
+  font-weight: 600;
+  color: var(--sp-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.table-container {
-  width: 100%;
-}
-
-.item-name-cell {
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.item-name-cell:hover {
-  background-color: rgba(0, 0, 0, 0.03);
-}
-
-.item-name {
-  font-weight: 500;
-  transition: all 0.3s;
-}
-
-.item-name.completed {
+.sp-shop-card__name--done {
   text-decoration: line-through;
-  opacity: 0.5;
-  color: #666;
+  color: var(--sp-text-muted);
 }
 
-.item-icon {
-  font-size: 1.5rem;
+.sp-shop-card__qty {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-}
-
-.icon-cell {
-  cursor: pointer;
-}
-
-/* Table layout */
-:deep(.q-table thead),
-:deep(.q-table tbody),
-:deep(.q-table tr) {
-  width: 100%;
-  display: table;
-  table-layout: fixed;
-}
-
-:deep(.q-table th),
-:deep(.q-table td) {
-  padding: 8px;
-  box-sizing: border-box;
-}
-
-/* Override Quasar's dense padding for first column */
-:deep(.q-table--dense th:first-child),
-:deep(.q-table--dense td:first-child) {
-  padding-left: 8px;
-}
-
-/* Center icon column */
-:deep(.q-table .col-icon) {
-  width: 60px;
-  text-align: center;
-}
-
-/* Name column takes remaining space */
-:deep(.q-table .col-name) {
-  width: auto;
-}
-
-/* Quantity column */
-:deep(.q-table .col-quantity) {
-  width: 140px;
-  text-align: center;
-}
-
-.quantity-cell {
-  padding: 4px !important;
-}
-
-.quantity-controls {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   gap: 4px;
+  flex-shrink: 0;
 }
 
-.quantity-input-wrapper {
-  width: 50px;
-  min-width: 50px;
+.sp-shop-card__qty-wrapper {
+  width: 44px;
+  min-width: 44px;
 }
 
-.quantity-input-wrapper :deep(.q-field__control) {
+.sp-shop-card__qty-wrapper :deep(.q-field__control) {
   height: 28px;
   min-height: 28px;
 }
 
-.quantity-input-wrapper :deep(input) {
+.sp-shop-card__qty-wrapper :deep(input.sp-shop-card__qty-input) {
   text-align: center;
-  font-weight: 500;
+  font-weight: 600;
   font-size: 0.95rem;
   padding: 0;
 }
 
-/* Hide number input spinners */
-.quantity-input-wrapper :deep(input::-webkit-outer-spin-button),
-.quantity-input-wrapper :deep(input::-webkit-inner-spin-button) {
+.sp-shop-card__qty-wrapper :deep(input::-webkit-outer-spin-button),
+.sp-shop-card__qty-wrapper :deep(input::-webkit-inner-spin-button) {
   -webkit-appearance: none;
   margin: 0;
 }
 
-.quantity-input-wrapper :deep(input[type=number]) {
+.sp-shop-card__qty-wrapper :deep(input[type=number]) {
   -moz-appearance: textfield;
 }
 
-/* Mobile: Expand table to fill viewport height */
-@media (max-width: 1023px) {
-  .shopping-list-view {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-  }
-
-  .table-container {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-  }
-
-  .table-container :deep(.q-table) {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .table-container :deep(.q-table__container) {
-    flex: 1;
-    min-height: 0;
-  }
-
-  .table-container :deep(.q-table__middle) {
-    flex: 1;
-    overflow-y: auto;
-  }
-
-  /* Mobile column widths */
-  :deep(.q-table .col-icon) {
-    width: 60px;
-  }
-
-  :deep(.q-table .col-quantity) {
-    width: 120px;
-  }
+.sp-shopping__completed {
+  margin-top: 24px;
+  border-top: 1px solid var(--sp-divider);
+  padding-top: 16px;
 }
+
+.sp-shopping__completed summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--sp-text-muted);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.sp-shopping__completed summary::-webkit-details-marker { display: none; }
 </style>

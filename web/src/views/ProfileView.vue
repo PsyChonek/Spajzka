@@ -3,6 +3,8 @@ import { ref } from 'vue'
 import { useQuasar } from 'quasar'
 import { useAuthStore } from '@/stores/authStore'
 import PageWrapper from '@/components/PageWrapper.vue'
+import PageHeader from '@/components/common/PageHeader.vue'
+import SectionCard from '@/components/common/SectionCard.vue'
 import McpAccessCard from '@/components/McpAccessCard.vue'
 
 const $q = useQuasar()
@@ -43,7 +45,7 @@ const validateEmail = (email: string) => {
 
 const handleLogin = async () => {
   loginEmailValid.value = validateEmail(loginEmail.value)
-  
+
   if (!loginEmailValid.value) {
     return
   }
@@ -61,7 +63,7 @@ const handleLogin = async () => {
 
 const handleRegister = async () => {
   registerEmailValid.value = validateEmail(registerEmail.value)
-  
+
   if (!registerEmailValid.value) {
     return
   }
@@ -130,480 +132,376 @@ const changePassword = async () => {
 
 <template>
   <PageWrapper max-width="600px" centered>
-    <div class="auth-view">
-      <div class="container">
-      <h2 class="text-h4 text-center q-mb-lg">User Authentication</h2>
 
-      <!-- Not Authenticated or Anonymous - Show Login/Register -->
-      <div v-if="!authStore.isAuthenticated || authStore.isAnonymous" class="auth-forms">
-        <q-card class="form-card">
-          <!-- Toggle Buttons -->
-          <q-card-section class="q-pb-none">
-            <q-btn-toggle
-              v-model="mode"
-              spread
-              no-caps
-              toggle-color="primary"
-              :options="[
-                { label: 'Login', value: 'login' },
-                { label: 'Register', value: 'register' }
-              ]"
-            />
-          </q-card-section>
+    <!-- ── Anonymous / unauthenticated ── -->
+    <template v-if="!authStore.isAuthenticated || authStore.isAnonymous">
+      <PageHeader
+        title="Welcome"
+        icon="spa"
+        subtitle="Sign in to sync your pantry and share with your household."
+      />
 
-          <!-- Login Form -->
-          <q-card-section v-if="mode === 'login'">
-            <div class="text-h5 q-mb-md">Login</div>
-            
-            <q-form @submit.prevent="handleLogin" class="q-gutter-md">
-              <q-input
-                v-model="loginEmail"
-                type="email"
-                label="Email"
-                outlined
-                :rules="[
-                  val => !!val || 'Email is required',
-                  val => validateEmail(val) || 'Invalid email address'
-                ]"
-                lazy-rules
-              >
-                <template v-slot:prepend>
-                  <q-icon name="email" />
-                </template>
-              </q-input>
+      <SectionCard>
+        <q-btn-toggle
+          v-model="mode"
+          spread
+          no-caps
+          unelevated
+          toggle-color="primary"
+          color="white"
+          text-color="grey-7"
+          :options="[
+            { label: 'Login', value: 'login' },
+            { label: 'Register', value: 'register' }
+          ]"
+          class="sp-auth-toggle q-mb-md"
+        />
 
-              <q-input
-                v-model="loginPassword"
-                type="password"
-                label="Password"
-                outlined
-                :rules="[val => !!val || 'Password is required']"
-                lazy-rules
-              >
-                <template v-slot:prepend>
-                  <q-icon name="lock" />
-                </template>
-              </q-input>
+        <!-- Login Form -->
+        <q-form v-if="mode === 'login'" @submit.prevent="handleLogin" class="q-gutter-sm">
+          <q-input
+            v-model="loginEmail"
+            type="email"
+            label="Email"
+            outlined
+            dense
+            :rules="[
+              val => !!val || 'Email is required',
+              val => validateEmail(val) || 'Invalid email address'
+            ]"
+            lazy-rules
+          >
+            <template #prepend>
+              <q-icon name="email" />
+            </template>
+          </q-input>
 
-              <q-btn
-                type="submit"
-                color="primary"
-                label="Login"
-                :loading="authStore.loading"
-                class="full-width"
-                size="lg"
-              />
-            </q-form>
-          </q-card-section>
+          <q-input
+            v-model="loginPassword"
+            type="password"
+            label="Password"
+            outlined
+            dense
+            :rules="[val => !!val || 'Password is required']"
+            lazy-rules
+          >
+            <template #prepend>
+              <q-icon name="lock" />
+            </template>
+          </q-input>
 
-          <!-- Register Form -->
-          <q-card-section v-if="mode === 'register'">
-            <div class="text-h5 q-mb-md">Create Account</div>
-            
-            <q-form @submit.prevent="handleRegister" class="q-gutter-md">
-              <q-input
-                v-model="registerName"
-                label="Name (optional)"
-                outlined
-              >
-                <template v-slot:prepend>
-                  <q-icon name="person" />
-                </template>
-              </q-input>
+          <q-btn
+            type="submit"
+            unelevated
+            no-caps
+            color="primary"
+            label="Login"
+            :loading="authStore.loading"
+            class="full-width q-mt-sm"
+          />
+        </q-form>
 
-              <q-input
-                v-model="registerEmail"
-                type="email"
-                label="Email"
-                outlined
-                :rules="[
-                  val => !!val || 'Email is required',
-                  val => validateEmail(val) || 'Invalid email address'
-                ]"
-                lazy-rules
-              >
-                <template v-slot:prepend>
-                  <q-icon name="email" />
-                </template>
-              </q-input>
+        <!-- Register Form -->
+        <q-form v-else @submit.prevent="handleRegister" class="q-gutter-sm">
+          <q-input
+            v-model="registerName"
+            label="Name (optional)"
+            outlined
+            dense
+          >
+            <template #prepend>
+              <q-icon name="person" />
+            </template>
+          </q-input>
 
-              <q-input
-                v-model="registerPassword"
-                type="password"
-                label="Password"
-                outlined
-                :rules="[
-                  val => !!val || 'Password is required',
-                  val => val.length >= 6 || 'Password must be at least 6 characters'
-                ]"
-                lazy-rules
-              >
-                <template v-slot:prepend>
-                  <q-icon name="lock" />
-                </template>
-              </q-input>
+          <q-input
+            v-model="registerEmail"
+            type="email"
+            label="Email"
+            outlined
+            dense
+            :rules="[
+              val => !!val || 'Email is required',
+              val => validateEmail(val) || 'Invalid email address'
+            ]"
+            lazy-rules
+          >
+            <template #prepend>
+              <q-icon name="email" />
+            </template>
+          </q-input>
 
-              <q-input
-                v-model="registerPasswordConfirm"
-                type="password"
-                label="Confirm Password"
-                outlined
-                :rules="[
-                  val => !!val || 'Please confirm password',
-                  val => val === registerPassword || 'Passwords do not match'
-                ]"
-                lazy-rules
-              >
-                <template v-slot:prepend>
-                  <q-icon name="lock" />
-                </template>
-              </q-input>
+          <q-input
+            v-model="registerPassword"
+            type="password"
+            label="Password"
+            outlined
+            dense
+            :rules="[
+              val => !!val || 'Password is required',
+              val => val.length >= 6 || 'Password must be at least 6 characters'
+            ]"
+            lazy-rules
+          >
+            <template #prepend>
+              <q-icon name="lock" />
+            </template>
+          </q-input>
 
-              <q-btn
-                type="submit"
-                color="primary"
-                label="Create Account"
-                :loading="authStore.loading"
-                class="full-width"
-                size="lg"
-              />
-            </q-form>
-          </q-card-section>
-        </q-card>
+          <q-input
+            v-model="registerPasswordConfirm"
+            type="password"
+            label="Confirm Password"
+            outlined
+            dense
+            :rules="[
+              val => !!val || 'Please confirm password',
+              val => val === registerPassword || 'Passwords do not match'
+            ]"
+            lazy-rules
+          >
+            <template #prepend>
+              <q-icon name="lock" />
+            </template>
+          </q-input>
 
-        <!-- API Status -->
-        <q-card class="api-status-card q-mt-md">
-          <q-card-section>
-            <div class="text-subtitle2 text-grey-7">
-              <q-icon name="info" class="q-mr-sm" />
-              API Status: Waiting for authentication...
-            </div>
-          </q-card-section>
-        </q-card>
-      </div>
+          <q-btn
+            type="submit"
+            unelevated
+            no-caps
+            color="primary"
+            label="Register"
+            :loading="authStore.loading"
+            class="full-width q-mt-sm"
+          />
+        </q-form>
+      </SectionCard>
+    </template>
 
-      <!-- Authenticated and Not Anonymous - Show User Info -->
-      <div v-else-if="authStore.isAuthenticated && !authStore.isAnonymous" class="user-info">
-        <q-card class="user-card">
-          <q-card-section class="bg-primary text-white">
-            <div class="row items-center">
-              <q-avatar size="64px" color="white" text-color="primary" class="q-mr-md">
-                <q-icon name="person" size="32px" />
+    <!-- ── Authenticated ── -->
+    <template v-else-if="authStore.isAuthenticated && !authStore.isAnonymous">
+      <PageHeader
+        title="Profile"
+        icon="account_circle"
+        :subtitle="authStore.userEmail"
+      />
+
+      <!-- Account section -->
+      <SectionCard title="Account">
+        <q-list separator>
+          <q-item>
+            <q-item-section avatar>
+              <q-avatar size="44px" color="primary" text-color="white">
+                <q-icon name="person" size="24px" />
               </q-avatar>
-              <div>
-                <div class="text-h5">{{ authStore.userName }}</div>
-                <div class="text-subtitle2">{{ authStore.userEmail }}</div>
-              </div>
-            </div>
-          </q-card-section>
+            </q-item-section>
+            <q-item-section>
+              <q-item-label class="sp-profile-name">{{ authStore.user?.name || 'No name set' }}</q-item-label>
+              <q-item-label caption class="sp-text-muted">{{ authStore.user?.email }}</q-item-label>
+            </q-item-section>
+          </q-item>
+        </q-list>
 
-          <q-separator />
+        <div class="row q-gutter-sm q-mt-md">
+          <q-btn
+            unelevated
+            no-caps
+            outline
+            color="primary"
+            label="Edit Profile"
+            icon="edit"
+            @click="openProfileDialog"
+          />
+          <q-btn
+            unelevated
+            no-caps
+            outline
+            color="primary"
+            label="Change Password"
+            icon="lock"
+            @click="openPasswordDialog"
+          />
+        </div>
+      </SectionCard>
 
-          <q-card-section>
-            <div class="text-h6 q-mb-md">User Information</div>
-            
-            <q-list bordered separator>
-              <q-item>
-                <q-item-section avatar>
-                  <q-icon name="badge" color="primary" />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label>User ID</q-item-label>
-                  <q-item-label caption>{{ authStore.user?._id || 'N/A' }}</q-item-label>
-                </q-item-section>
-              </q-item>
-
-              <q-item>
-                <q-item-section avatar>
-                  <q-icon name="person" color="primary" />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label>Name</q-item-label>
-                  <q-item-label caption>{{ authStore.user?.name || 'Not set' }}</q-item-label>
-                </q-item-section>
-              </q-item>
-
-              <q-item>
-                <q-item-section avatar>
-                  <q-icon name="email" color="primary" />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label>Email</q-item-label>
-                  <q-item-label caption>{{ authStore.user?.email }}</q-item-label>
-                </q-item-section>
-              </q-item>
-
-              <q-item>
-                <q-item-section avatar>
-                  <q-icon name="event" color="primary" />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label>Created</q-item-label>
-                  <q-item-label caption>
-                    {{ authStore.user?.createdAt ? new Date(authStore.user.createdAt).toLocaleString() : 'N/A' }}
-                  </q-item-label>
-                </q-item-section>
-              </q-item>
-
-              <q-item>
-                <q-item-section avatar>
-                  <q-icon name="vpn_key" color="primary" />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label>Token</q-item-label>
-                  <q-item-label caption class="text-mono">
-                    {{ authStore.token ? authStore.token.substring(0, 20) + '...' : 'N/A' }}
-                  </q-item-label>
-                </q-item-section>
-              </q-item>
-            </q-list>
-          </q-card-section>
-
-          <q-separator />
-
-          <q-card-section>
-            <div class="text-h6 q-mb-md">Permissions</div>
-
-            <q-list bordered separator>
-              <q-item>
-                <q-item-section avatar>
-                  <q-icon name="shield" color="primary" />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label>Global Permissions</q-item-label>
-                  <q-item-label caption>
-                    <div v-if="authStore.user?.globalPermissions && authStore.user.globalPermissions.length > 0" class="permissions-list">
-                      <q-chip
-                        v-for="permission in authStore.user.globalPermissions"
-                        :key="permission"
-                        size="sm"
-                        color="primary"
-                        text-color="white"
-                        icon="check_circle"
-                        class="q-ma-xs"
-                      >
-                        {{ permission }}
-                      </q-chip>
-                    </div>
-                    <span v-else class="text-grey-6">No global permissions</span>
-                  </q-item-label>
-                </q-item-section>
-              </q-item>
-            </q-list>
-
-            <div class="text-caption text-grey-6 q-mt-sm q-px-md">
-              Global permissions are system-wide. Group-specific permissions are managed in the Groups section.
-            </div>
-          </q-card-section>
-
-          <q-separator />
-
-          <q-card-actions>
-            <q-btn
-              flat
-              color="primary"
-              label="Edit Profile"
-              icon="edit"
-              @click="openProfileDialog"
-            />
-            <q-btn
-              flat
-              color="primary"
-              label="Change Password"
-              icon="lock"
-              @click="openPasswordDialog"
-            />
-            <q-space />
-            <q-btn
-              flat
-              color="negative"
-              label="Logout"
-              icon="logout"
-              @click="handleLogout"
-            />
-          </q-card-actions>
-        </q-card>
-
-        <!-- MCP Access -->
+      <!-- MCP Access -->
+      <SectionCard title="MCP Access">
         <McpAccessCard />
+      </SectionCard>
 
-        <!-- Token Info -->
-        <q-card class="token-card q-mt-md">
-          <q-card-section>
-            <div class="text-h6 q-mb-md">Authentication Token</div>
-            <div class="token-display">
-              <code>{{ authStore.token }}</code>
-            </div>
-            <div class="text-caption text-grey-6 q-mt-sm">
-              This token is stored in localStorage and sent with all API requests
-            </div>
-          </q-card-section>
-        </q-card>
+      <!-- Sign out -->
+      <div class="sp-signout-row">
+        <q-btn
+          unelevated
+          no-caps
+          color="negative"
+          label="Logout"
+          icon="logout"
+          @click="handleLogout"
+        />
       </div>
+    </template>
 
-      <!-- Edit Profile Dialog -->
-      <q-dialog v-model="showProfileDialog" :full-width="$q.screen.lt.sm" :maximized="$q.screen.lt.sm">
-        <q-card :style="$q.screen.lt.sm ? 'height: 100vh; max-height: 100vh; display: flex; flex-direction: column' : 'width: 100%; max-width: 400px'">
-          <q-card-section>
-            <div class="text-h6">Edit Profile</div>
-          </q-card-section>
+    <!-- Edit Profile Dialog -->
+    <q-dialog v-model="showProfileDialog" :full-width="$q.screen.lt.sm" :maximized="$q.screen.lt.sm">
+      <q-card class="sp-dialog" :style="$q.screen.lt.sm ? '' : 'width: 100%; max-width: 400px'">
+        <q-card-section>
+          <div class="sp-dialog-title">Edit Profile</div>
+        </q-card-section>
 
-          <q-card-section class="q-pt-none" :style="$q.screen.lt.sm ? 'flex: 1; overflow-y: auto' : ''">
-            <q-form @submit.prevent="updateProfile" class="q-gutter-md">
-              <q-input
-                v-model="profileName"
-                label="Name"
-                outlined
-              >
-                <template v-slot:prepend>
-                  <q-icon name="person" />
-                </template>
-              </q-input>
+        <q-card-section class="q-pt-none">
+          <q-form @submit.prevent="updateProfile" class="q-gutter-sm">
+            <q-input
+              v-model="profileName"
+              label="Name"
+              outlined
+              dense
+            >
+              <template #prepend>
+                <q-icon name="person" />
+              </template>
+            </q-input>
 
-              <q-input
-                v-model="profileEmail"
-                type="email"
-                label="Email"
-                outlined
-                :rules="[
-                  val => !!val || 'Email is required',
-                  val => validateEmail(val) || 'Invalid email address'
-                ]"
-              >
-                <template v-slot:prepend>
-                  <q-icon name="email" />
-                </template>
-              </q-input>
-            </q-form>
-          </q-card-section>
+            <q-input
+              v-model="profileEmail"
+              type="email"
+              label="Email"
+              outlined
+              dense
+              :rules="[
+                val => !!val || 'Email is required',
+                val => validateEmail(val) || 'Invalid email address'
+              ]"
+            >
+              <template #prepend>
+                <q-icon name="email" />
+              </template>
+            </q-input>
+          </q-form>
+        </q-card-section>
 
-          <q-card-actions align="right">
-            <q-btn flat label="Cancel" color="primary" v-close-popup />
-            <q-btn
-              label="Save"
-              color="primary"
-              @click="updateProfile"
-              :loading="authStore.loading"
-            />
-          </q-card-actions>
-        </q-card>
-      </q-dialog>
+        <q-card-actions align="right" class="q-px-md q-pb-md">
+          <q-btn flat no-caps label="Cancel" color="primary" v-close-popup />
+          <q-btn
+            unelevated
+            no-caps
+            label="Save"
+            color="primary"
+            @click="updateProfile"
+            :loading="authStore.loading"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
 
-      <!-- Change Password Dialog -->
-      <q-dialog v-model="showPasswordDialog" :full-width="$q.screen.lt.sm" :maximized="$q.screen.lt.sm">
-        <q-card :style="$q.screen.lt.sm ? 'height: 100vh; max-height: 100vh; display: flex; flex-direction: column' : 'width: 100%; max-width: 400px'">
-          <q-card-section>
-            <div class="text-h6">Change Password</div>
-          </q-card-section>
+    <!-- Change Password Dialog -->
+    <q-dialog v-model="showPasswordDialog" :full-width="$q.screen.lt.sm" :maximized="$q.screen.lt.sm">
+      <q-card class="sp-dialog" :style="$q.screen.lt.sm ? '' : 'width: 100%; max-width: 400px'">
+        <q-card-section>
+          <div class="sp-dialog-title">Change Password</div>
+        </q-card-section>
 
-          <q-card-section class="q-pt-none" :style="$q.screen.lt.sm ? 'flex: 1; overflow-y: auto' : ''">
-            <q-form @submit.prevent="changePassword" class="q-gutter-md">
-              <q-input
-                v-model="oldPassword"
-                type="password"
-                label="Current Password"
-                outlined
-                :rules="[val => !!val || 'Current password is required']"
-              >
-                <template v-slot:prepend>
-                  <q-icon name="lock" />
-                </template>
-              </q-input>
+        <q-card-section class="q-pt-none">
+          <q-form @submit.prevent="changePassword" class="q-gutter-sm">
+            <q-input
+              v-model="oldPassword"
+              type="password"
+              label="Current Password"
+              outlined
+              dense
+              :rules="[val => !!val || 'Current password is required']"
+            >
+              <template #prepend>
+                <q-icon name="lock" />
+              </template>
+            </q-input>
 
-              <q-input
-                v-model="newPassword"
-                type="password"
-                label="New Password"
-                outlined
-                :rules="[
-                  val => !!val || 'New password is required',
-                  val => val.length >= 6 || 'Password must be at least 6 characters'
-                ]"
-              >
-                <template v-slot:prepend>
-                  <q-icon name="lock" />
-                </template>
-              </q-input>
+            <q-input
+              v-model="newPassword"
+              type="password"
+              label="New Password"
+              outlined
+              dense
+              :rules="[
+                val => !!val || 'New password is required',
+                val => val.length >= 6 || 'Password must be at least 6 characters'
+              ]"
+            >
+              <template #prepend>
+                <q-icon name="lock" />
+              </template>
+            </q-input>
 
-              <q-input
-                v-model="newPasswordConfirm"
-                type="password"
-                label="Confirm New Password"
-                outlined
-                :rules="[
-                  val => !!val || 'Please confirm new password',
-                  val => val === newPassword || 'Passwords do not match'
-                ]"
-              >
-                <template v-slot:prepend>
-                  <q-icon name="lock" />
-                </template>
-              </q-input>
-            </q-form>
-          </q-card-section>
+            <q-input
+              v-model="newPasswordConfirm"
+              type="password"
+              label="Confirm New Password"
+              outlined
+              dense
+              :rules="[
+                val => !!val || 'Please confirm new password',
+                val => val === newPassword || 'Passwords do not match'
+              ]"
+            >
+              <template #prepend>
+                <q-icon name="lock" />
+              </template>
+            </q-input>
+          </q-form>
+        </q-card-section>
 
-          <q-card-actions align="right">
-            <q-btn flat label="Cancel" color="primary" v-close-popup />
-            <q-btn
-              label="Change Password"
-              color="primary"
-              @click="changePassword"
-              :loading="authStore.loading"
-            />
-          </q-card-actions>
-        </q-card>
-      </q-dialog>
-      </div>
-    </div>
+        <q-card-actions align="right" class="q-px-md q-pb-md">
+          <q-btn flat no-caps label="Cancel" color="primary" v-close-popup />
+          <q-btn
+            unelevated
+            no-caps
+            label="Change Password"
+            color="primary"
+            @click="changePassword"
+            :loading="authStore.loading"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
   </PageWrapper>
 </template>
 
 <style scoped>
-.auth-view {
-  width: 100%;
+.sp-auth-toggle {
+  border: 1px solid var(--sp-border);
+  border-radius: var(--sp-r-md);
+  overflow: hidden;
 }
 
-.container {
-  width: 100%;
+.sp-profile-name {
+  font-weight: 600;
+  color: var(--sp-text);
 }
 
-.form-card {
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-}
-
-.user-card {
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-}
-
-.token-card {
-  background: #f5f5f5;
-}
-
-.token-display {
-  background: white;
-  padding: 12px;
-  border-radius: 4px;
-  border: 1px solid #e0e0e0;
-  word-break: break-all;
-  font-family: 'Courier New', monospace;
-  font-size: 12px;
-  max-height: 150px;
-  overflow-y: auto;
-}
-
-.text-mono {
-  font-family: 'Courier New', monospace;
-  font-size: 11px;
-}
-
-.api-status-card {
-  background: rgba(255, 255, 255, 0.9);
-}
-
-.permissions-list {
+.sp-signout-row {
   display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-top: 8px;
+  justify-content: flex-start;
+  padding: 4px 0 24px;
+}
+
+.sp-text-muted {
+  color: var(--sp-text-muted);
+}
+
+/* Dialog */
+.sp-dialog-title {
+  font-family: 'Manrope', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--sp-text);
+}
+
+/* Unwrap McpAccessCard's internal padding when nested in SectionCard */
+:deep(.mcp-access-card) {
+  box-shadow: none;
+  border: none;
+  padding: 0;
+  margin: 0;
 }
 </style>

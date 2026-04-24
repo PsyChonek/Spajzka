@@ -88,6 +88,7 @@ export function registerRecipeTools(server: McpServer): void {
       servings: z.number().positive(),
       ingredients: z.array(ingredientSchema),
       instructions: z.array(z.string()).min(1),
+      tags: z.array(z.string()).optional(),
       searchNames: z.array(z.string()).optional()
     },
     async (args) => {
@@ -112,6 +113,7 @@ export function registerRecipeTools(server: McpServer): void {
       servings: z.number().positive().optional(),
       ingredients: z.array(ingredientSchema).optional(),
       instructions: z.array(z.string()).optional(),
+      tags: z.array(z.string()).optional(),
       searchNames: z.array(z.string()).optional()
     },
     async ({ groupId, recipeId, ...fields }) => {

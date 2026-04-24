@@ -3,6 +3,9 @@ import { ref, computed, watch, onUnmounted, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useRecipesStore, type Recipe } from '@/stores/recipesStore'
 import PageWrapper from '@/components/PageWrapper.vue'
+import PageHeader from '@/components/common/PageHeader.vue'
+import EmptyState from '@/components/common/EmptyState.vue'
+import SectionCard from '@/components/common/SectionCard.vue'
 import IngredientsList from '@/components/IngredientsList.vue'
 import InstructionsList from '@/components/InstructionsList.vue'
 import ServingsAdjuster from '@/components/ServingsAdjuster.vue'
@@ -82,6 +85,12 @@ const servingsMultiplier = computed(() => {
   return adjustedServings.value / selectedRecipe.value.servings
 })
 
+const pageTitle = computed(() =>
+  selectedRecipe.value ? selectedRecipe.value.name : 'Cook'
+)
+
+const hasRouteId = computed(() => !!route.params.recipeId)
+
 // Actions
 const selectRecipe = (recipe: Recipe) => {
   selectedRecipe.value = recipe
@@ -89,11 +98,6 @@ const selectRecipe = (recipe: Recipe) => {
   checkedIngredients.value.clear()
   checkedInstructions.value.clear()
   currentInstructionStep.value = 0
-}
-
-const goBack = () => {
-  // Navigate back in history to restore scroll position
-  router.back()
 }
 
 const toggleIngredient = (index: number) => {
@@ -135,57 +139,42 @@ const previousStep = () => {
 </script>
 
 <template>
-  <PageWrapper>
-    <div class="cook-view">
-      <!-- Cooking Screen -->
-      <div v-if="selectedRecipe" class="cooking-screen">
-        <!-- Header with back button -->
-        <div class="cooking-header q-mb-md">
-          <q-btn
-            flat
-            round
-            dense
-            icon="arrow_back"
-            @click="goBack"
-            class="q-mr-md"
-          />
-          <div class="recipe-title">
-            <div class="recipe-icon-large">{{ selectedRecipe.icon || '🍽️' }}</div>
-            <div>
-              <div class="text-h5">{{ selectedRecipe.name }}</div>
-              <div class="text-caption text-grey-7">{{ selectedRecipe.servings }} servings</div>
-            </div>
-          </div>
-        </div>
+  <q-page>
+    <PageWrapper>
+      <!-- Cooking mode: recipe is loaded -->
+      <div v-if="selectedRecipe" class="sp-cook">
+        <PageHeader
+          :title="pageTitle"
+          :back="hasRouteId ? true : undefined"
+          icon="soup_kitchen"
+        />
 
-        <!-- Controls Row - Full Width -->
-        <div class="controls-row-container">
-          <div class="controls-row row items-center">
-            <!-- Servings Adjustment -->
+        <!-- Sticky controls bar: servings + screen lock -->
+        <div class="sp-cook__controls-bar q-mb-md">
+          <div class="sp-cook__controls-inner row items-center">
             <ServingsAdjuster
               :servings="adjustedServings"
               :original-servings="selectedRecipe.servings"
               @update:servings="adjustedServings = $event"
             />
-
             <q-space />
-
-            <!-- Screen Lock Toggle -->
-            <q-toggle
-              v-model="keepScreenActive"
-              color="primary"
-              icon="screen_lock_portrait"
-              size="lg"
-            >
-              <q-tooltip>Keep screen active while cooking</q-tooltip>
-            </q-toggle>
+            <div class="row items-center q-gutter-xs">
+              <q-toggle
+                v-model="keepScreenActive"
+                color="primary"
+                icon="screen_lock_portrait"
+                size="lg"
+              >
+                <q-tooltip>Keep screen active while cooking</q-tooltip>
+              </q-toggle>
+              <span class="sp-cook__lock-label text-caption text-grey-7 gt-xs">Keep screen on</span>
+            </div>
           </div>
         </div>
 
-        <!-- Content Container -->
-        <div class="content-container">
-          <!-- Ingredients Section -->
-          <div class="q-mb-xl">
+        <!-- Content: Ingredients + Steps -->
+        <div class="sp-cook__content">
+          <SectionCard title="Ingredients" class="q-mb-md">
             <IngredientsList
               :ingredients="selectedRecipe.ingredients || []"
               :checked-ingredients="checkedIngredients"
@@ -193,110 +182,91 @@ const previousStep = () => {
               :show-checkboxes="true"
               @toggle-ingredient="toggleIngredient"
             />
-          </div>
+          </SectionCard>
 
-          <!-- Instructions Section -->
-          <InstructionsList
-            :instructions="selectedRecipe.instructions || []"
-            :checked-instructions="checkedInstructions"
-            :current-step="currentInstructionStep"
-            :show-checkboxes="true"
-            :show-navigation="true"
-            @toggle-instruction="toggleInstruction"
-            @set-current-step="setCurrentStep"
-            @next-step="nextStep"
-            @previous-step="previousStep"
-          />
+          <SectionCard title="Steps">
+            <InstructionsList
+              :instructions="selectedRecipe.instructions || []"
+              :checked-instructions="checkedInstructions"
+              :current-step="currentInstructionStep"
+              :show-checkboxes="true"
+              :show-navigation="true"
+              @toggle-instruction="toggleInstruction"
+              @set-current-step="setCurrentStep"
+              @next-step="nextStep"
+              @previous-step="previousStep"
+            />
+          </SectionCard>
         </div>
       </div>
 
-      <!-- No Recipe Selected -->
-      <div v-else class="no-recipe-selected">
-        <q-icon size="4em" name="soup_kitchen" color="grey-5" />
-        <div class="text-h6 text-grey-6 q-mt-md">No recipe selected</div>
-        <q-btn
-          class="q-mt-md"
-          color="primary"
-          label="Go to Recipes"
-          icon="restaurant_menu"
-          @click="router.push('/recipes')"
-        />
+      <!-- No recipe selected -->
+      <div v-else class="sp-cook sp-cook--empty">
+        <PageHeader title="Cook" icon="soup_kitchen" />
+        <EmptyState
+          icon="soup_kitchen"
+          title="No recipe selected"
+          hint="Pick a recipe from the Recipes view to start cooking."
+        >
+          <template #action>
+            <q-btn
+              color="primary"
+              label="Go to Recipes"
+              icon="restaurant_menu"
+              unelevated
+              no-caps
+              class="q-mt-md"
+              @click="router.push('/recipes')"
+            />
+          </template>
+        </EmptyState>
       </div>
-    </div>
-  </PageWrapper>
+    </PageWrapper>
+  </q-page>
 </template>
 
 <style scoped>
-.cook-view {
-  height: 100%;
+.sp-cook {
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.sp-cook--empty {
   display: flex;
   flex-direction: column;
 }
 
-/* No Recipe Selected */
-.no-recipe-selected {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  text-align: center;
+/* Sticky controls bar below the header */
+.sp-cook__controls-bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--sp-primary-soft);
+  border-radius: var(--sp-r-md);
+  padding: 10px 16px;
+  border: 1px solid var(--sp-border);
+  box-shadow: var(--sp-shadow-1);
 }
 
-/* Cooking Screen */
-.cooking-screen {
+.sp-cook__controls-inner {
   width: 100%;
-  margin: 0 auto;
 }
 
-.cooking-header {
-  display: flex;
-  align-items: center;
-  max-width: 900px;
-  margin: 0 auto;
+.sp-cook__lock-label {
+  font-size: 0.78rem;
 }
 
-.recipe-title {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+/* Slightly larger checkboxes in cooking mode via :deep */
+.sp-cook__content :deep(.q-checkbox__inner) {
+  font-size: 1.25em;
 }
 
-.recipe-icon-large {
-  font-size: 3.5rem;
-  line-height: 1;
-}
-
-/* Controls Row - Full Width */
-.controls-row-container {
-  width: 100%;
-  background-color: rgba(var(--q-primary-rgb), 0.05);
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-}
-
-.controls-row {
-  flex-shrink: 0;
-  max-width: 900px;
-  margin: 0 auto;
-}
-
-/* Content Container */
-.content-container {
-  max-width: 900px;
-  margin: 0 auto;
-}
-
-
-/* Mobile responsive */
+/* Breathing room on mobile */
 @media (max-width: 599px) {
-  .recipe-icon-large {
-    font-size: 2.5rem;
-  }
-
-  .cooking-header {
-    flex-direction: column;
-    align-items: flex-start;
+  .sp-cook__controls-bar {
+    border-radius: 8px;
+    padding: 8px 12px;
   }
 }
 </style>

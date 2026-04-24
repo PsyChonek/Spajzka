@@ -621,15 +621,14 @@
     }
   ],
   "start_url": "/",
-  "theme_color": "#121212",
-  "background_color": "#121212",
+  "theme_color": "#2F7D5F",
+  "background_color": "#FAFAF7",
   "scope": "/",
   "display_override": [
-    "window-controls-overlay",
     "standalone",
     "minimal-ui"
   ],
-  "display": "browser",
+  "display": "standalone",
   "orientation": "portrait",
   "related_applications": [
     {
