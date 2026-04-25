@@ -13,7 +13,8 @@ export default defineConfig({
 			sassVariables: 'src/quasar-variables.sass'
 		}),
 		VitePWA({
-			registerType: "autoUpdate"
+			registerType: "autoUpdate",
+			manifest: false
 		})
 	],
 	resolve: {
