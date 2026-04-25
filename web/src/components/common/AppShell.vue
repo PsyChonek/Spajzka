@@ -89,11 +89,10 @@ const navigateTo = (to: string) => {
     <q-drawer
       v-model="drawer"
       :width="280"
-      :breakpoint="0"
+      behavior="mobile"
       bordered
       class="sp-shell__drawer"
       side="left"
-      overlay
     >
       <div class="sp-shell__drawer-header">
         <div class="sp-shell__drawer-brand">Špajzka</div>

@@ -226,6 +226,7 @@ function parseServings(val: string | number | null) {
         multiple
         flat
         minimal
+        :first-day-of-week="1"
         class="sp-meal__date-picker"
       />
     </div>

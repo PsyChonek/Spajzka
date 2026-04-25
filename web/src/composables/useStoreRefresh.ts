@@ -5,6 +5,7 @@ import { useShoppingStore } from '@/stores/shoppingStore'
 import { useItemsStore } from '@/stores/itemsStore'
 import { useRecipesStore } from '@/stores/recipesStore'
 import { useMealPlanStore } from '@/stores/mealPlanStore'
+import { useHistoryStore } from '@/stores/historyStore'
 
 // Cooldown configuration (in milliseconds)
 const REFRESH_COOLDOWN_MS = 5000 // 5 seconds
@@ -26,6 +27,7 @@ export function useStoreRefresh() {
   const itemsStore = useItemsStore()
   const recipesStore = useRecipesStore()
   const mealPlanStore = useMealPlanStore()
+  const historyStore = useHistoryStore()
 
   /**
    * Refresh all stores - fetches fresh data for authenticated users
@@ -69,7 +71,8 @@ export function useStoreRefresh() {
       pantryStore.fetchItems(),
       shoppingStore.fetchItems(),
       recipesStore.fetchItems(),
-      mealPlanStore.fetchItems()
+      mealPlanStore.fetchItems(),
+      historyStore.fetchInitial()
     ])
   }
 

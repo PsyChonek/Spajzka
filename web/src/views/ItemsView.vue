@@ -81,7 +81,8 @@ const openEditDialog = (item: Item, field: 'name' | 'icon' | 'unit' | 'category'
     category: item.category || '',
     icon: item.icon || '',
     searchNames: item.searchNames || [],
-    tags: item.tags || []
+    tags: item.tags || [],
+    isGlobal: item.type === 'global'
   }
   showEditDialog.value = true
 }
@@ -102,18 +103,27 @@ const saveNewItem = async (data: ItemFormData) => {
 }
 
 const saveEditedItem = async (data: ItemFormData) => {
-  if (editingItem.value && editingItem.value._id) {
-    const updates = {
-      name: data.name, category: data.category || 'Other', defaultUnit: data.defaultUnit || 'pcs',
-      icon: data.icon, searchNames: data.searchNames, tags: data.tags
-    }
-    if (editingItem.value.type === 'global') {
-      await itemsStore.updateGlobalItem(editingItem.value._id, updates)
-    } else {
-      await itemsStore.updateGroupItem(editingItem.value._id, updates)
-    }
-    editingItem.value = null
+  if (!editingItem.value?._id) return
+  const updates = {
+    name: data.name, category: data.category || 'Other', defaultUnit: data.defaultUnit || 'pcs',
+    icon: data.icon, searchNames: data.searchNames, tags: data.tags
   }
+  const wasGlobal = editingItem.value.type === 'global'
+  const isNowGlobal = data.isGlobal ?? wasGlobal
+
+  if (wasGlobal === isNowGlobal) {
+    if (isNowGlobal) await itemsStore.updateGlobalItem(editingItem.value._id, updates)
+    else await itemsStore.updateGroupItem(editingItem.value._id, updates)
+  } else if (isNowGlobal) {
+    // group → global: promote by creating a global item, then removing the group copy
+    await itemsStore.addGlobalItem(updates)
+    await itemsStore.deleteGroupItem(editingItem.value._id)
+  } else {
+    // global → group: demote by creating a group item, then removing the global entry
+    await itemsStore.addGroupItem(updates)
+    await itemsStore.deleteGlobalItem(editingItem.value._id)
+  }
+  editingItem.value = null
 }
 
 const deleteItem = (item: Item) => {
@@ -313,6 +323,7 @@ const subtitle = computed(() => {
         :initial-data="initialFormData"
         :readonly-item-fields="!canEditItemFields"
         :focus-field="focusField"
+        :show-global-toggle="canCreateGlobalItems"
         :show-delete-button="canDeleteCurrentItem"
         @save="saveEditedItem"
         @delete="handleDeleteFromDialog"

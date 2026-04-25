@@ -152,51 +152,53 @@ const subtitle = computed(() => {
               Global
             </q-badge>
           </div>
-          <q-card-section class="sp-recipe-card__body">
-            <div class="sp-recipe-card__name">{{ recipe.name }}</div>
-            <div v-if="recipe.description" class="sp-recipe-card__desc">
-              {{ recipe.description }}
-            </div>
-            <div v-if="recipe.tags && recipe.tags.length > 0" class="sp-recipe-card__tags">
-              <q-chip
-                v-for="tagId in recipe.tags.slice(0, 3)"
-                :key="tagId"
-                dense size="sm"
-                :style="{
-                  backgroundColor: tagsStore.getTagById(tagId)?.color || '#6200EA',
-                  color: getContrastColor(tagsStore.getTagById(tagId)?.color || '#6200EA')
-                }"
+          <div class="sp-recipe-card__content">
+            <q-card-section class="sp-recipe-card__body">
+              <div class="sp-recipe-card__name">{{ recipe.name }}</div>
+              <div v-if="recipe.description" class="sp-recipe-card__desc">
+                {{ recipe.description }}
+              </div>
+              <div v-if="recipe.tags && recipe.tags.length > 0" class="sp-recipe-card__tags">
+                <q-chip
+                  v-for="tagId in recipe.tags.slice(0, 3)"
+                  :key="tagId"
+                  dense size="sm"
+                  :style="{
+                    backgroundColor: tagsStore.getTagById(tagId)?.color || '#6200EA',
+                    color: getContrastColor(tagsStore.getTagById(tagId)?.color || '#6200EA')
+                  }"
+                >
+                  <span v-if="tagsStore.getTagById(tagId)?.icon" style="margin-right: 4px">
+                    {{ tagsStore.getTagById(tagId)?.icon }}
+                  </span>
+                  {{ tagsStore.getTagById(tagId)?.name }}
+                </q-chip>
+              </div>
+            </q-card-section>
+            <q-card-actions class="sp-recipe-card__actions">
+              <q-btn
+                flat dense color="primary" no-caps
+                icon="soup_kitchen" label="Cook"
+                :disable="!recipe._id"
+                @click.stop="recipe._id && openRecipe(recipe._id)"
+              />
+              <q-space />
+              <q-btn
+                flat dense round color="grey-7" icon="edit"
+                :disable="!canEditRecipe(recipe)"
+                @click.stop="openEditDialog(recipe)"
               >
-                <span v-if="tagsStore.getTagById(tagId)?.icon" style="margin-right: 4px">
-                  {{ tagsStore.getTagById(tagId)?.icon }}
-                </span>
-                {{ tagsStore.getTagById(tagId)?.name }}
-              </q-chip>
-            </div>
-          </q-card-section>
-          <q-card-actions class="sp-recipe-card__actions">
-            <q-btn
-              flat dense color="primary" no-caps
-              icon="soup_kitchen" label="Cook"
-              :disable="!recipe._id"
-              @click.stop="recipe._id && openRecipe(recipe._id)"
-            />
-            <q-space />
-            <q-btn
-              flat dense round color="grey-7" icon="edit"
-              :disable="!canEditRecipe(recipe)"
-              @click.stop="openEditDialog(recipe)"
-            >
-              <q-tooltip>Edit</q-tooltip>
-            </q-btn>
-            <q-btn
-              flat dense round color="negative" icon="delete"
-              :disable="!canDeleteRecipe(recipe) || !recipe._id"
-              @click.stop="recipe._id && deleteRecipe(recipe._id)"
-            >
-              <q-tooltip>Delete</q-tooltip>
-            </q-btn>
-          </q-card-actions>
+                <q-tooltip>Edit</q-tooltip>
+              </q-btn>
+              <q-btn
+                flat dense round color="negative" icon="delete"
+                :disable="!canDeleteRecipe(recipe) || !recipe._id"
+                @click.stop="recipe._id && deleteRecipe(recipe._id)"
+              >
+                <q-tooltip>Delete</q-tooltip>
+              </q-btn>
+            </q-card-actions>
+          </div>
         </q-card>
       </div>
 
@@ -249,6 +251,7 @@ const subtitle = computed(() => {
   align-items: center;
   justify-content: center;
   position: relative;
+  flex-shrink: 0;
 }
 
 .sp-recipe-card__icon {
@@ -260,6 +263,13 @@ const subtitle = computed(() => {
   position: absolute;
   top: 8px;
   right: 8px;
+}
+
+.sp-recipe-card__content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
 }
 
 .sp-recipe-card__body {
@@ -300,5 +310,24 @@ const subtitle = computed(() => {
   padding: 4px 8px 8px;
   border-top: 1px solid var(--sp-divider);
   background: var(--sp-surface);
+}
+
+@media (max-width: 599px) {
+  .sp-recipe-card {
+    flex-direction: row;
+  }
+
+  .sp-recipe-card__hero {
+    width: 72px;
+    height: auto;
+  }
+
+  .sp-recipe-card__icon {
+    font-size: 2rem;
+  }
+
+  .sp-recipe-card__body {
+    padding: 10px 12px 4px;
+  }
 }
 </style>

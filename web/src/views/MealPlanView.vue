@@ -4,11 +4,8 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 // — not the component itself. Pull the component off the plugin object.
 // (The package's .d.ts only declares the default, so named imports fail type-check.)
 import QCalendarMonthPlugin from '@quasar/quasar-ui-qcalendar/QCalendarMonth'
-import QCalendarAgendaPlugin from '@quasar/quasar-ui-qcalendar/QCalendarAgenda'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const QCalendarMonth = (QCalendarMonthPlugin as any).QCalendarMonth ?? QCalendarMonthPlugin
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const QCalendarAgenda = (QCalendarAgendaPlugin as any).QCalendarAgenda ?? QCalendarAgendaPlugin
 import { useMealPlan } from '@/composables/useStores'
 import { useRecipesStore } from '@/stores/recipesStore'
 import { toISODate } from '@/utils/date'
@@ -48,9 +45,10 @@ const rangeLabel = computed(() => {
   if (calendarView.value === 'month') {
     return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' })
   }
-  const dayOfWeek = d.getUTCDay()
+  // Monday-first: Sunday(0) → 6 days back, otherwise (day - 1) days back.
+  const offset = (d.getUTCDay() + 6) % 7
   const weekStart = new Date(d)
-  weekStart.setUTCDate(d.getUTCDate() - dayOfWeek)
+  weekStart.setUTCDate(d.getUTCDate() - offset)
   const weekEnd = new Date(weekStart)
   weekEnd.setUTCDate(weekStart.getUTCDate() + 6)
   const fmt = (dt: Date) => dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })
@@ -154,7 +152,8 @@ const shoppingFrom = computed(() => {
     d.setUTCDate(1)
     return toISODate(d)
   }
-  d.setUTCDate(d.getUTCDate() - d.getUTCDay())
+  // Monday-first week start.
+  d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7))
   return toISODate(d)
 })
 
@@ -312,6 +311,23 @@ const agendaDays = computed<{ date: string; entries: MealPlanEntry[] }[]>(() => 
     const date = toISODate(cur)
     const entries = entriesForDate(date)
     if (entries.length > 0) out.push({ date, entries })
+    cur.setUTCDate(cur.getUTCDate() + 1)
+  }
+  return out
+})
+
+// Week view: every day in the current week, including empty ones, so the
+// 7-day structure is visible. Rendered as a vertical list — QCalendarAgenda's
+// week mode pushes content into narrow columns where the icon+text+badge row
+// layout collapses.
+const weekDays = computed<{ date: string; entries: MealPlanEntry[] }[]>(() => {
+  const from = shoppingFrom.value
+  const to = shoppingTo.value
+  const out: { date: string; entries: MealPlanEntry[] }[] = []
+  const cur = new Date(from + 'T00:00:00Z')
+  const end = new Date(to + 'T00:00:00Z')
+  while (cur <= end) {
+    out.push({ date: toISODate(cur), entries: entriesForDate(toISODate(cur)) })
     cur.setUTCDate(cur.getUTCDate() + 1)
   }
   return out
@@ -534,66 +550,70 @@ onMounted(async () => {
             </template>
           </QCalendarMonth>
 
-          <!-- Week view: 7-column day strip -->
-          <QCalendarAgenda
-            v-else-if="calendarView === 'week'"
-            v-model="selectedDate"
-            view="week"
-            :weekdays="weekdaysMondayFirst"
-            class="sp-mp__calendar sp-mp__calendar--agenda"
-            @change="onCalendarChange"
-          >
-            <template #day="{ scope }">
+          <!-- Week view: vertical list of all 7 days. QCalendarAgenda's `week`
+               mode renders 7 narrow columns where the icon+text+badge row
+               layout collapses on mobile, so we render the week directly as
+               grouped sections (same shape as agenda-list, but always shows
+               every day in the week, including empty ones, so the structure
+               is visible). -->
+          <div v-else-if="calendarView === 'week'" class="sp-mp__agenda-list">
+            <section
+              v-for="day in weekDays"
+              :key="day.date"
+              class="sp-mp__agenda-section"
+              :class="{ 'sp-mp__agenda-section--today': day.date === todayStr }"
+              @pointerdown="onDayPointerDown(day.date, $event)"
+              @pointerenter="onDayPointerEnter(day.date)"
+            >
+              <header class="sp-mp__agenda-section-head">
+                <span class="sp-mp__agenda-section-title">{{ formatAgendaHeading(day.date) }}</span>
+                <span v-if="day.entries.length > 0" class="sp-mp__agenda-section-count">
+                  {{ day.entries.length }} {{ day.entries.length === 1 ? 'meal' : 'meals' }}
+                </span>
+              </header>
               <div
-                class="sp-mp__agenda-day"
-                :class="{ 'sp-mp__agenda-day--today': scope.timestamp.date === todayStr }"
-                @pointerdown="onDayPointerDown(scope.timestamp.date, $event)"
-                @pointerenter="onDayPointerEnter(scope.timestamp.date)"
+                v-for="entry in day.entries"
+                :key="entry._id"
+                class="sp-mp__agenda-row"
+                :style="chipStyle(entry.recipeId, isLeftover(entry, day.date))"
+                @pointerdown.stop
+                @click.stop="openEditEntry(entry)"
               >
-                <div
-                  v-for="entry in entriesForDate(scope.timestamp.date)"
-                  :key="entry._id"
-                  class="sp-mp__agenda-row"
-                  :style="chipStyle(entry.recipeId, isLeftover(entry, scope.timestamp.date))"
-                  @pointerdown.stop
-                  @click.stop="openEditEntry(entry)"
-                >
-                  <div class="sp-mp__agenda-icon">
-                    <q-icon
-                      v-if="entry.mealTypes && entry.mealTypes.length && MEAL_TYPE_ICON[entry.mealTypes[0]!]"
-                      :name="MEAL_TYPE_ICON[entry.mealTypes[0]!]"
-                      size="20px"
-                    />
-                    <q-icon v-else name="restaurant" size="20px" />
-                  </div>
-                  <div class="col">
-                    <div class="sp-mp__agenda-name text-weight-medium">{{ entry.recipeName }}</div>
-                    <div
-                      v-if="(entry.mealTypes && entry.mealTypes.length) || entry.servings"
-                      class="sp-mp__agenda-meta text-caption"
-                    >
-                      <span v-if="entry.mealTypes && entry.mealTypes.length">{{ entry.mealTypes.join(' · ') }}</span>
-                      <span v-if="entry.mealTypes && entry.mealTypes.length && entry.servings"> · </span>
-                      <span v-if="entry.servings">{{ entry.servings }} servings</span>
-                    </div>
-                  </div>
-                  <q-badge
-                    v-if="isLeftover(entry, scope.timestamp.date)"
-                    outline
-                    color="orange"
-                    label="leftover"
-                    class="q-mr-sm"
+                <div class="sp-mp__agenda-icon">
+                  <q-icon
+                    v-if="entry.mealTypes && entry.mealTypes.length && MEAL_TYPE_ICON[entry.mealTypes[0]!]"
+                    :name="MEAL_TYPE_ICON[entry.mealTypes[0]!]"
+                    size="20px"
                   />
+                  <q-icon v-else name="restaurant" size="20px" />
                 </div>
-                <div
-                  v-if="entriesForDate(scope.timestamp.date).length === 0"
-                  class="sp-mp__agenda-empty text-caption text-grey-5"
-                >
-                  — No meals —
+                <div class="col">
+                  <div class="sp-mp__agenda-name text-weight-medium">{{ entry.recipeName }}</div>
+                  <div
+                    v-if="(entry.mealTypes && entry.mealTypes.length) || entry.servings"
+                    class="sp-mp__agenda-meta text-caption"
+                  >
+                    <span v-if="entry.mealTypes && entry.mealTypes.length">{{ entry.mealTypes.join(' · ') }}</span>
+                    <span v-if="entry.mealTypes && entry.mealTypes.length && entry.servings"> · </span>
+                    <span v-if="entry.servings">{{ entry.servings }} servings</span>
+                  </div>
                 </div>
+                <q-badge
+                  v-if="isLeftover(entry, day.date)"
+                  outline
+                  color="orange"
+                  label="leftover"
+                  class="q-mr-sm"
+                />
               </div>
-            </template>
-          </QCalendarAgenda>
+              <div
+                v-if="day.entries.length === 0"
+                class="sp-mp__agenda-empty text-caption text-grey-5"
+              >
+                — No meals —
+              </div>
+            </section>
+          </div>
 
           <!-- Agenda view: flat list of every day in the range that has meals.
                QCalendar's agenda mode only shows one day at a time, so a meal
@@ -746,9 +766,13 @@ onMounted(async () => {
   box-shadow: var(--sp-shadow-2);
 }
 
-/* -------- Sub-toolbar -------- */
+/* -------- Sub-toolbar --------
+   Horizontal padding gives the view-toggle and nav controls breathing room
+   from the screen edges on mobile (the calendar card itself is full-width). */
 .sp-mp__subtoolbar {
-  padding: 0 2px 4px;
+  padding: 4px 8px 12px;
+  gap: 8px;
+  row-gap: 8px;
 }
 
 .sp-mp__view-toggle {
@@ -1039,23 +1063,6 @@ onMounted(async () => {
 }
 
 /* -------- Agenda / week view -------- */
-.sp-mp__calendar--agenda :deep(.q-calendar-agenda__head) {
-  background-color: var(--sp-surface-2);
-  border-bottom: 1px solid var(--sp-border);
-}
-
-.sp-mp__agenda-day {
-  padding: 8px 10px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  touch-action: pan-y;
-}
-
-.sp-mp__agenda-day--today {
-  background: linear-gradient(180deg, var(--sp-primary-soft) 0%, transparent 100%);
-}
-
 .sp-mp__agenda-row {
   display: flex;
   align-items: center;
@@ -1204,11 +1211,10 @@ onMounted(async () => {
   }
 
   .sp-mp__calendar :deep(.q-calendar-month__day) {
-    min-height: 96px;
+    min-height: 88px;
   }
 
-  .sp-mp__calendar :deep(.q-calendar-month__head-weekday),
-  .sp-mp__calendar :deep(.q-calendar-agenda__head-weekday-label) {
+  .sp-mp__calendar :deep(.q-calendar-month__head-weekday) {
     padding: 10px 4px;
     font-size: 0.62rem;
     letter-spacing: 0.06em;
@@ -1220,39 +1226,55 @@ onMounted(async () => {
   }
 
   .sp-mp__day {
-    min-height: 76px;
-    padding: 4px 5px 6px;
+    min-height: 70px;
+    padding: 4px 4px 6px;
   }
 
+  /* Phone month grid: 7 narrow columns can't fit recipe names without
+     truncating them to a single letter. Switch chips to compact colored dots
+     showing the meal-type icon — the user can tap to see details, and the
+     count of dots conveys how busy a day is at a glance. */
   .sp-mp__day-entries {
+    flex-direction: row;
+    flex-wrap: wrap;
     gap: 3px;
     margin-top: 4px;
   }
 
   .sp-mp__chip {
-    font-size: 0.7rem;
-    padding: 3px 7px;
-    border-radius: 6px;
-    gap: 4px;
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    border-radius: 50%;
+    border-left: none !important;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .sp-mp__chip--leftover {
+    background-color: transparent !important;
+  }
+
+  .sp-mp__chip-name,
+  .sp-mp__chip-servings,
+  .sp-mp__chip-dot {
+    display: none;
   }
 
   .sp-mp__chip-icon {
-    width: 12px;
-    height: 12px;
-    font-size: 12px;
+    font-size: 12px !important;
   }
 
   .sp-mp__more {
-    font-size: 0.65rem;
-    padding: 1px 7px;
+    font-size: 0.62rem;
+    padding: 0 6px;
+    height: 18px;
+    line-height: 16px;
+    border-radius: var(--sp-r-pill);
   }
 }
 
 @media (max-width: 480px) {
-  .sp-mp__subtoolbar {
-    gap: 6px;
-  }
-
   .sp-mp__view-toggle :deep(.q-btn) {
     padding: 2px 8px;
     font-size: 0.72rem;
@@ -1270,21 +1292,21 @@ onMounted(async () => {
   }
 
   .sp-mp__calendar :deep(.q-calendar-month__day) {
-    min-height: 72px;
+    min-height: 64px;
   }
 
   .sp-mp__day {
-    min-height: 56px;
-    padding: 3px 4px 4px;
+    min-height: 50px;
+    padding: 3px 3px 4px;
   }
 
   .sp-mp__chip {
-    font-size: 0.65rem;
-    padding: 2px 5px;
+    width: 14px;
+    height: 14px;
   }
 
-  .sp-mp__chip-servings {
-    display: none;
+  .sp-mp__chip-icon {
+    font-size: 10px !important;
   }
 
   /* On phones the "+" affordance just adds noise — the FAB is right there. */
