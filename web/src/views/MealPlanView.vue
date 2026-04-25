@@ -16,7 +16,6 @@ import SectionCard from '@/components/common/SectionCard.vue'
 import MealPlanEntryDialog from '@/components/MealPlanEntryDialog.vue'
 import MealSuggestionDialog from '@/components/MealSuggestionDialog.vue'
 import ShoppingPreviewDialog from '@/components/ShoppingPreviewDialog.vue'
-import FabAdd from '@/components/common/FabAdd.vue'
 import type { Recipe } from '@/stores/recipesStore'
 
 const mealPlan = useMealPlan()
@@ -637,19 +636,12 @@ onMounted(async () => {
                 <q-icon name="restaurant_menu" size="56px" color="primary" class="q-mb-md" />
                 <div class="text-h6 text-weight-medium" style="color: var(--sp-text)">Plan your first meal</div>
                 <div class="text-body2 q-mt-xs" style="color: var(--sp-text-muted)">
-                  Click a day in the calendar or use the + button to schedule a recipe.
+                  Click a day in the calendar or tap Suggest to schedule a recipe.
                 </div>
               </div>
             </div>
           </Transition>
         </SectionCard>
-
-        <!-- FAB: add entry (mobile only, shared component to match the rest of the app) -->
-        <FabAdd
-          class="lt-md"
-          aria-label="Add meal"
-          @click="openAddEntry(selectedDate)"
-        />
 
         <!-- "Suggest meal" sticky button on mobile (above generate shopping) -->
         <q-btn
@@ -727,11 +719,10 @@ onMounted(async () => {
 }
 
 /* -------- Mobile sticky buttons --------
-   Stack above FAB: suggest sits above generate-shopping which sits above FAB.
-   Higher z-index than the bottom nav but lower than the FAB. */
+   Stack above the bottom nav: suggest sits above generate-shopping. */
 .sp-mp__generate-btn-mobile {
   position: fixed;
-  bottom: calc(var(--sp-bottom-nav-h, 56px) + 16px + 56px + 12px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(var(--sp-bottom-nav-h, 56px) + 16px + env(safe-area-inset-bottom, 0px));
   right: 16px;
   z-index: 1900;
   border-radius: var(--sp-r-md);
@@ -741,7 +732,7 @@ onMounted(async () => {
 
 .sp-mp__suggest-btn-mobile {
   position: fixed;
-  bottom: calc(var(--sp-bottom-nav-h, 56px) + 16px + 56px + 12px + 44px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(var(--sp-bottom-nav-h, 56px) + 16px + 44px + 12px + env(safe-area-inset-bottom, 0px));
   right: 16px;
   z-index: 1900;
   border-radius: var(--sp-r-md);
