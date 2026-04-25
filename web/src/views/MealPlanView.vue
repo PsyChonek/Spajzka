@@ -644,12 +644,15 @@ onMounted(async () => {
   box-shadow: var(--sp-shadow-2);
 }
 
-/* -------- Mobile sticky "Generate shopping" button -------- */
+/* -------- Mobile sticky "Generate shopping" button --------
+   Sits *above* the FAB (which is at `bottom: nav + 16px`, ~56px tall).
+   Higher z-index than the bottom nav but lower than the FAB so the FAB stays
+   the primary action. */
 .sp-mp__generate-btn-mobile {
   position: fixed;
-  bottom: calc(var(--sp-bottom-nav-h, 56px) + 16px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(var(--sp-bottom-nav-h, 56px) + 16px + 56px + 12px + env(safe-area-inset-bottom, 0px));
   right: 16px;
-  z-index: 1000;
+  z-index: 1900;
   border-radius: var(--sp-r-md);
   font-weight: 600;
   box-shadow: var(--sp-shadow-2);
