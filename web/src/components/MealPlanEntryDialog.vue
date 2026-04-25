@@ -4,8 +4,13 @@ import { useRecipesStore, type Recipe } from '@/stores/recipesStore'
 import { GlobalRecipe, CreateMealPlanEntryRequest } from '@shared/api-client'
 import type { MealPlanEntry } from '@shared/api-client'
 import { matchesQuery } from '@/utils/search'
+import { toISODate } from '@/utils/date'
 import BaseDialog from './BaseDialog.vue'
 import ConfirmDialog from './ConfirmDialog.vue'
+import QCalendarMonthPlugin from '@quasar/quasar-ui-qcalendar/QCalendarMonth'
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const QCalendarMonth = (QCalendarMonthPlugin as any).QCalendarMonth ?? QCalendarMonthPlugin
+const weekdaysMondayFirst = [1, 2, 3, 4, 5, 6, 0]
 
 const recipesStore = useRecipesStore()
 
@@ -82,6 +87,34 @@ const hasGeneratedShopping = computed(
   () => props.mode === 'edit' && !!props.initialData?.shoppingBatchId
 )
 
+const todayStr = computed(() => toISODate(new Date()))
+const pickerDate = ref<string>(toISODate(new Date()))
+const pickerMonth = computed(() => pickerDate.value.slice(0, 7))
+
+function isOutsideMonth(date: string) {
+  return date.slice(0, 7) !== pickerMonth.value
+}
+
+function toggleEatDate(date: string) {
+  const idx = eatDates.value.indexOf(date)
+  if (idx >= 0) eatDates.value.splice(idx, 1)
+  else eatDates.value.push(date)
+}
+
+function shiftPickerMonth(direction: -1 | 1) {
+  const [y, m] = pickerDate.value.split('-').map(Number)
+  pickerDate.value = toISODate(new Date(y!, (m! - 1) + direction, 1))
+}
+
+function pickerToday() {
+  pickerDate.value = toISODate(new Date())
+}
+
+const pickerLabel = computed(() => {
+  const [y, m] = pickerDate.value.split('-').map(Number)
+  return new Date(y!, m! - 1, 1).toLocaleString(undefined, { month: 'long', year: 'numeric' })
+})
+
 watch(
   () => props.modelValue,
   (isOpen) => {
@@ -107,6 +140,7 @@ function populateForm() {
     notes.value = ''
   }
   recipeFilter.value = ''
+  pickerDate.value = cookDate.value || eatDates.value[0] || toISODate(new Date())
 }
 
 const isValid = computed(() => !!selectedRecipe.value && !!cookDate.value)
@@ -226,14 +260,49 @@ function parseServings(val: string | number | null) {
     <div class="sp-meal__field">
       <div class="sp-form-label">Eat dates</div>
       <div class="sp-meal__hint">For leftovers — leave empty to use cook date</div>
-      <q-date
-        v-model="eatDates"
-        multiple
-        flat
-        minimal
-        :first-day-of-week="1"
-        class="sp-meal__date-picker"
-      />
+      <div class="sp-meal__date-picker">
+        <div class="sp-meal__cal-toolbar">
+          <q-btn
+            flat
+            dense
+            round
+            icon="chevron_left"
+            aria-label="Previous month"
+            @click="shiftPickerMonth(-1)"
+          />
+          <div class="sp-meal__cal-title">{{ pickerLabel }}</div>
+          <q-btn flat dense no-caps label="Today" @click="pickerToday" />
+          <q-btn
+            flat
+            dense
+            round
+            icon="chevron_right"
+            aria-label="Next month"
+            @click="shiftPickerMonth(1)"
+          />
+        </div>
+        <QCalendarMonth
+          v-model="pickerDate"
+          :short-weekday-label="false"
+          :weekdays="weekdaysMondayFirst"
+          :show-month-label="false"
+          class="sp-meal__cal"
+        >
+          <template #day="{ scope }">
+            <div
+              class="sp-meal__cal-cell"
+              :class="{
+                'sp-meal__cal-cell--selected': eatDates.includes(scope.timestamp.date),
+                'sp-meal__cal-cell--outside': isOutsideMonth(scope.timestamp.date),
+                'sp-meal__cal-cell--today': scope.timestamp.date === todayStr
+              }"
+              @click="toggleEatDate(scope.timestamp.date)"
+            >
+              {{ scope.timestamp.day }}
+            </div>
+          </template>
+        </QCalendarMonth>
+      </div>
     </div>
 
     <div class="sp-meal__field">
@@ -325,6 +394,72 @@ function parseServings(val: string | number | null) {
   border: 1px solid var(--sp-border);
   border-radius: var(--sp-r-md);
   background: var(--sp-surface);
+  padding: 8px;
+}
+
+.sp-meal__cal-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 4px 8px;
+}
+
+.sp-meal__cal-title {
+  flex: 1;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--sp-text);
+  text-transform: capitalize;
+}
+
+.sp-meal__cal :deep(.q-calendar-month__day-label) {
+  display: none;
+}
+
+.sp-meal__cal :deep(.q-calendar-month__day) {
+  cursor: pointer;
+  min-height: 36px;
+}
+
+.sp-meal__cal :deep(.q-calendar-month__day-content) {
+  height: 100%;
+}
+
+.sp-meal__cal-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-height: 32px;
+  font-size: 0.85rem;
+  color: var(--sp-text);
+  border-radius: var(--sp-r-sm, 6px);
+  user-select: none;
+  transition: background 0.1s, color 0.1s;
+}
+
+.sp-meal__cal-cell:hover {
+  background: var(--sp-surface-2);
+}
+
+.sp-meal__cal-cell--outside {
+  color: var(--sp-text-soft);
+  opacity: 0.55;
+}
+
+.sp-meal__cal-cell--today {
+  font-weight: 700;
+  outline: 1px solid var(--sp-secondary);
+  outline-offset: -2px;
+}
+
+.sp-meal__cal-cell--selected,
+.sp-meal__cal-cell--selected:hover {
+  background: var(--sp-primary);
+  color: #fff;
+  font-weight: 700;
 }
 
 .sp-meal__chips {
