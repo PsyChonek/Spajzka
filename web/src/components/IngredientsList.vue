@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { RecipeIngredient } from '@shared/api-client'
+import { useItemsStore } from '@/stores/itemsStore'
 
 interface Props {
   ingredients: RecipeIngredient[]
@@ -18,11 +19,19 @@ const emit = defineEmits<{
   toggleIngredient: [index: number]
 }>()
 
+const itemsStore = useItemsStore()
+
 const adjustedIngredients = computed(() => {
-  return props.ingredients.map(ingredient => ({
-    ...ingredient,
-    quantity: Number((ingredient.quantity * props.servingsMultiplier).toFixed(2))
-  }))
+  return props.ingredients.map(ingredient => {
+    const resolvedName = ingredient.itemId
+      ? (itemsStore.sortedItemsWithRecent.find(i => i._id === ingredient.itemId)?.name ?? ingredient.itemName)
+      : ingredient.itemName
+    return {
+      ...ingredient,
+      itemName: resolvedName,
+      quantity: Number((ingredient.quantity * props.servingsMultiplier).toFixed(2))
+    }
+  })
 })
 
 const handleToggle = (index: number) => {

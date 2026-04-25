@@ -1,12 +1,29 @@
 import { Router, Response } from 'express';
 import { getDatabase } from '../config/database';
-import { ObjectId } from 'mongodb';
+import { Db, ObjectId } from 'mongodb';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
 import { requirePermission, requireGlobalPermission } from '../rbac/middleware';
 import { resolveGroupId, handleGroupResolutionError } from '../utils/resolveGroup';
 import { logHistory, computeDiff } from '../utils/historyLog';
 
 const router = Router();
+
+/** Resolve ingredient names from the items collection so itemName is always the canonical item name. */
+async function resolveIngredientNames(db: Db, ingredients: any[]): Promise<any[]> {
+  return Promise.all(ingredients.map(async (ing: any) => {
+    let itemName = ing.itemName?.trim() ?? '';
+    if (ing.itemId && ObjectId.isValid(ing.itemId)) {
+      const item = await db.collection('items').findOne({ _id: new ObjectId(ing.itemId) });
+      if (item?.name) itemName = item.name;
+    }
+    return {
+      itemId: ing.itemId || null,
+      itemName,
+      quantity: Number(ing.quantity),
+      unit: (ing.unit ?? '').trim()
+    };
+  }));
+}
 
 /**
  * @openapi
@@ -423,12 +440,7 @@ router.post('/recipes/global', authMiddleware, requireGlobalPermission('global_r
       recipeType: 'global',
       userId: new ObjectId(req.userId),
       servings: Number(servings),
-      ingredients: ingredients.map((ing: any) => ({
-        itemId: ing.itemId || null,
-        itemName: ing.itemName.trim(),
-        quantity: Number(ing.quantity),
-        unit: ing.unit.trim()
-      })),
+      ingredients: await resolveIngredientNames(db, ingredients),
       instructions: instructions.map((inst: string) => inst.trim()),
       tags: Array.isArray(tags) ? tags.map((t: string) => new ObjectId(t)) : [],
       searchNames: Array.isArray(searchNames) ? searchNames.map((n: string) => n.trim()).filter(Boolean) : [],
@@ -503,12 +515,7 @@ router.put('/recipes/global/:id', authMiddleware, requireGlobalPermission('globa
     if (icon !== undefined) updateData.icon = icon;
     if (servings !== undefined) updateData.servings = Number(servings);
     if (ingredients !== undefined) {
-      updateData.ingredients = ingredients.map((ing: any) => ({
-        itemId: ing.itemId || null,
-        itemName: ing.itemName.trim(),
-        quantity: Number(ing.quantity),
-        unit: ing.unit.trim()
-      }));
+      updateData.ingredients = await resolveIngredientNames(db, ingredients);
     }
     if (instructions !== undefined) {
       updateData.instructions = instructions.map((inst: string) => inst.trim());
@@ -778,12 +785,7 @@ router.post('/recipes/group', authMiddleware, requirePermission('group_recipes:c
       groupId,
       userId: new ObjectId(req.userId),
       servings: Number(servings),
-      ingredients: ingredients.map((ing: any) => ({
-        itemId: ing.itemId || null,
-        itemName: ing.itemName.trim(),
-        quantity: Number(ing.quantity),
-        unit: ing.unit.trim()
-      })),
+      ingredients: await resolveIngredientNames(db, ingredients),
       instructions: instructions.map((inst: string) => inst.trim()),
       tags: Array.isArray(tags) ? tags.map((t: string) => new ObjectId(t)) : [],
       searchNames: Array.isArray(searchNames) ? searchNames.map((n: string) => n.trim()).filter(Boolean) : [],
@@ -873,12 +875,7 @@ router.put('/recipes/group/:id', authMiddleware, requirePermission('group_recipe
     if (icon !== undefined) updateData.icon = icon;
     if (servings !== undefined) updateData.servings = Number(servings);
     if (ingredients !== undefined) {
-      updateData.ingredients = ingredients.map((ing: any) => ({
-        itemId: ing.itemId || null,
-        itemName: ing.itemName.trim(),
-        quantity: Number(ing.quantity),
-        unit: ing.unit.trim()
-      }));
+      updateData.ingredients = await resolveIngredientNames(db, ingredients);
     }
     if (instructions !== undefined) {
       updateData.instructions = instructions.map((inst: string) => inst.trim());

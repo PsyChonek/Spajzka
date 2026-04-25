@@ -100,7 +100,13 @@ watch(() => props.editingRecipe, (recipe) => {
     formIcon.value = recipe.icon || ''
     formServings.value = recipe.servings
     formIngredients.value = recipe.ingredients?.length > 0
-      ? [...recipe.ingredients]
+      ? recipe.ingredients.map(ing => {
+          if (ing.itemId) {
+            const item = itemsStore.sortedItemsWithRecent.find(i => i._id === ing.itemId)
+            if (item) return { ...ing, itemName: item.name }
+          }
+          return { ...ing }
+        })
       : [{ itemName: '', quantity: 1, unit: 'pcs' }]
     formInstructions.value = recipe.instructions?.length > 0
       ? [...recipe.instructions]
