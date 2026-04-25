@@ -88,8 +88,9 @@ const navigateTo = (path: string) => router.push(path)
   <q-page>
     <PageWrapper>
       <PageHeader
-        :title="userName ? `${greeting}, ${userName}` : greeting"
-        subtitle="Here's what's in your kitchen today."
+        :subtitle="userName
+          ? `${greeting}, ${userName} — here's what's in your kitchen today.`
+          : `${greeting} — here's what's in your kitchen today.`"
       />
 
       <!-- Stats -->

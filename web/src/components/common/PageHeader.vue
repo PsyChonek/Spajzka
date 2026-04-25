@@ -2,7 +2,7 @@
 import { useRouter } from 'vue-router'
 
 interface Props {
-  title: string
+  title?: string
   subtitle?: string
   back?: boolean | string
   icon?: string
@@ -24,30 +24,21 @@ const goBack = () => {
 </script>
 
 <template>
-  <header class="sp-page-header">
+  <header v-if="back || subtitle || $slots.actions" class="sp-page-header">
     <div class="sp-page-header__main">
-      <div class="row items-center q-gutter-sm q-mb-xs">
-        <q-btn
-          v-if="back"
-          flat
-          dense
-          round
-          icon="arrow_back"
-          aria-label="Back"
-          @click="goBack"
-        />
-        <q-icon
-          v-if="icon"
-          :name="icon"
-          size="28px"
-          color="primary"
-          class="sp-page-header__icon"
-        />
-        <h1 class="sp-page-header__title">{{ title }}</h1>
-      </div>
+      <q-btn
+        v-if="back"
+        flat
+        dense
+        round
+        icon="arrow_back"
+        aria-label="Back"
+        class="sp-page-header__back"
+        @click="goBack"
+      />
       <p v-if="subtitle" class="sp-page-header__subtitle">{{ subtitle }}</p>
     </div>
-    <div class="sp-page-header__actions">
+    <div v-if="$slots.actions" class="sp-page-header__actions">
       <slot name="actions" />
     </div>
   </header>
@@ -56,15 +47,31 @@ const goBack = () => {
 <style scoped>
 .sp-page-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   flex-wrap: wrap;
 }
 
 .sp-page-header__main {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   flex: 1;
+  min-width: 0;
+}
+
+.sp-page-header__back {
+  flex-shrink: 0;
+  margin-left: -8px;
+}
+
+.sp-page-header__subtitle {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--sp-text-muted);
+  line-height: 1.3;
   min-width: 0;
 }
 
@@ -72,13 +79,5 @@ const goBack = () => {
   display: flex;
   gap: 8px;
   flex-shrink: 0;
-}
-
-.sp-page-header__icon {
-  background: var(--sp-primary-soft);
-  border-radius: 10px;
-  padding: 6px;
-  width: 40px;
-  height: 40px;
 }
 </style>

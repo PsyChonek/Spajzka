@@ -299,6 +299,35 @@ function entriesForDate(dateStr: string): MealPlanEntry[] {
   return mealPlan.entriesExpandedByEatDate.value[dateStr] ?? []
 }
 
+// Days (with their meals) that fall inside the currently-visible range.
+// Drives the agenda list view, which is grouped by date instead of showing a
+// single QCalendar day cell.
+const agendaDays = computed<{ date: string; entries: MealPlanEntry[] }[]>(() => {
+  const from = shoppingFrom.value
+  const to = shoppingTo.value
+  const out: { date: string; entries: MealPlanEntry[] }[] = []
+  const cur = new Date(from + 'T00:00:00Z')
+  const end = new Date(to + 'T00:00:00Z')
+  while (cur <= end) {
+    const date = toISODate(cur)
+    const entries = entriesForDate(date)
+    if (entries.length > 0) out.push({ date, entries })
+    cur.setUTCDate(cur.getUTCDate() + 1)
+  }
+  return out
+})
+
+function formatAgendaHeading(dateStr: string): string {
+  const d = new Date(dateStr + 'T00:00:00Z')
+  const today = todayStr.value
+  const tomorrow = toISODate(new Date(new Date(today + 'T00:00:00Z').getTime() + 86400_000))
+  const weekday = d.toLocaleDateString('en-US', { weekday: 'long', timeZone: 'UTC' })
+  const monthDay = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })
+  if (dateStr === today) return `Today · ${monthDay}`
+  if (dateStr === tomorrow) return `Tomorrow · ${monthDay}`
+  return `${weekday} · ${monthDay}`
+}
+
 function isLeftover(entry: MealPlanEntry, dateStr: string): boolean {
   return !!entry.cookDate && entry.cookDate.slice(0, 10) !== dateStr
 }
@@ -505,11 +534,11 @@ onMounted(async () => {
             </template>
           </QCalendarMonth>
 
-          <!-- Week / Agenda view -->
+          <!-- Week view: 7-column day strip -->
           <QCalendarAgenda
-            v-else
+            v-else-if="calendarView === 'week'"
             v-model="selectedDate"
-            :view="calendarView === 'week' ? 'week' : 'day'"
+            view="week"
             :weekdays="weekdaysMondayFirst"
             class="sp-mp__calendar sp-mp__calendar--agenda"
             @change="onCalendarChange"
@@ -565,6 +594,65 @@ onMounted(async () => {
               </div>
             </template>
           </QCalendarAgenda>
+
+          <!-- Agenda view: flat list of every day in the range that has meals.
+               QCalendar's agenda mode only shows one day at a time, so a meal
+               scheduled mid-week was invisible from agenda view. This list
+               groups by date and skips empty days. -->
+          <div v-else class="sp-mp__agenda-list">
+            <template v-if="agendaDays.length > 0">
+              <section
+                v-for="day in agendaDays"
+                :key="day.date"
+                class="sp-mp__agenda-section"
+                :class="{ 'sp-mp__agenda-section--today': day.date === todayStr }"
+              >
+                <header class="sp-mp__agenda-section-head">
+                  <span class="sp-mp__agenda-section-title">{{ formatAgendaHeading(day.date) }}</span>
+                  <span class="sp-mp__agenda-section-count">
+                    {{ day.entries.length }} {{ day.entries.length === 1 ? 'meal' : 'meals' }}
+                  </span>
+                </header>
+                <div
+                  v-for="entry in day.entries"
+                  :key="entry._id"
+                  class="sp-mp__agenda-row"
+                  :style="chipStyle(entry.recipeId, isLeftover(entry, day.date))"
+                  @click="openEditEntry(entry)"
+                >
+                  <div class="sp-mp__agenda-icon">
+                    <q-icon
+                      v-if="entry.mealTypes && entry.mealTypes.length && MEAL_TYPE_ICON[entry.mealTypes[0]!]"
+                      :name="MEAL_TYPE_ICON[entry.mealTypes[0]!]"
+                      size="20px"
+                    />
+                    <q-icon v-else name="restaurant" size="20px" />
+                  </div>
+                  <div class="col">
+                    <div class="sp-mp__agenda-name text-weight-medium">{{ entry.recipeName }}</div>
+                    <div
+                      v-if="(entry.mealTypes && entry.mealTypes.length) || entry.servings"
+                      class="sp-mp__agenda-meta text-caption"
+                    >
+                      <span v-if="entry.mealTypes && entry.mealTypes.length">{{ entry.mealTypes.join(' · ') }}</span>
+                      <span v-if="entry.mealTypes && entry.mealTypes.length && entry.servings"> · </span>
+                      <span v-if="entry.servings">{{ entry.servings }} servings</span>
+                    </div>
+                  </div>
+                  <q-badge
+                    v-if="isLeftover(entry, day.date)"
+                    outline
+                    color="orange"
+                    label="leftover"
+                    class="q-mr-sm"
+                  />
+                </div>
+              </section>
+            </template>
+            <div v-else class="sp-mp__agenda-empty text-caption text-grey-5">
+              — No meals scheduled in this range —
+            </div>
+          </div>
 
           <!-- Empty state overlay (only when the whole plan is empty) -->
           <Transition name="sp-fade">
@@ -665,18 +753,27 @@ onMounted(async () => {
 
 .sp-mp__view-toggle {
   background-color: var(--sp-surface-2);
-  border-radius: 10px;
-  padding: 4px;
+  border-radius: 8px;
+  padding: 2px;
   gap: 2px;
   border: 1px solid var(--sp-border);
 }
 
 .sp-mp__view-toggle :deep(.q-btn) {
-  border-radius: 7px;
-  padding: 6px 14px;
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-size: 0.78rem;
   font-weight: 600;
   letter-spacing: 0.01em;
-  min-height: 32px;
+  min-height: 26px;
+}
+
+.sp-mp__view-toggle :deep(.q-btn .q-icon) {
+  font-size: 0.95rem;
+}
+
+.sp-mp__view-toggle :deep(.q-btn__content > * + *) {
+  margin-left: 4px;
 }
 
 .sp-mp__view-toggle :deep(.q-btn--active) {
@@ -1006,6 +1103,57 @@ onMounted(async () => {
   font-style: italic;
 }
 
+/* -------- Agenda list (multi-day grouped list) -------- */
+.sp-mp__agenda-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 12px 14px 16px;
+}
+
+.sp-mp__agenda-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px 12px;
+  border-radius: var(--sp-r-md);
+  background: var(--sp-surface);
+  border: 1px solid var(--sp-divider);
+}
+
+.sp-mp__agenda-section--today {
+  background: linear-gradient(180deg, var(--sp-primary-soft) 0%, var(--sp-surface) 100%);
+  border-color: var(--sp-primary);
+}
+
+.sp-mp__agenda-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--sp-divider);
+}
+
+.sp-mp__agenda-section-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--sp-text);
+}
+
+.sp-mp__agenda-section--today .sp-mp__agenda-section-title {
+  color: var(--sp-primary);
+}
+
+.sp-mp__agenda-section-count {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--sp-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
 /* -------- Empty state overlay -------- */
 .sp-mp__empty-overlay {
   position: absolute;
@@ -1102,17 +1250,23 @@ onMounted(async () => {
 
 @media (max-width: 480px) {
   .sp-mp__subtoolbar {
-    flex-direction: column;
-    gap: 8px;
-    align-items: stretch;
-  }
-
-  .sp-mp__view-toggle {
-    align-self: stretch;
+    gap: 6px;
   }
 
   .sp-mp__view-toggle :deep(.q-btn) {
-    flex: 1;
+    padding: 2px 8px;
+    font-size: 0.72rem;
+    min-height: 24px;
+  }
+
+  .sp-mp__view-toggle :deep(.q-btn .q-icon) {
+    font-size: 0.85rem;
+  }
+
+  .sp-mp__today-btn {
+    padding: 2px 8px;
+    font-size: 0.72rem;
+    min-height: 24px;
   }
 
   .sp-mp__calendar :deep(.q-calendar-month__day) {
