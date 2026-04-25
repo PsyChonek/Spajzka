@@ -546,6 +546,14 @@ onMounted(async () => {
                       v-if="entry.servings && entry.servings !== 1"
                       class="sp-mp__chip-servings"
                     >×{{ entry.servings }}</span>
+                    <q-icon
+                      v-if="entry.shoppingBatchId"
+                      name="shopping_cart"
+                      size="12px"
+                      class="sp-mp__chip-shopping"
+                    >
+                      <q-tooltip>Ingredients added to shopping list</q-tooltip>
+                    </q-icon>
                   </div>
                   <button
                     v-if="overflowCount(scope.timestamp.date) > 0"
@@ -609,6 +617,15 @@ onMounted(async () => {
                     <span v-if="entry.servings">{{ entry.servings }} servings</span>
                   </div>
                 </div>
+                <q-icon
+                  v-if="entry.shoppingBatchId"
+                  name="shopping_cart"
+                  size="16px"
+                  color="positive"
+                  class="q-mr-sm"
+                >
+                  <q-tooltip>Ingredients added to shopping list</q-tooltip>
+                </q-icon>
                 <q-badge
                   v-if="isLeftover(entry, day.date)"
                   outline
@@ -1014,6 +1031,11 @@ onMounted(async () => {
   opacity: 0.75;
   font-weight: 700;
   padding-left: 2px;
+}
+
+.sp-mp__chip-shopping {
+  flex-shrink: 0;
+  opacity: 0.85;
 }
 
 .sp-mp__chip--leftover {
