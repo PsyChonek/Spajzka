@@ -610,6 +610,65 @@ router.delete('/recipes/global/:id', authMiddleware, requireGlobalPermission('gl
 
 /**
  * @openapi
+ * /api/recipes/group/{id}:
+ *   get:
+ *     summary: Get a single group recipe by ID
+ *     tags:
+ *       - Recipes
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Group recipe
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/GroupRecipe'
+ *       404:
+ *         description: Recipe not found
+ */
+router.get('/recipes/group/:id', authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const db = getDatabase();
+    const { id } = req.params;
+
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'Invalid recipe ID', code: 'INVALID_ID' });
+    }
+
+    const groupId = await resolveGroupId(db, req, req.userId!);
+
+    const recipe = await db.collection('recipes').findOne({
+      _id: new ObjectId(id),
+      recipeType: 'group',
+      groupId
+    });
+
+    if (!recipe) {
+      return res.status(404).json({ message: 'Recipe not found', code: 'NOT_FOUND' });
+    }
+
+    res.json({
+      ...recipe,
+      _id: recipe._id.toString(),
+      groupId: recipe.groupId.toString(),
+      userId: recipe.userId?.toString()
+    });
+  } catch (error) {
+    if (handleGroupResolutionError(error, res)) return;
+    console.error('Error fetching group recipe:', error);
+    res.status(500).json({ message: 'Failed to fetch recipe', code: 'FETCH_ERROR' });
+  }
+});
+
+/**
+ * @openapi
  * /api/recipes/group:
  *   get:
  *     summary: Get group recipes

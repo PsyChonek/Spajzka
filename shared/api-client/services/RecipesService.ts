@@ -107,34 +107,22 @@ export class RecipesService {
         });
     }
     /**
-     * Get group recipes
-     * Get all recipes for user's active group
-     * @returns GroupRecipe List of group recipes
+     * Get a single group recipe by ID
+     * @param id
+     * @returns GroupRecipe Group recipe
      * @throws ApiError
      */
-    public static getApiRecipesGroup(): CancelablePromise<Array<GroupRecipe>> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/recipes/group',
-        });
-    }
-    /**
-     * Create group recipe
-     * Create a new group-shared recipe (requires group_recipes:create permission)
-     * @param requestBody
-     * @returns GroupRecipe Group recipe created
-     * @throws ApiError
-     */
-    public static postApiRecipesGroup(
-        requestBody: CreateGroupRecipeRequest,
+    public static getApiRecipesGroup(
+        id: string,
     ): CancelablePromise<GroupRecipe> {
         return __request(OpenAPI, {
-            method: 'POST',
-            url: '/api/recipes/group',
-            body: requestBody,
-            mediaType: 'application/json',
+            method: 'GET',
+            url: '/api/recipes/group/{id}',
+            path: {
+                'id': id,
+            },
             errors: {
-                403: `Insufficient permissions`,
+                404: `Recipe not found`,
             },
         });
     }
@@ -179,6 +167,38 @@ export class RecipesService {
             path: {
                 'id': id,
             },
+            errors: {
+                403: `Insufficient permissions`,
+            },
+        });
+    }
+    /**
+     * Get group recipes
+     * Get all recipes for user's active group
+     * @returns GroupRecipe List of group recipes
+     * @throws ApiError
+     */
+    public static getApiRecipesGroup1(): CancelablePromise<Array<GroupRecipe>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/recipes/group',
+        });
+    }
+    /**
+     * Create group recipe
+     * Create a new group-shared recipe (requires group_recipes:create permission)
+     * @param requestBody
+     * @returns GroupRecipe Group recipe created
+     * @throws ApiError
+     */
+    public static postApiRecipesGroup(
+        requestBody: CreateGroupRecipeRequest,
+    ): CancelablePromise<GroupRecipe> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/recipes/group',
+            body: requestBody,
+            mediaType: 'application/json',
             errors: {
                 403: `Insufficient permissions`,
             },

@@ -56,6 +56,7 @@ export { HealthService } from './services/HealthService';
 export { HistoryService } from './services/HistoryService';
 export { ItemsService } from './services/ItemsService';
 export { MealPlanService } from './services/MealPlanService';
+export { OAuthService } from './services/OAuthService';
 export { PantryService } from './services/PantryService';
 export { RecipesService } from './services/RecipesService';
 export { RolesService } from './services/RolesService';

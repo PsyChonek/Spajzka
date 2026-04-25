@@ -27,6 +27,13 @@ interface PantryItem {
   quantity: number;
 }
 
+interface CatalogItem {
+  _id: string;
+  name: string;
+  itemType: string;
+  searchNames?: string[];
+}
+
 export function registerRecipeTools(server: McpServer): void {
   registerTool(
     server,
@@ -146,7 +153,7 @@ export function registerRecipeTools(server: McpServer): void {
   registerTool(
     server,
     'add_recipe_ingredients_to_shopping',
-    'Add every ingredient of a recipe to the group\'s shopping list. When missingOnly=true, only adds ingredients not already present (by itemId) in the pantry.',
+    'Add every ingredient of a recipe to the group\'s shopping list. When missingOnly=true, only adds ingredients not already present in the pantry. Resolves ingredients without an itemId by matching against item names and searchNames (supports Czech/localized names). Returns { added, skipped } where skipped lists ingredient names that could not be matched to a catalog item.',
     {
       groupId: z.string(),
       recipeId: z.string(),
@@ -158,8 +165,31 @@ export function registerRecipeTools(server: McpServer): void {
         path: `/api/recipes/group/${recipeId}`,
         params: { groupId }
       });
-      if (!recipe) {
-        return { added: [] };
+      if (!recipe?.ingredients?.length) {
+        return { added: [], skipped: [] };
+      }
+
+      // Fetch group + global items to resolve itemId and itemType
+      const [groupItems, globalItems] = await Promise.all([
+        apiRequest<CatalogItem[]>({ method: 'GET', path: '/api/items', params: { groupId } })
+          .catch((): CatalogItem[] => []),
+        apiRequest<CatalogItem[]>({ method: 'GET', path: '/api/items/global' })
+          .catch((): CatalogItem[] => [])
+      ]);
+
+      const allItems = [...(Array.isArray(groupItems) ? groupItems : []), ...(Array.isArray(globalItems) ? globalItems : [])];
+
+      // Build lookups: by _id and by normalized name / searchNames
+      const itemById = new Map<string, CatalogItem>();
+      const itemByName = new Map<string, CatalogItem>();
+      for (const item of allItems) {
+        itemById.set(item._id, item);
+        const nameKey = item.name.toLowerCase().trim();
+        if (!itemByName.has(nameKey)) itemByName.set(nameKey, item);
+        for (const alias of item.searchNames ?? []) {
+          const aliasKey = alias.toLowerCase().trim();
+          if (!itemByName.has(aliasKey)) itemByName.set(aliasKey, item);
+        }
       }
 
       let pantryItemIds = new Set<string>();
@@ -173,24 +203,38 @@ export function registerRecipeTools(server: McpServer): void {
       }
 
       const added: unknown[] = [];
+      const skipped: string[] = [];
+
       for (const ing of recipe.ingredients) {
-        if (missingOnly && ing.itemId && pantryItemIds.has(ing.itemId)) continue;
-        if (!ing.itemId) continue; // Cannot add free-text ingredients without an itemId
-        const result = await apiRequest({
-          method: 'POST',
-          path: '/api/shopping',
-          body: {
-            groupId,
-            itemId: ing.itemId,
-            itemType: 'global',
-            quantity: ing.quantity,
-            unit: ing.unit
-          }
-        });
-        added.push(result);
+        // Resolve item: prefer explicit itemId, fall back to name match (handles Czech searchNames)
+        const item = (ing.itemId ? itemById.get(ing.itemId) : undefined)
+          ?? itemByName.get(ing.itemName.toLowerCase().trim());
+
+        if (!item) {
+          skipped.push(ing.itemName);
+          continue;
+        }
+
+        if (missingOnly && pantryItemIds.has(item._id)) continue;
+
+        try {
+          const result = await apiRequest({
+            method: 'POST',
+            path: '/api/shopping',
+            body: {
+              groupId,
+              itemId: item._id,
+              itemType: item.itemType,
+              quantity: ing.quantity
+            }
+          });
+          added.push(result);
+        } catch {
+          skipped.push(ing.itemName);
+        }
       }
 
-      return { added };
+      return { added, skipped };
     }
   );
 }
