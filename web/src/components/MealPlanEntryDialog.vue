@@ -288,6 +288,7 @@ function parseServings(val: string | number | null) {
           :show-month-label="false"
           class="sp-meal__cal"
         >
+          <template #head-day-button></template>
           <template #day="{ scope }">
             <div
               class="sp-meal__cal-cell"
