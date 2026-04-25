@@ -15,6 +15,7 @@ interface Props {
   initialData?: Partial<MealPlanEntry>
   defaultCookDate?: string
   defaultEatDates?: string[]
+  defaultRecipe?: Recipe
 }
 
 const props = withDefaults(defineProps<Props>(), { mode: 'add' })
@@ -94,7 +95,7 @@ function populateForm() {
     mealTypes.value = Array.isArray(d.mealTypes) ? [...d.mealTypes] : []
     notes.value = d.notes ?? ''
   } else {
-    selectedRecipe.value = null
+    selectedRecipe.value = props.defaultRecipe ?? null
     cookDate.value = props.defaultCookDate?.slice(0, 10) ?? ''
     servings.value = undefined
     eatDates.value = props.defaultEatDates ? [...props.defaultEatDates] : []

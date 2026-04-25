@@ -14,8 +14,10 @@ import PageWrapper from '@/components/PageWrapper.vue'
 import PageHeader from '@/components/common/PageHeader.vue'
 import SectionCard from '@/components/common/SectionCard.vue'
 import MealPlanEntryDialog from '@/components/MealPlanEntryDialog.vue'
+import MealSuggestionDialog from '@/components/MealSuggestionDialog.vue'
 import ShoppingPreviewDialog from '@/components/ShoppingPreviewDialog.vue'
 import FabAdd from '@/components/common/FabAdd.vue'
+import type { Recipe } from '@/stores/recipesStore'
 
 const mealPlan = useMealPlan()
 const recipesStore = useRecipesStore()
@@ -108,13 +110,28 @@ const entryDialogMode = ref<'add' | 'edit'>('add')
 const entryInitialData = ref<Partial<MealPlanEntry> | undefined>(undefined)
 const entryDefaultCookDate = ref<string | undefined>(undefined)
 const entryDefaultEatDates = ref<string[] | undefined>(undefined)
+const entryDefaultRecipe = ref<Recipe | undefined>(undefined)
 
-function openAddEntry(cookDate?: string, eatDates?: string[]) {
+// --- Suggestion dialog state ---
+const showSuggestionDialog = ref(false)
+const suggestionCookDate = ref<string | undefined>(undefined)
+
+function openAddEntry(cookDate?: string, eatDates?: string[], defaultRecipe?: Recipe) {
   entryDialogMode.value = 'add'
   entryInitialData.value = undefined
   entryDefaultCookDate.value = cookDate ?? selectedDate.value
   entryDefaultEatDates.value = eatDates
+  entryDefaultRecipe.value = defaultRecipe
   showEntryDialog.value = true
+}
+
+function openSuggestionDialog(cookDate?: string) {
+  suggestionCookDate.value = cookDate ?? selectedDate.value
+  showSuggestionDialog.value = true
+}
+
+function handleSuggestionSelect(recipe: Recipe) {
+  openAddEntry(suggestionCookDate.value, undefined, recipe)
 }
 
 function openEditEntry(entry: MealPlanEntry) {
@@ -399,6 +416,16 @@ onMounted(async () => {
         <!-- Page header with meal count subtitle -->
         <PageHeader title="Meal Plan" icon="event" :subtitle="headerSubtitle">
           <template #actions>
+            <!-- Desktop "Suggest meal" CTA -->
+            <q-btn
+              class="gt-sm sp-mp__suggest-btn"
+              color="primary"
+              icon="auto_awesome"
+              label="Suggest meal"
+              no-caps
+              unelevated
+              @click="openSuggestionDialog()"
+            />
             <!-- Desktop "Generate shopping" CTA -->
             <q-btn
               class="gt-sm sp-mp__generate-btn"
@@ -485,7 +512,6 @@ onMounted(async () => {
           <QCalendarMonth
             v-if="calendarView === 'month'"
             v-model="selectedDate"
-            no-outside-days
             :short-weekday-label="false"
             :weekdays="weekdaysMondayFirst"
             :selected-start-end-dates="dragRange"
@@ -625,6 +651,17 @@ onMounted(async () => {
           @click="openAddEntry(selectedDate)"
         />
 
+        <!-- "Suggest meal" sticky button on mobile (above generate shopping) -->
+        <q-btn
+          class="lt-md sp-mp__suggest-btn-mobile"
+          color="primary"
+          icon="auto_awesome"
+          label="Suggest"
+          no-caps
+          unelevated
+          @click="openSuggestionDialog()"
+        />
+
         <!-- "Generate shopping" sticky button on mobile (amber, above bottom nav) -->
         <q-btn
           class="lt-md sp-mp__generate-btn-mobile"
@@ -643,8 +680,16 @@ onMounted(async () => {
           :initial-data="entryInitialData"
           :default-cook-date="entryDefaultCookDate"
           :default-eat-dates="entryDefaultEatDates"
+          :default-recipe="entryDefaultRecipe"
           @save="handleEntrySave"
           @delete="handleEntryDelete"
+        />
+
+        <!-- Meal suggestion dialog -->
+        <MealSuggestionDialog
+          v-model="showSuggestionDialog"
+          :cook-date="suggestionCookDate"
+          @select="handleSuggestionSelect"
         />
 
         <!-- Shopping preview dialog -->
@@ -666,7 +711,8 @@ onMounted(async () => {
   gap: 0;
 }
 
-/* -------- Desktop "Generate shopping" CTA -------- */
+/* -------- Desktop header action buttons -------- */
+.sp-mp__suggest-btn,
 .sp-mp__generate-btn {
   border-radius: var(--sp-r-md);
   padding: 10px 18px;
@@ -674,18 +720,28 @@ onMounted(async () => {
   transition: transform 0.15s, box-shadow 0.15s;
 }
 
+.sp-mp__suggest-btn:hover,
 .sp-mp__generate-btn:hover {
   transform: translateY(-1px);
   box-shadow: var(--sp-shadow-2);
 }
 
-/* -------- Mobile sticky "Generate shopping" button --------
-   Sits *above* the FAB (which is at `bottom: nav + 16px`, ~56px tall).
-   Higher z-index than the bottom nav but lower than the FAB so the FAB stays
-   the primary action. */
+/* -------- Mobile sticky buttons --------
+   Stack above FAB: suggest sits above generate-shopping which sits above FAB.
+   Higher z-index than the bottom nav but lower than the FAB. */
 .sp-mp__generate-btn-mobile {
   position: fixed;
   bottom: calc(var(--sp-bottom-nav-h, 56px) + 16px + 56px + 12px + env(safe-area-inset-bottom, 0px));
+  right: 16px;
+  z-index: 1900;
+  border-radius: var(--sp-r-md);
+  font-weight: 600;
+  box-shadow: var(--sp-shadow-2);
+}
+
+.sp-mp__suggest-btn-mobile {
+  position: fixed;
+  bottom: calc(var(--sp-bottom-nav-h, 56px) + 16px + 56px + 12px + 44px + env(safe-area-inset-bottom, 0px));
   right: 16px;
   z-index: 1900;
   border-radius: var(--sp-r-md);
@@ -1204,10 +1260,10 @@ onMounted(async () => {
 }
 
 @media (max-width: 480px) {
-  /* Extra space at the bottom so the fixed FAB + generate button
+  /* Extra space at the bottom so the fixed FAB + generate + suggest buttons
      don't overlap the last calendar row / agenda section. */
   .sp-mp {
-    padding-bottom: calc(var(--sp-bottom-nav-h, 56px) + 16px + 56px + 56px + 16px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(var(--sp-bottom-nav-h, 56px) + 16px + 56px + 56px + 44px + 16px + env(safe-area-inset-bottom, 0px));
   }
 
   .sp-mp__view-toggle :deep(.q-btn) {
