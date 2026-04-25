@@ -18,6 +18,7 @@ import PageHeader from '@/components/common/PageHeader.vue'
 import SectionCard from '@/components/common/SectionCard.vue'
 import MealPlanEntryDialog from '@/components/MealPlanEntryDialog.vue'
 import ShoppingPreviewDialog from '@/components/ShoppingPreviewDialog.vue'
+import FabAdd from '@/components/common/FabAdd.vue'
 
 const mealPlan = useMealPlan()
 const recipesStore = useRecipesStore()
@@ -169,13 +170,23 @@ const shoppingTo = computed(() => {
 })
 
 // --- Day click / drag-select ---
-// A single click on a day and a drag across days share one gesture:
-// pointerdown seeds the range, pointerenter extends it while the button is
-// held, pointerup finalises it and opens the Add Meal dialog with
-// cookDate = first selected day, eatDates = every day in the range.
+// A single click opens the Add dialog for that day; a horizontal drag across
+// days picks a range. A vertical drag must scroll the page instead — phones
+// have no other way to scroll the calendar, so we disambiguate by the
+// dominant axis of the first few pixels of movement before committing to a
+// drag-select. Mouse (`pointerType === 'mouse'`) skips the gate since the
+// page doesn't scroll under a mouse drag.
 const dragStart = ref<string | null>(null)
 const dragEnd = ref<string | null>(null)
 const isDragging = ref(false)
+// Pre-drag arming state: we record the pointerdown position and only flip
+// `isDragging` to true once the pointer has moved enough horizontally to
+// clearly be a range-select rather than a scroll.
+const armedDate = ref<string | null>(null)
+const armedX = ref(0)
+const armedY = ref(0)
+const armedPointerType = ref<string>('mouse')
+const DRAG_AXIS_THRESHOLD = 8 // px before we commit to horizontal vs vertical
 
 const dragRange = computed<string[]>(() => {
   if (!dragStart.value || !dragEnd.value) return []
@@ -201,9 +212,35 @@ const dragSelectedDates = computed<string[]>(() => {
 function onDayPointerDown(dateStr: string, event: PointerEvent) {
   // Only primary button / touch / pen strokes start a selection.
   if (event.button !== undefined && event.button !== 0) return
+  armedDate.value = dateStr
+  armedX.value = event.clientX
+  armedY.value = event.clientY
+  armedPointerType.value = event.pointerType || 'mouse'
+  // Mouse: commit immediately — page won't scroll under a mouse drag.
+  if (armedPointerType.value === 'mouse') {
+    isDragging.value = true
+    dragStart.value = dateStr
+    dragEnd.value = dateStr
+  }
+}
+
+function onDayPointerMove(event: PointerEvent) {
+  // Already committed — extending happens via pointerenter on neighbour cells.
+  if (isDragging.value) return
+  if (!armedDate.value) return
+  const dx = Math.abs(event.clientX - armedX.value)
+  const dy = Math.abs(event.clientY - armedY.value)
+  if (dx < DRAG_AXIS_THRESHOLD && dy < DRAG_AXIS_THRESHOLD) return
+  if (dy > dx) {
+    // Vertical-dominant: user is scrolling. Abort the gesture entirely so a
+    // subsequent pointerup just acts as a normal scroll release (no dialog).
+    armedDate.value = null
+    return
+  }
+  // Horizontal-dominant: commit to range-select.
   isDragging.value = true
-  dragStart.value = dateStr
-  dragEnd.value = dateStr
+  dragStart.value = armedDate.value
+  dragEnd.value = armedDate.value
 }
 
 function onDayPointerEnter(dateStr: string) {
@@ -211,12 +248,28 @@ function onDayPointerEnter(dateStr: string) {
   dragEnd.value = dateStr
 }
 
-function finalizeDrag() {
-  if (!isDragging.value) return
+function finalizeDrag(event?: PointerEvent) {
+  // Tap (no axis-commit yet) → open Add dialog for the armed day.
+  if (!isDragging.value && armedDate.value) {
+    const tapDate = armedDate.value
+    armedDate.value = null
+    // Don't fire the dialog if the tap landed on an interactive child (chip,
+    // "+N more"). Those handlers stop propagation, so we'd never get here in
+    // that case — but guard anyway.
+    if (event && (event.target as HTMLElement | null)?.closest('.sp-mp__chip, .sp-mp__more')) return
+    selectedDate.value = tapDate
+    openAddEntry(tapDate)
+    return
+  }
+  if (!isDragging.value) {
+    armedDate.value = null
+    return
+  }
   const dates = dragSelectedDates.value
   isDragging.value = false
   dragStart.value = null
   dragEnd.value = null
+  armedDate.value = null
   if (dates.length === 0) return
   selectedDate.value = dates[0]!
   openAddEntry(dates[0], dates.length > 1 ? dates : undefined)
@@ -226,15 +279,18 @@ function cancelDrag() {
   isDragging.value = false
   dragStart.value = null
   dragEnd.value = null
+  armedDate.value = null
 }
 
 onMounted(() => {
   window.addEventListener('pointerup', finalizeDrag)
+  window.addEventListener('pointermove', onDayPointerMove)
   window.addEventListener('pointercancel', cancelDrag)
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('pointerup', finalizeDrag)
+  window.removeEventListener('pointermove', onDayPointerMove)
   window.removeEventListener('pointercancel', cancelDrag)
 })
 
@@ -247,9 +303,22 @@ function isLeftover(entry: MealPlanEntry, dateStr: string): boolean {
   return !!entry.cookDate && entry.cookDate.slice(0, 10) !== dateStr
 }
 
-function truncate(str: string | undefined, max = 22): string {
-  if (!str) return ''
-  return str.length > max ? str.slice(0, max - 1) + '…' : str
+// Cap how many chips a single day cell renders before collapsing the rest into
+// a "+N more" pill. Clicking the pill drops into agenda view for that day so
+// every entry is reachable.
+const MAX_VISIBLE_CHIPS = 3
+
+function visibleEntries(dateStr: string): MealPlanEntry[] {
+  return entriesForDate(dateStr).slice(0, MAX_VISIBLE_CHIPS)
+}
+
+function overflowCount(dateStr: string): number {
+  return Math.max(0, entriesForDate(dateStr).length - MAX_VISIBLE_CHIPS)
+}
+
+function showAllForDay(dateStr: string) {
+  selectedDate.value = dateStr
+  calendarView.value = 'agenda'
 }
 
 const MEAL_TYPE_ICON: Record<string, string> = {
@@ -401,7 +470,7 @@ onMounted(async () => {
               >
                 <div class="sp-mp__day-entries">
                   <div
-                    v-for="entry in entriesForDate(scope.timestamp.date)"
+                    v-for="entry in visibleEntries(scope.timestamp.date)"
                     :key="entry._id"
                     class="sp-mp__chip"
                     :class="{ 'sp-mp__chip--leftover': isLeftover(entry, scope.timestamp.date) }"
@@ -412,16 +481,25 @@ onMounted(async () => {
                     <q-icon
                       v-if="entry.mealTypes && entry.mealTypes.length && MEAL_TYPE_ICON[entry.mealTypes[0]!]"
                       :name="MEAL_TYPE_ICON[entry.mealTypes[0]!]"
-                      size="12px"
+                      size="14px"
                       class="sp-mp__chip-icon"
                     />
                     <span v-else class="sp-mp__chip-dot">●</span>
-                    <span class="sp-mp__chip-name">{{ truncate(entry.recipeName) }}</span>
+                    <span class="sp-mp__chip-name">{{ entry.recipeName }}</span>
                     <span
                       v-if="entry.servings && entry.servings !== 1"
                       class="sp-mp__chip-servings"
                     >×{{ entry.servings }}</span>
                   </div>
+                  <button
+                    v-if="overflowCount(scope.timestamp.date) > 0"
+                    class="sp-mp__more"
+                    type="button"
+                    @pointerdown.stop
+                    @click.stop="showAllForDay(scope.timestamp.date)"
+                  >
+                    +{{ overflowCount(scope.timestamp.date) }} more
+                  </button>
                 </div>
               </div>
             </template>
@@ -505,18 +583,12 @@ onMounted(async () => {
           </Transition>
         </SectionCard>
 
-        <!-- FAB: add entry -->
-        <q-page-sticky position="bottom-right" :offset="[24, 24]">
-          <q-btn
-            fab
-            icon="add"
-            color="primary"
-            class="sp-mp__fab"
-            @click="openAddEntry(selectedDate)"
-          >
-            <q-tooltip>Add meal</q-tooltip>
-          </q-btn>
-        </q-page-sticky>
+        <!-- FAB: add entry (mobile only, shared component to match the rest of the app) -->
+        <FabAdd
+          class="lt-md"
+          aria-label="Add meal"
+          @click="openAddEntry(selectedDate)"
+        />
 
         <!-- "Generate shopping" sticky button on mobile (amber, above bottom nav) -->
         <q-btn
@@ -707,7 +779,7 @@ onMounted(async () => {
 .sp-mp__calendar :deep(.q-calendar-month__day) {
   transition: background-color 0.12s;
   cursor: pointer;
-  min-height: 124px;
+  min-height: 148px;
   border-right: 1px solid var(--sp-divider);
   border-bottom: 1px solid var(--sp-divider);
   background: var(--sp-surface);
@@ -719,6 +791,10 @@ onMounted(async () => {
 
 .sp-mp__calendar :deep(.q-calendar-month__day:hover) {
   background-color: var(--sp-primary-soft);
+}
+
+.sp-mp__calendar :deep(.q-calendar-month__day:hover .sp-mp__day::after) {
+  opacity: 1;
 }
 
 /* Outside / disabled days dimmed */
@@ -752,35 +828,59 @@ onMounted(async () => {
 
 /* Day cell contents */
 .sp-mp__day {
+  position: relative;
   width: 100%;
-  min-height: 96px;
-  padding: 4px 6px 6px;
-  /* Drag-select: keep touch gestures from scrolling the page mid-drag. */
-  touch-action: none;
+  min-height: 116px;
+  padding: 6px 8px 10px;
+  /* Allow vertical scroll on touch; horizontal drag still triggers range-select
+     because the JS axis-gate commits before the browser starts panning. */
+  touch-action: pan-y;
   user-select: none;
+}
+
+/* Subtle "+" affordance on hover to telegraph that empty days are clickable. */
+.sp-mp__day::after {
+  content: 'add';
+  font-family: 'Material Icons';
+  font-size: 18px;
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--sp-secondary);
+  color: #fff;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+  box-shadow: 0 2px 6px rgba(221, 107, 32, 0.35);
 }
 
 .sp-mp__day-entries {
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  margin-top: 4px;
+  gap: 4px;
+  margin-top: 6px;
 }
 
 /* Meal chips */
 .sp-mp__chip {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 3px 7px 3px 6px;
-  border-radius: 6px;
-  font-size: 0.7rem;
+  gap: 6px;
+  padding: 5px 9px;
+  border-radius: 8px;
+  font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
   overflow: hidden;
   white-space: nowrap;
   transition: transform 0.1s, box-shadow 0.1s;
-  line-height: 1.2;
+  line-height: 1.25;
 }
 
 .sp-mp__chip:hover {
@@ -793,7 +893,7 @@ onMounted(async () => {
 }
 
 .sp-mp__chip-dot {
-  font-size: 0.45rem;
+  font-size: 0.5rem;
   opacity: 0.7;
   flex-shrink: 0;
 }
@@ -802,10 +902,11 @@ onMounted(async () => {
   overflow: hidden;
   text-overflow: ellipsis;
   flex: 1;
+  min-width: 0;
 }
 
 .sp-mp__chip-servings {
-  font-size: 0.65rem;
+  font-size: 0.7rem;
   opacity: 0.75;
   font-weight: 700;
   padding-left: 2px;
@@ -813,6 +914,28 @@ onMounted(async () => {
 
 .sp-mp__chip--leftover {
   font-style: italic;
+}
+
+/* "+N more" pill — appears when a day has more entries than fit. */
+.sp-mp__more {
+  align-self: flex-start;
+  background: transparent;
+  border: 1px dashed var(--sp-border);
+  color: var(--sp-text-muted);
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--sp-r-pill);
+  cursor: pointer;
+  transition: background-color 0.12s, color 0.12s, border-color 0.12s;
+  margin-top: 1px;
+}
+
+.sp-mp__more:hover {
+  background: var(--sp-secondary-soft);
+  border-color: var(--sp-secondary);
+  color: var(--sp-secondary);
 }
 
 /* -------- Agenda / week view -------- */
@@ -826,6 +949,7 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  touch-action: pan-y;
 }
 
 .sp-mp__agenda-day--today {
@@ -848,14 +972,17 @@ onMounted(async () => {
 }
 
 .sp-mp__agenda-icon {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.6);
+  background-color: var(--sp-surface);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  color: var(--sp-text);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  box-shadow: var(--sp-shadow-1);
 }
 
 .sp-mp__agenda-name {
@@ -883,16 +1010,21 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.7) 60%, transparent 100%);
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(2px);
   pointer-events: none;
   z-index: 5;
 }
 
 .sp-mp__empty-card {
   text-align: center;
-  padding: 32px 48px;
+  padding: 28px 36px;
   max-width: 420px;
   pointer-events: auto;
+  background: var(--sp-surface);
+  border: 1px solid var(--sp-border);
+  border-radius: var(--sp-r-lg);
+  box-shadow: var(--sp-shadow-2);
 }
 
 .sp-fade-enter-active, .sp-fade-leave-active {
@@ -902,34 +1034,66 @@ onMounted(async () => {
   opacity: 0;
 }
 
-/* -------- FAB -------- */
-.sp-mp__fab {
-  box-shadow: 0 8px 24px rgba(45, 55, 72, 0.35);
-  transition: transform 0.15s;
-}
-
-.sp-mp__fab:hover {
-  transform: scale(1.05);
-}
-
-/* -------- Responsive -------- */
-@media (max-width: 768px) {
+/* -------- Responsive --------
+   Three tiers: tablet (≤1024), small tablet (≤768), mobile (≤480). The old
+   single 768px break crammed tablets into a phone layout. */
+@media (max-width: 1024px) {
   .sp-mp__calendar :deep(.q-calendar-month__day) {
-    min-height: 80px;
+    min-height: 124px;
   }
 
   .sp-mp__day {
-    min-height: 64px;
-    padding: 2px 3px;
+    min-height: 96px;
+  }
+}
+
+@media (max-width: 768px) {
+  .sp-mp__calendar-card {
+    min-height: 520px;
+  }
+
+  .sp-mp__calendar :deep(.q-calendar-month__day) {
+    min-height: 96px;
+  }
+
+  .sp-mp__calendar :deep(.q-calendar-month__head-weekday),
+  .sp-mp__calendar :deep(.q-calendar-agenda__head-weekday-label) {
+    padding: 10px 4px;
+    font-size: 0.62rem;
+    letter-spacing: 0.06em;
+  }
+
+  .sp-mp__calendar :deep(.q-calendar-month__day-label) {
+    font-size: 0.78rem;
+    padding: 4px 6px 0;
+  }
+
+  .sp-mp__day {
+    min-height: 76px;
+    padding: 4px 5px 6px;
+  }
+
+  .sp-mp__day-entries {
+    gap: 3px;
+    margin-top: 4px;
   }
 
   .sp-mp__chip {
-    font-size: 0.62rem;
-    padding: 2px 4px;
+    font-size: 0.7rem;
+    padding: 3px 7px;
+    border-radius: 6px;
+    gap: 4px;
   }
 
-  .sp-mp__chip-name {
-    max-width: 80px;
+  .sp-mp__chip-icon {
+    width: 12px;
+    height: 12px;
+    font-size: 12px;
+  }
+
+  .sp-mp__more {
+    font-size: 0.65rem;
+    padding: 1px 7px;
   }
 }
 
@@ -946,6 +1110,29 @@ onMounted(async () => {
 
   .sp-mp__view-toggle :deep(.q-btn) {
     flex: 1;
+  }
+
+  .sp-mp__calendar :deep(.q-calendar-month__day) {
+    min-height: 72px;
+  }
+
+  .sp-mp__day {
+    min-height: 56px;
+    padding: 3px 4px 4px;
+  }
+
+  .sp-mp__chip {
+    font-size: 0.65rem;
+    padding: 2px 5px;
+  }
+
+  .sp-mp__chip-servings {
+    display: none;
+  }
+
+  /* On phones the "+" affordance just adds noise — the FAB is right there. */
+  .sp-mp__day::after {
+    display: none;
   }
 }
 </style>
