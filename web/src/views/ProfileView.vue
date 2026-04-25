@@ -282,7 +282,6 @@ const changePassword = async () => {
       <PageHeader
         title="Profile"
         icon="account_circle"
-        :subtitle="authStore.userEmail"
       />
 
       <!-- Account section -->
