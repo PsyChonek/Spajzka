@@ -2,23 +2,24 @@
 
 :root {
   /* Brand */
-  --sp-primary: #2F7D5F;
-  --sp-primary-dark: #245F48;
-  --sp-primary-soft: #E6F0EC;
-  --sp-secondary: #E89F3D;
-  --sp-accent: #C95F3F;
+  --sp-primary: #2D3748;
+  --sp-primary-dark: #1A202C;
+  --sp-primary-soft: #EDF1F5;
+  --sp-secondary: #DD6B20;
+  --sp-secondary-soft: #FEEBC8;
+  --sp-accent: #C53030;
 
   /* Surfaces */
-  --sp-bg: #FAFAF7;
+  --sp-bg: #FBFAF7;
   --sp-surface: #FFFFFF;
   --sp-surface-2: #F4F2EC;
   --sp-border: #E5E2DA;
   --sp-divider: #ECE9E1;
 
   /* Text */
-  --sp-text: #1F2A24;
-  --sp-text-muted: #6B6B66;
-  --sp-text-soft: #9A9A93;
+  --sp-text: #1A202C;
+  --sp-text-muted: #4A5568;
+  --sp-text-soft: #A0AEC0;
 
   /* Radii */
   --sp-r-sm: 8px;
@@ -27,9 +28,9 @@
   --sp-r-pill: 999px;
 
   /* Shadows */
-  --sp-shadow-1: 0 1px 2px rgba(15, 26, 20, 0.06), 0 1px 3px rgba(15, 26, 20, 0.04);
-  --sp-shadow-2: 0 4px 12px rgba(15, 26, 20, 0.08);
-  --sp-shadow-3: 0 12px 32px rgba(15, 26, 20, 0.12);
+  --sp-shadow-1: 0 1px 2px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
+  --sp-shadow-2: 0 4px 12px rgba(15, 23, 42, 0.08);
+  --sp-shadow-3: 0 12px 32px rgba(15, 23, 42, 0.12);
 
   /* Spacing helpers (mobile-first) */
   --sp-page-pad-x: 16px;
@@ -194,7 +195,7 @@ h1, h2, h3, h4, h5, h6,
 
 .sp-list-card:hover {
   box-shadow: var(--sp-shadow-2);
-  border-color: rgba(47, 125, 95, 0.25);
+  border-color: rgba(221, 107, 32, 0.3);
 }
 
 .sp-list-card--clickable {
@@ -307,11 +308,11 @@ h1, h2, h3, h4, h5, h6,
 }
 
 .sp-bottom-nav__btn--active {
-  color: var(--sp-primary);
+  color: var(--sp-secondary);
 }
 
 .sp-bottom-nav__btn--active .q-icon {
-  color: var(--sp-primary);
+  color: var(--sp-secondary);
 }
 
 /* Responsive utilities used in views */
@@ -329,7 +330,7 @@ h1, h2, h3, h4, h5, h6,
 }
 
 .sp-table .q-table tbody tr:hover {
-  background: rgba(47, 125, 95, 0.04);
+  background: rgba(45, 55, 72, 0.04);
 }
 
 /* Page header */

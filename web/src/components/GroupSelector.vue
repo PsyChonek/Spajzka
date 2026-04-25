@@ -37,10 +37,10 @@ const truncatedGroupName = computed(() => {
 </script>
 
 <template>
-  <!-- Toolbar Variant (for desktop header) -->
+  <!-- Toolbar Variant (right-aligned in header) -->
   <div
     v-if="variant === 'toolbar'"
-    class="q-mx-md gt-xs group-selector-toolbar"
+    class="group-selector-toolbar"
   >
     <!-- Show group selector for authenticated non-anonymous users -->
     <template v-if="!authStore.isAnonymous">
@@ -142,9 +142,9 @@ const truncatedGroupName = computed(() => {
 
 <style scoped>
 .group-selector-toolbar {
-  width: 200px;
-  max-width: 200px;
-  min-width: 150px;
+  width: 180px;
+  max-width: 180px;
+  min-width: 140px;
   overflow: hidden;
 }
 

@@ -36,7 +36,7 @@ const searchValue = computed({
         dense
         flat
         icon="add"
-        color="primary"
+        color="secondary"
         @click="emit('add')"
       />
     </template>
@@ -46,11 +46,10 @@ const searchValue = computed({
 <style scoped>
 .search-input {
   width: 100%;
-  max-width: 800px;
-  font-size: 1.2rem;
+  font-size: 1.05rem;
 }
 
 .search-input :deep(.q-field__control) {
-  height: 60px;
+  height: 52px;
 }
 </style>

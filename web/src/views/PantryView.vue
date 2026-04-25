@@ -165,7 +165,7 @@ const subtitle = computed(() => {
       <PageHeader title="Pantry" :subtitle="subtitle" icon="kitchen">
         <template #actions>
           <q-btn
-            color="primary"
+            color="secondary"
             unelevated
             no-caps
             icon="add"
@@ -199,7 +199,7 @@ const subtitle = computed(() => {
         :hint="searchQuery ? 'Try a different search or tap Add to create a new item.' : 'Start tracking what you have. Tap the + button to add your first item.'"
       >
         <template #action>
-          <q-btn color="primary" unelevated no-caps icon="add" label="Add item" @click="openAddDialog" />
+          <q-btn color="secondary" unelevated no-caps icon="add" label="Add item" @click="openAddDialog" />
         </template>
       </EmptyState>
 

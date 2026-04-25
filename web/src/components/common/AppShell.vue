@@ -37,13 +37,14 @@ const navigateTo = (to: string) => {
   <q-layout view="hHh lpR fFf" class="sp-shell">
     <q-header elevated class="sp-shell__header bg-primary text-white">
       <q-toolbar class="sp-shell__toolbar">
+        <!-- Mobile/tablet menu button — hidden on desktop -->
         <q-btn
           flat
           dense
           round
           icon="menu"
           aria-label="Menu"
-          class="q-mr-sm"
+          class="q-mr-sm lt-md"
           @click="drawer = !drawer"
         />
 
@@ -51,8 +52,7 @@ const navigateTo = (to: string) => {
           <span class="sp-shell__brand">Špajzka</span>
         </q-toolbar-title>
 
-        <GroupSelector variant="toolbar" />
-
+        <!-- Desktop primary nav: lives in the middle/right of the toolbar -->
         <div class="gt-sm sp-shell__navlinks">
           <q-btn
             v-for="link in navLinks.filter(l => l.primary)"
@@ -66,6 +66,23 @@ const navigateTo = (to: string) => {
             :class="{ 'sp-shell__navbtn--active': route.path === link.to || (link.to !== '/' && route.path.startsWith(link.to + '/')) }"
           />
         </div>
+
+        <!-- Spacer pushes group selector + drawer toggle to the right -->
+        <q-space class="gt-sm" />
+
+        <!-- Group selector lives at the far right, separated from nav links -->
+        <GroupSelector variant="toolbar" class="sp-shell__group" />
+
+        <!-- Desktop: secondary destinations live in a right-side drawer toggle -->
+        <q-btn
+          flat
+          dense
+          round
+          icon="more_vert"
+          aria-label="More"
+          class="q-ml-sm gt-sm"
+          @click="drawer = !drawer"
+        />
       </q-toolbar>
     </q-header>
 
@@ -118,17 +135,18 @@ const navigateTo = (to: string) => {
 
 <style scoped>
 .sp-shell__header {
-  background: linear-gradient(180deg, #2F7D5F 0%, #245F48 100%) !important;
+  background: linear-gradient(180deg, #2D3748 0%, #1A202C 100%) !important;
   padding-top: env(safe-area-inset-top, 0px);
 }
 
 .sp-shell__toolbar {
   min-height: 56px;
+  gap: 8px;
 }
 
 .sp-shell__title {
   cursor: pointer;
-  flex-shrink: 0;
+  flex: 0 0 auto;
   min-width: 0;
 }
 
@@ -143,23 +161,29 @@ const navigateTo = (to: string) => {
   display: flex;
   gap: 4px;
   flex-shrink: 0;
+  margin-left: 24px;
 }
 
 .sp-shell__navbtn {
   font-weight: 600;
-  opacity: 0.8;
+  opacity: 0.78;
   border-radius: 10px;
   padding: 4px 12px;
 }
 
 .sp-shell__navbtn--active {
   opacity: 1;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.12);
+  color: #FBD38D;
+}
+
+.sp-shell__group {
+  flex-shrink: 0;
 }
 
 .sp-shell__drawer-header {
   padding: 20px 20px 12px;
-  background: linear-gradient(160deg, #2F7D5F 0%, #245F48 100%);
+  background: linear-gradient(160deg, #2D3748 0%, #1A202C 100%);
   color: white;
   padding-top: calc(20px + env(safe-area-inset-top, 0px));
 }
@@ -182,13 +206,13 @@ const navigateTo = (to: string) => {
 }
 
 :deep(.sp-shell__drawer-item--active) {
-  background: var(--sp-primary-soft);
-  color: var(--sp-primary);
+  background: var(--sp-secondary-soft);
+  color: var(--sp-secondary);
   font-weight: 600;
 }
 
 :deep(.sp-shell__drawer-item--active .q-icon) {
-  color: var(--sp-primary);
+  color: var(--sp-secondary);
 }
 
 /* Toolbar overflow safety */

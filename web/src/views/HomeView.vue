@@ -54,9 +54,9 @@ const userName = computed(() => {
 })
 
 const quickActions = [
-  { icon: 'add_shopping_cart', label: 'Add to shopping', route: '/shopping', color: 'secondary' },
+  { icon: 'add_shopping_cart', label: 'Add to shopping', route: '/shopping', color: 'primary' },
   { icon: 'restaurant_menu', label: 'Browse recipes', route: '/recipes', color: 'primary' },
-  { icon: 'event', label: 'Plan a meal', route: '/meal-plan', color: 'accent' }
+  { icon: 'event', label: 'Plan a meal', route: '/meal-plan', color: 'secondary' }
 ]
 
 const formatActivity = (e: any) => {
@@ -112,14 +112,14 @@ const navigateTo = (path: string) => router.push(path)
           label="Recipes"
           :value="recipeCount"
           icon="restaurant_menu"
-          color="accent"
+          color="primary"
           to="/recipes"
         />
         <Stat
           label="Meals this week"
           :value="upcomingMeals"
           icon="event"
-          color="primary"
+          color="secondary"
           to="/meal-plan"
         />
       </section>

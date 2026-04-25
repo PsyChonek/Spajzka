@@ -258,15 +258,15 @@ const MEAL_TYPE_ICON: Record<string, string> = {
   dinner: 'dinner_dining'
 }
 
-// Deterministic chip color per recipe for visual continuity across the grid
+// Deterministic chip color per recipe — warm neutrals that complement slate + saffron
 const CHIP_PALETTE = [
-  { bg: '#e3f2fd', border: '#1976d2', text: '#0d47a1' }, // blue
-  { bg: '#e8f5e9', border: '#2e7d32', text: '#1b5e20' }, // green
-  { bg: '#fff3e0', border: '#ef6c00', text: '#e65100' }, // orange
-  { bg: '#fce4ec', border: '#c2185b', text: '#880e4f' }, // pink
-  { bg: '#f3e5f5', border: '#7b1fa2', text: '#4a148c' }, // purple
-  { bg: '#e0f7fa', border: '#00838f', text: '#006064' }, // cyan
-  { bg: '#fffde7', border: '#f9a825', text: '#f57f17' }  // yellow
+  { bg: '#FEEBC8', border: '#DD6B20', text: '#7B341E' }, // saffron
+  { bg: '#E2E8F0', border: '#4A5568', text: '#1A202C' }, // slate
+  { bg: '#FED7D7', border: '#C53030', text: '#822727' }, // brick
+  { bg: '#C6F6D5', border: '#2F855A', text: '#22543D' }, // moss
+  { bg: '#BEE3F8', border: '#2B6CB0', text: '#1A365D' }, // ink blue
+  { bg: '#E9D8FD', border: '#6B46C1', text: '#44337A' }, // plum
+  { bg: '#FEFCBF', border: '#B7791F', text: '#744210' }  // mustard
 ]
 
 function chipStyle(recipeId: string | undefined, leftover: boolean) {
@@ -640,76 +640,114 @@ onMounted(async () => {
 /* -------- Calendar card -------- */
 .sp-mp__calendar-card {
   position: relative;
-  /* SectionCard adds border + border-radius already; override padding for the calendar */
   padding: 0 !important;
   overflow: hidden;
   min-height: 640px;
+  background: var(--sp-surface);
+  border: 1px solid var(--sp-border);
+  border-radius: var(--sp-r-md);
+  box-shadow: var(--sp-shadow-1);
 }
 
-/* Remove SectionCard body padding so the calendar fills edge-to-edge */
 .sp-mp__calendar-card :deep(.sp-section-card__body) {
   padding: 0;
 }
 
 .sp-mp__calendar {
   border: none;
+  background: var(--sp-surface);
 }
 
-/* Override QCalendar internals to match design system */
-.sp-mp__calendar :deep(.q-calendar-month__head) {
-  background-color: var(--sp-surface-2);
-  border-bottom: 1px solid var(--sp-border);
+/* Kill QCalendar's default backgrounds and borders so we can restyle from scratch */
+.sp-mp__calendar :deep(.q-calendar-month__week),
+.sp-mp__calendar :deep(.q-calendar-month__head--weekdays),
+.sp-mp__calendar :deep(.q-calendar-agenda__day-container),
+.sp-mp__calendar :deep(.q-calendar__scroll-area) {
+  background: var(--sp-surface);
 }
 
-.sp-mp__calendar :deep(.q-calendar-month__head-weekday) {
+/* Weekday header */
+.sp-mp__calendar :deep(.q-calendar-month__head),
+.sp-mp__calendar :deep(.q-calendar-agenda__head) {
+  background-color: var(--sp-primary);
+  color: #fff;
+  border-bottom: 1px solid var(--sp-primary-dark);
+}
+
+.sp-mp__calendar :deep(.q-calendar-month__head-weekday),
+.sp-mp__calendar :deep(.q-calendar-agenda__head-weekday-label) {
   padding: 14px 8px;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--sp-text-muted);
+  color: rgba(255, 255, 255, 0.85);
+  text-align: center;
 }
 
-/* Kill QCalendar's rainbow default day-number coloring */
+.sp-mp__calendar :deep(.q-calendar-month__head-weekday.q-disabled-day),
+.sp-mp__calendar :deep(.q-calendar-month__head-weekday-label.q-disabled-day) {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Day-number coloring + alignment */
 .sp-mp__calendar :deep(.q-calendar-month__day-label__wrapper),
 .sp-mp__calendar :deep(.q-calendar-month__day-label) {
   color: var(--sp-text) !important;
 }
 
 .sp-mp__calendar :deep(.q-calendar-month__day-label) {
-  font-size: 0.82rem;
+  font-size: 0.85rem;
   font-weight: 600;
   letter-spacing: 0.02em;
+  padding: 6px 8px 0;
 }
 
-/* Day cell container */
+/* Day cell */
 .sp-mp__calendar :deep(.q-calendar-month__day) {
   transition: background-color 0.12s;
   cursor: pointer;
-  min-height: 120px;
+  min-height: 124px;
+  border-right: 1px solid var(--sp-divider);
+  border-bottom: 1px solid var(--sp-divider);
+  background: var(--sp-surface);
+}
+
+.sp-mp__calendar :deep(.q-calendar-month__day:last-child) {
+  border-right: none;
 }
 
 .sp-mp__calendar :deep(.q-calendar-month__day:hover) {
   background-color: var(--sp-primary-soft);
 }
 
-/* Today highlight */
-.sp-mp__calendar :deep(.q-current-day)::before {
-  content: '';
-  position: absolute;
-  top: 6px;
-  right: 8px;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: var(--sp-primary);
-  z-index: 0;
-  pointer-events: none;
+/* Outside / disabled days dimmed */
+.sp-mp__calendar :deep(.q-calendar-month__day--outside) {
+  background-color: var(--sp-surface-2);
+}
+
+.sp-mp__calendar :deep(.q-calendar-month__day--outside .q-calendar-month__day-label) {
+  color: var(--sp-text-soft) !important;
+}
+
+/* Today highlight — saffron pill behind the day number */
+.sp-mp__calendar :deep(.q-current-day .q-calendar-month__day-label__wrapper) {
+  position: relative;
 }
 
 .sp-mp__calendar :deep(.q-current-day .q-calendar-month__day-label) {
   color: #fff !important;
-  font-weight: 700;
+  font-weight: 800;
+  background: var(--sp-secondary);
+  border-radius: var(--sp-r-pill);
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 4px 0 0 4px;
+  box-shadow: 0 2px 6px rgba(221, 107, 32, 0.4);
 }
 
 /* Day cell contents */
@@ -866,7 +904,7 @@ onMounted(async () => {
 
 /* -------- FAB -------- */
 .sp-mp__fab {
-  box-shadow: 0 8px 24px rgba(47, 125, 95, 0.35);
+  box-shadow: 0 8px 24px rgba(45, 55, 72, 0.35);
   transition: transform 0.15s;
 }
 

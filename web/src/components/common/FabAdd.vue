@@ -8,7 +8,7 @@ interface Props {
 
 withDefaults(defineProps<Props>(), {
   icon: 'add',
-  color: 'primary',
+  color: 'secondary',
   ariaLabel: 'Add'
 })
 

@@ -121,7 +121,7 @@ const subtitle = computed(() => {
       <PageHeader title="Shopping" :subtitle="subtitle" icon="shopping_cart">
         <template #actions>
           <q-btn
-            color="primary"
+            color="secondary"
             unelevated
             no-caps
             icon="add"
@@ -153,7 +153,7 @@ const subtitle = computed(() => {
         :hint="searchQuery ? 'Try a different search or tap Add to create one.' : 'Tap the + button to add what you need to buy.'"
       >
         <template #action>
-          <q-btn color="primary" unelevated no-caps icon="add" label="Add item" @click="openAddDialog" />
+          <q-btn color="secondary" unelevated no-caps icon="add" label="Add item" @click="openAddDialog" />
         </template>
       </EmptyState>
 

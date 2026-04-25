@@ -103,7 +103,7 @@ const subtitle = computed(() => {
       <PageHeader title="Recipes" :subtitle="subtitle" icon="restaurant_menu">
         <template #actions>
           <q-btn
-            color="primary"
+            color="secondary"
             unelevated
             no-caps
             icon="add"
@@ -129,7 +129,7 @@ const subtitle = computed(() => {
         :hint="searchQuery ? 'Try a different search.' : 'Save your favorite dishes here. Tap Add to get started.'"
       >
         <template #action>
-          <q-btn color="primary" unelevated no-caps icon="add" label="Add recipe" @click="openAddDialog" />
+          <q-btn color="secondary" unelevated no-caps icon="add" label="Add recipe" @click="openAddDialog" />
         </template>
       </EmptyState>
 
@@ -243,7 +243,7 @@ const subtitle = computed(() => {
 }
 
 .sp-recipe-card__hero {
-  background: linear-gradient(135deg, var(--sp-primary-soft) 0%, #F5E9DC 100%);
+  background: linear-gradient(135deg, var(--sp-primary-soft) 0%, var(--sp-secondary-soft) 100%);
   height: 110px;
   display: flex;
   align-items: center;
