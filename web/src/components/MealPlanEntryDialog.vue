@@ -1,16 +1,13 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
-import { useQuasar } from 'quasar'
 import { useRecipesStore, type Recipe } from '@/stores/recipesStore'
-import { useBackButton } from '@/composables/useBackButton'
 import { GlobalRecipe, CreateMealPlanEntryRequest } from '@shared/api-client'
 import type { MealPlanEntry } from '@shared/api-client'
 import { matchesQuery } from '@/utils/search'
+import BaseDialog from './BaseDialog.vue'
+import ConfirmDialog from './ConfirmDialog.vue'
 
-const $q = useQuasar()
 const recipesStore = useRecipesStore()
-
-// ---- Props & emits ----
 
 interface Props {
   modelValue: boolean
@@ -20,9 +17,7 @@ interface Props {
   defaultEatDates?: string[]
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  mode: 'add'
-})
+const props = withDefaults(defineProps<Props>(), { mode: 'add' })
 
 export interface MealPlanEntryPayload {
   recipeId: string
@@ -34,24 +29,22 @@ export interface MealPlanEntryPayload {
   notes?: string
 }
 
+export interface DeletePayload {
+  id: string
+  removeShoppingItems: boolean
+}
+
 const MEAL_TYPE_OPTIONS = [
   { value: 'breakfast', label: 'Breakfast', icon: 'free_breakfast' },
   { value: 'lunch', label: 'Lunch', icon: 'lunch_dining' },
   { value: 'dinner', label: 'Dinner', icon: 'dinner_dining' }
 ] as const
 
-export interface DeletePayload {
-  id: string
-  removeShoppingItems: boolean
-}
-
 const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void
   (e: 'save', data: MealPlanEntryPayload): void
   (e: 'delete', data: DeletePayload): void
 }>()
-
-// ---- Form state ----
 
 const selectedRecipe = ref<Recipe | null>(null)
 const cookDate = ref('')
@@ -62,14 +55,10 @@ const notes = ref('')
 
 function toggleMealType(value: string) {
   const idx = mealTypes.value.indexOf(value)
-  if (idx >= 0) {
-    mealTypes.value.splice(idx, 1)
-  } else {
-    mealTypes.value.push(value)
-  }
+  if (idx >= 0) mealTypes.value.splice(idx, 1)
+  else mealTypes.value.push(value)
 }
 
-// Recipe picker filter
 const recipeFilter = ref('')
 
 const filteredRecipes = computed(() => {
@@ -85,29 +74,13 @@ function filterRecipes(val: string, update: (fn: () => void) => void) {
   })
 }
 
-// ---- Delete confirm state ----
-
 const showDeleteConfirm = ref(false)
 const removeShoppingItems = ref(false)
-
-// ---- Back button ----
-
-const { pushHistoryState, removeHistoryState } = useBackButton(
-  () => props.modelValue,
-  () => handleClose()
-)
-
-// ---- Watch ----
 
 watch(
   () => props.modelValue,
   (isOpen) => {
-    if (isOpen) {
-      pushHistoryState()
-      populateForm()
-    } else {
-      removeHistoryState()
-    }
+    if (isOpen) populateForm()
   }
 )
 
@@ -131,13 +104,10 @@ function populateForm() {
   recipeFilter.value = ''
 }
 
-// ---- Validation ----
-
 const isValid = computed(() => !!selectedRecipe.value && !!cookDate.value)
 
-// ---- Actions ----
-
 function handleClose() {
+  showDeleteConfirm.value = false
   emit('update:modelValue', false)
 }
 
@@ -185,177 +155,194 @@ function parseServings(val: string | number | null) {
 </script>
 
 <template>
-  <!-- Main entry dialog -->
-  <q-dialog
-    :model-value="modelValue && !showDeleteConfirm"
+  <BaseDialog
+    :model-value="modelValue"
+    :title="mode === 'edit' ? 'Edit meal' : 'Add meal'"
+    size="md"
     @update:model-value="emit('update:modelValue', $event)"
-    :full-width="$q.screen.lt.sm"
-    :maximized="$q.screen.lt.sm"
+    @close="handleClose"
   >
-    <q-card
-      :style="$q.screen.lt.sm
-        ? 'height: 100vh; max-height: 100vh; display: flex; flex-direction: column'
-        : 'width: 100%; max-width: 480px'"
+    <q-select
+      v-model="selectedRecipe"
+      :options="filteredRecipes"
+      option-label="name"
+      option-value="_id"
+      label="Recipe *"
+      outlined
+      use-input
+      input-debounce="300"
+      class="q-mb-md"
+      :readonly="mode === 'edit'"
+      :disable="mode === 'edit'"
+      @filter="filterRecipes"
     >
-      <q-card-section>
-        <div class="text-h6">{{ mode === 'edit' ? 'Edit Meal' : 'Add Meal' }}</div>
-      </q-card-section>
+      <template #option="{ itemProps, opt }">
+        <q-item v-bind="itemProps">
+          <q-item-section avatar>
+            <span style="font-size: 1.4rem">{{ opt.icon || '🍽️' }}</span>
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>{{ opt.name }}</q-item-label>
+            <q-item-label caption>{{ opt.recipeType }}</q-item-label>
+          </q-item-section>
+        </q-item>
+      </template>
+      <template #selected-item="{ opt }">
+        <span class="q-mr-sm">{{ opt?.icon || '🍽️' }}</span>
+        <span>{{ opt?.name }}</span>
+      </template>
+      <template #no-option>
+        <q-item>
+          <q-item-section class="text-grey">No recipes found</q-item-section>
+        </q-item>
+      </template>
+    </q-select>
 
-      <q-card-section
-        class="q-pt-none"
-        :style="$q.screen.lt.sm ? 'flex: 1; overflow-y: auto' : ''"
-      >
-        <!-- Recipe picker -->
-        <q-select
-          v-model="selectedRecipe"
-          :options="filteredRecipes"
-          option-label="name"
-          option-value="_id"
-          label="Recipe *"
-          outlined
-          use-input
-          input-debounce="300"
-          class="q-mb-md"
-          :readonly="mode === 'edit'"
-          :disable="mode === 'edit'"
-          @filter="filterRecipes"
+    <q-input
+      v-model="cookDate"
+      label="Cook date *"
+      type="date"
+      outlined
+      class="q-mb-md"
+    />
+
+    <q-input
+      :model-value="servings ?? ''"
+      label="Servings"
+      type="number"
+      min="0.5"
+      step="0.5"
+      outlined
+      placeholder="(uses recipe default)"
+      class="q-mb-md"
+      @update:model-value="parseServings"
+    />
+
+    <div class="sp-meal__field">
+      <div class="sp-form-label">Eat dates</div>
+      <div class="sp-meal__hint">For leftovers — leave empty to use cook date</div>
+      <q-date
+        v-model="eatDates"
+        multiple
+        flat
+        minimal
+        class="sp-meal__date-picker"
+      />
+    </div>
+
+    <div class="sp-meal__field">
+      <div class="sp-form-label">Meal type</div>
+      <div class="sp-meal__chips">
+        <button
+          v-for="opt in MEAL_TYPE_OPTIONS"
+          :key="opt.value"
+          type="button"
+          class="sp-meal__chip"
+          :class="{ 'sp-meal__chip--active': mealTypes.includes(opt.value) }"
+          @click="toggleMealType(opt.value)"
         >
-          <template #option="{ itemProps, opt }">
-            <q-item v-bind="itemProps">
-              <q-item-section avatar>
-                <span style="font-size: 1.4rem">{{ opt.icon || '🍽️' }}</span>
-              </q-item-section>
-              <q-item-section>
-                <q-item-label>{{ opt.name }}</q-item-label>
-                <q-item-label caption>{{ opt.recipeType }}</q-item-label>
-              </q-item-section>
-            </q-item>
-          </template>
-          <template #selected-item="{ opt }">
-            <span class="q-mr-sm">{{ opt?.icon || '🍽️' }}</span>
-            <span>{{ opt?.name }}</span>
-          </template>
-          <template #no-option>
-            <q-item>
-              <q-item-section class="text-grey">No recipes found</q-item-section>
-            </q-item>
-          </template>
-        </q-select>
+          <q-icon :name="opt.icon" size="18px" class="q-mr-xs" />
+          {{ opt.label }}
+        </button>
+      </div>
+    </div>
 
-        <!-- Cook date -->
-        <q-input
-          v-model="cookDate"
-          label="Cook date *"
-          type="date"
-          outlined
-          class="q-mb-md"
-        />
+    <q-input
+      v-model="notes"
+      label="Notes"
+      type="textarea"
+      outlined
+      autogrow
+      :rows="2"
+      :max-rows="3"
+    />
 
-        <!-- Servings -->
-        <q-input
-          :model-value="servings ?? ''"
-          label="Servings"
-          type="number"
-          min="0.5"
-          step="0.5"
-          outlined
-          placeholder="(uses recipe default)"
-          class="q-mb-md"
-          @update:model-value="parseServings"
-        />
+    <template #footer>
+      <q-btn
+        v-if="mode === 'edit'"
+        flat
+        no-caps
+        label="Delete"
+        color="negative"
+        icon="delete"
+        class="sp-dlg-footer__leading"
+        @click="handleDeleteClick"
+      />
+      <q-btn flat no-caps label="Cancel" color="grey-8" @click="handleClose" />
+      <q-btn
+        unelevated
+        no-caps
+        label="Save"
+        color="primary"
+        :disable="!isValid"
+        @click="handleSave"
+      />
+    </template>
+  </BaseDialog>
 
-        <!-- Eat dates (multi-date picker) -->
-        <div class="q-mb-md">
-          <div class="text-caption text-grey-7 q-mb-xs">Eat dates (for leftovers — leave empty to use cook date)</div>
-          <q-date
-            v-model="eatDates"
-            multiple
-            flat
-            minimal
-            class="eat-dates-picker"
-          />
-        </div>
-
-        <!-- Meal types (multi-select toggles — a meal can be e.g. lunch + dinner) -->
-        <div class="q-mb-md">
-          <div class="text-caption text-grey-7 q-mb-xs">Meal type</div>
-          <div class="row q-gutter-sm">
-            <q-btn
-              v-for="opt in MEAL_TYPE_OPTIONS"
-              :key="opt.value"
-              :icon="opt.icon"
-              :label="opt.label"
-              :color="mealTypes.includes(opt.value) ? 'primary' : 'grey-5'"
-              :outline="!mealTypes.includes(opt.value)"
-              no-caps
-              dense
-              @click="toggleMealType(opt.value)"
-            />
-          </div>
-        </div>
-
-        <!-- Notes -->
-        <q-input
-          v-model="notes"
-          label="Notes"
-          type="textarea"
-          outlined
-          autogrow
-          :rows="2"
-          :max-rows="3"
-        />
-      </q-card-section>
-
-      <q-card-actions align="right">
-        <q-btn
-          v-if="mode === 'edit'"
-          flat
-          label="Delete"
-          color="negative"
-          icon="delete"
-          @click="handleDeleteClick"
-          class="q-mr-auto"
-        />
-        <q-btn flat label="Cancel" color="primary" @click="handleClose" />
-        <q-btn
-          label="Save"
-          color="primary"
-          :disable="!isValid"
-          @click="handleSave"
-        />
-      </q-card-actions>
-    </q-card>
-  </q-dialog>
-
-  <!-- Delete confirmation dialog (shown in place of entry dialog) -->
-  <q-dialog v-model="showDeleteConfirm" persistent>
-    <q-card style="width: 100%; max-width: 400px">
-      <q-card-section class="row items-center q-pb-none">
-        <q-icon name="warning" color="negative" size="32px" class="q-mr-md" />
-        <div class="text-h6">Delete meal entry</div>
-      </q-card-section>
-
-      <q-card-section>
-        <div class="text-body1 q-mb-md">Are you sure you want to remove this meal from the calendar?</div>
-        <q-toggle
-          v-model="removeShoppingItems"
-          label="Also remove generated shopping items"
-          color="negative"
-        />
-      </q-card-section>
-
-      <q-card-actions align="right">
-        <q-btn flat label="Cancel" color="grey-7" @click="showDeleteConfirm = false" />
-        <q-btn flat label="Delete" color="negative" @click="handleDeleteConfirmed" />
-      </q-card-actions>
-    </q-card>
-  </q-dialog>
+  <ConfirmDialog
+    v-model="showDeleteConfirm"
+    title="Delete meal entry"
+    message="Are you sure you want to remove this meal from the calendar?"
+    type="danger"
+    confirm-label="Delete"
+    @confirm="handleDeleteConfirmed"
+  >
+    <q-toggle
+      v-model="removeShoppingItems"
+      label="Also remove generated shopping items"
+      color="negative"
+      class="q-mt-md"
+    />
+  </ConfirmDialog>
 </template>
 
 <style scoped>
-.eat-dates-picker {
+.sp-meal__field {
+  margin-bottom: 16px;
+}
+
+.sp-meal__hint {
+  font-size: 0.78rem;
+  color: var(--sp-text-soft);
+  margin-bottom: 8px;
+}
+
+.sp-meal__date-picker {
   width: 100%;
-  border: 1px solid rgba(0, 0, 0, 0.24);
-  border-radius: 4px;
+  border: 1px solid var(--sp-border);
+  border-radius: var(--sp-r-md);
+  background: var(--sp-surface);
+}
+
+.sp-meal__chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.sp-meal__chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
+  border-radius: var(--sp-r-pill);
+  border: 1px solid var(--sp-border);
+  background: var(--sp-surface);
+  color: var(--sp-text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.sp-meal__chip:hover {
+  border-color: var(--sp-secondary);
+  color: var(--sp-text);
+}
+
+.sp-meal__chip--active {
+  background: var(--sp-secondary);
+  border-color: var(--sp-secondary);
+  color: #fff;
 }
 </style>

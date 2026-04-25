@@ -6,13 +6,13 @@ import PageWrapper from '@/components/PageWrapper.vue'
 import PageHeader from '@/components/common/PageHeader.vue'
 import SectionCard from '@/components/common/SectionCard.vue'
 import GroupActions from '@/components/GroupActions.vue'
+import BaseDialog from '@/components/BaseDialog.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
-import { Notify, useQuasar } from 'quasar'
+import { Notify } from 'quasar'
 import { useAuthStore } from '@/stores/authStore'
 import { useGroupsStore } from '@/stores/groupsStore'
 import { useRouter } from 'vue-router'
 
-const $q = useQuasar()
 const authStore = useAuthStore()
 const groupsStore = useGroupsStore()
 const router = useRouter()
@@ -497,128 +497,119 @@ const initials = (name: string) => {
       </div>
 
       <!-- Edit Group Dialog -->
-      <q-dialog v-model="showEditDialog" :full-width="$q.screen.lt.sm" :maximized="$q.screen.lt.sm">
-        <q-card class="sp-dialog" :style="$q.screen.lt.sm ? '' : 'width: 100%; max-width: 400px'">
-          <q-card-section>
-            <div class="sp-dialog-title">Edit Group</div>
-          </q-card-section>
+      <BaseDialog
+        v-model="showEditDialog"
+        title="Edit group"
+        size="sm"
+      >
+        <q-input
+          v-model="editGroupName"
+          outlined
+          label="Group name"
+          autofocus
+          @keyup.enter="updateGroup"
+        />
 
-          <q-card-section class="q-pt-none">
-            <q-input
-              v-model="editGroupName"
-              outlined
-              dense
-              label="Group Name"
-              autofocus
-              @keyup.enter="updateGroup"
-            />
-          </q-card-section>
-
-          <q-card-actions align="right" class="q-px-md q-pb-md">
-            <q-btn flat no-caps label="Cancel" color="primary" v-close-popup />
-            <q-btn
-              unelevated
-              no-caps
-              label="Save"
-              color="primary"
-              @click="updateGroup"
-              :disable="!editGroupName.trim() || loading"
-              :loading="loading"
-            />
-          </q-card-actions>
-        </q-card>
-      </q-dialog>
+        <template #footer="{ close }">
+          <q-btn flat no-caps label="Cancel" color="grey-8" @click="close" />
+          <q-btn
+            unelevated
+            no-caps
+            label="Save"
+            color="primary"
+            :disable="!editGroupName.trim() || loading"
+            :loading="loading"
+            @click="updateGroup"
+          />
+        </template>
+      </BaseDialog>
 
       <!-- Invite Code Dialog -->
-      <q-dialog v-model="showInviteDialog" :full-width="$q.screen.lt.sm" :maximized="$q.screen.lt.sm">
-        <q-card class="sp-dialog" :style="$q.screen.lt.sm ? '' : 'width: 100%; max-width: 420px'">
-          <q-card-section>
-            <div class="sp-dialog-title">Invite Code</div>
-          </q-card-section>
+      <BaseDialog
+        v-model="showInviteDialog"
+        title="Invite code"
+        subtitle="Share this code with others to invite them"
+        size="sm"
+      >
+        <div class="sp-invite-code-box">
+          <span class="sp-invite-code-text">{{ groupsStore.currentGroup?.inviteCode }}</span>
+          <q-btn
+            flat
+            dense
+            round
+            icon="content_copy"
+            color="primary"
+            @click="copyInviteCode"
+          >
+            <q-tooltip>Copy to clipboard</q-tooltip>
+          </q-btn>
+        </div>
 
-          <q-card-section class="q-pt-none">
-            <div class="sp-text-muted q-mb-sm">Share this code with others to invite them:</div>
-            <div class="sp-invite-code-box">
-              <span class="sp-invite-code-text">{{ groupsStore.currentGroup?.inviteCode }}</span>
-              <q-btn
-                flat
-                dense
-                round
-                icon="content_copy"
-                color="primary"
-                @click="copyInviteCode"
-              >
-                <q-tooltip>Copy to clipboard</q-tooltip>
-              </q-btn>
-            </div>
-
-            <template v-if="isAdmin">
-              <q-separator class="q-my-md" />
-              <div class="sp-dialog-subtitle q-mb-sm">Admin Actions</div>
-              <div class="row q-gutter-sm q-mb-sm">
-                <q-btn
-                  unelevated
-                  no-caps
-                  color="primary"
-                  label="Regenerate Code"
-                  icon="refresh"
-                  @click="regenerateInviteCode"
-                  :loading="loading"
-                />
-                <q-btn
-                  unelevated
-                  no-caps
-                  :color="groupsStore.currentGroup?.inviteEnabled ? 'positive' : 'negative'"
-                  :label="groupsStore.currentGroup?.inviteEnabled ? 'Invites Enabled' : 'Invites Disabled'"
-                  :icon="groupsStore.currentGroup?.inviteEnabled ? 'check_circle' : 'block'"
-                  @click="toggleInvite"
-                  :loading="loading"
-                />
-              </div>
-              <div class="sp-text-muted text-caption">
-                {{ groupsStore.currentGroup?.inviteEnabled
-                  ? 'Users can join with the invite code'
-                  : 'Invites are currently disabled' }}
-              </div>
-            </template>
-          </q-card-section>
-
-          <q-card-actions align="right" class="q-px-md q-pb-md">
-            <q-btn flat no-caps label="Close" color="primary" v-close-popup />
-          </q-card-actions>
-        </q-card>
-      </q-dialog>
-
-      <!-- Authentication Required Dialog -->
-      <q-dialog v-model="showAuthRequiredDialog" persistent :full-width="$q.screen.lt.sm" :maximized="$q.screen.lt.sm">
-        <q-card class="sp-dialog" :style="$q.screen.lt.sm ? '' : 'width: 100%; max-width: 400px'">
-          <q-card-section class="text-center q-pt-lg">
-            <q-icon name="lock" size="52px" color="secondary" class="q-mb-md" />
-            <div class="sp-dialog-title">Authentication Required</div>
-          </q-card-section>
-
-          <q-card-section class="q-pt-none text-center">
-            <p class="text-body1 q-mb-sm">
-              Groups feature requires you to be logged in to sync data across devices and share with other users.
-            </p>
-            <p class="sp-text-muted text-body2">
-              Please log in or create an account to use this feature.
-            </p>
-          </q-card-section>
-
-          <q-card-actions align="center" class="q-pb-lg">
+        <template v-if="isAdmin">
+          <q-separator class="q-my-md" />
+          <div class="sp-dialog-subtitle q-mb-sm">Admin actions</div>
+          <div class="row q-gutter-sm q-mb-sm">
             <q-btn
               unelevated
               no-caps
-              label="Go to Login"
               color="primary"
-              icon="login"
-              size="md"
-              @click="goToLogin"
+              label="Regenerate code"
+              icon="refresh"
+              :loading="loading"
+              @click="regenerateInviteCode"
             />
-          </q-card-actions>
-        </q-card>
-      </q-dialog>
+            <q-btn
+              unelevated
+              no-caps
+              :color="groupsStore.currentGroup?.inviteEnabled ? 'positive' : 'negative'"
+              :label="groupsStore.currentGroup?.inviteEnabled ? 'Invites enabled' : 'Invites disabled'"
+              :icon="groupsStore.currentGroup?.inviteEnabled ? 'check_circle' : 'block'"
+              :loading="loading"
+              @click="toggleInvite"
+            />
+          </div>
+          <div class="sp-text-muted text-caption">
+            {{ groupsStore.currentGroup?.inviteEnabled
+              ? 'Users can join with the invite code'
+              : 'Invites are currently disabled' }}
+          </div>
+        </template>
+
+        <template #footer="{ close }">
+          <q-btn flat no-caps label="Close" color="grey-8" @click="close" />
+        </template>
+      </BaseDialog>
+
+      <!-- Authentication Required Dialog -->
+      <BaseDialog
+        v-model="showAuthRequiredDialog"
+        title="Authentication required"
+        header-icon="lock"
+        header-icon-color="secondary"
+        size="sm"
+        persistent
+        hide-close
+        center-header
+      >
+        <p class="sp-auth-message">
+          The Groups feature requires you to be logged in to sync data across devices and share with other users.
+        </p>
+        <p class="sp-text-muted text-body2 text-center q-mt-sm">
+          Please log in or create an account to use this feature.
+        </p>
+
+        <template #footer>
+          <q-btn
+            unelevated
+            no-caps
+            label="Go to login"
+            color="primary"
+            icon="login"
+            class="full-width"
+            @click="goToLogin"
+          />
+        </template>
+      </BaseDialog>
 
       <!-- Confirmation Dialogs -->
       <ConfirmDialog
@@ -726,18 +717,18 @@ const initials = (name: string) => {
   letter-spacing: 0.08em;
 }
 
-/* Dialog */
-.sp-dialog-title {
-  font-family: 'Manrope', sans-serif;
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--sp-text);
-}
-
+/* Dialog body bits */
 .sp-dialog-subtitle {
   font-weight: 600;
   font-size: 0.9rem;
   color: var(--sp-text);
+}
+
+.sp-auth-message {
+  font-size: 0.95rem;
+  color: var(--sp-text);
+  text-align: center;
+  margin: 0;
 }
 
 /* Utility */

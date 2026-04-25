@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
-import { useQuasar } from 'quasar'
-import { useBackButton } from '@/composables/useBackButton'
+import { Notify } from 'quasar'
 import type { Recipe } from '@/stores/recipesStore'
 import { useItemsStore } from '@/stores/itemsStore'
 import { useAuthStore } from '@/stores/authStore'
 import { GlobalRecipe, GroupRecipe, type RecipeIngredient } from '@shared/api-client'
 import { matchesQuery } from '@/utils/search'
+import BaseDialog from './BaseDialog.vue'
 import AddItemDialog, { type ItemFormData } from './AddItemDialog.vue'
 import TagSelector from './TagSelector.vue'
 
@@ -41,11 +41,9 @@ export interface RecipeFormData {
   recipeType?: GlobalRecipe.recipeType | GroupRecipe.recipeType
 }
 
-const $q = useQuasar()
 const itemsStore = useItemsStore()
 const authStore = useAuthStore()
 
-// Form fields
 const formName = ref('')
 const formDescription = ref('')
 const formIcon = ref('')
@@ -56,37 +54,32 @@ const formInstructions = ref<string[]>([''])
 const formTags = ref<string[]>([])
 const formSearchNames = ref('')
 
-// Item dialog state
 const showAddItemDialog = ref(false)
 const addItemDialogInitialData = ref<Partial<ItemFormData>>({})
 const currentIngredientIndex = ref<number | null>(null)
 
-// Item autocomplete
 const ingredientOptions = ref<any[][]>([])
 const currentIngredientSearchValue = ref<string[]>([])
 const ingredientSelectRefs = ref<any[]>([])
 
-const canCreateGlobalRecipe = computed(() => {
-  return authStore.hasGlobalPermission('global_recipes:create')
-})
+const canCreateGlobalRecipe = computed(() =>
+  authStore.hasGlobalPermission('global_recipes:create')
+)
 
-const canCreateGlobalItem = computed(() => {
-  return authStore.hasGlobalPermission('global_items:create')
-})
+const canCreateGlobalItem = computed(() =>
+  authStore.hasGlobalPermission('global_items:create')
+)
 
-// Back button handler
+const dialogTitle = computed(() =>
+  props.readOnly ? 'View recipe' : (props.editingRecipe ? 'Edit recipe' : 'Add new recipe')
+)
+
 const handleCloseDialog = () => {
   emit('update:modelValue', false)
   emit('cancel')
   resetForm()
 }
 
-const { pushHistoryState, removeHistoryState } = useBackButton(
-  () => props.modelValue,
-  handleCloseDialog
-)
-
-// Define resetForm first
 const resetForm = () => {
   formRecipeType.value = GroupRecipe.recipeType.GROUP
   formName.value = props.initialName || ''
@@ -99,7 +92,6 @@ const resetForm = () => {
   formSearchNames.value = ''
 }
 
-// Watch for editing recipe changes
 watch(() => props.editingRecipe, (recipe) => {
   if (recipe) {
     formRecipeType.value = recipe.recipeType
@@ -120,15 +112,6 @@ watch(() => props.editingRecipe, (recipe) => {
   }
 }, { immediate: true })
 
-// Watch for dialog opening/closing to manage back button behavior
-watch(() => props.modelValue, (isOpen) => {
-  if (isOpen) {
-    pushHistoryState()
-  } else {
-    removeHistoryState()
-  }
-})
-
 const handleSaveRecipe = () => {
   const recipeData: RecipeFormData = {
     name: formName.value.trim(),
@@ -144,10 +127,7 @@ const handleSaveRecipe = () => {
       .filter(Boolean)
   }
 
-  // Include recipe type only for new recipes
-  if (!props.editingRecipe) {
-    recipeData.recipeType = formRecipeType.value
-  }
+  if (!props.editingRecipe) recipeData.recipeType = formRecipeType.value
 
   emit('save', recipeData)
   emit('update:modelValue', false)
@@ -162,15 +142,12 @@ const isFormValid = () => {
   return hasIngredients && hasInstructions
 }
 
-// Ingredient management
 const addIngredient = () => {
   formIngredients.value.push({ itemName: '', quantity: 1, unit: 'pcs' })
 }
 
 const removeIngredient = (index: number) => {
-  if (formIngredients.value.length > 1) {
-    formIngredients.value.splice(index, 1)
-  }
+  if (formIngredients.value.length > 1) formIngredients.value.splice(index, 1)
 }
 
 const getItemOptions = (index: number, val: string, update: any) => {
@@ -178,10 +155,7 @@ const getItemOptions = (index: number, val: string, update: any) => {
 
   if (val === '') {
     update(() => {
-      // Show recently used items when no search
-      if (!ingredientOptions.value[index]) {
-        ingredientOptions.value[index] = []
-      }
+      if (!ingredientOptions.value[index]) ingredientOptions.value[index] = []
       ingredientOptions.value[index] = itemsStore.sortedItemsWithRecent.slice(0, 20)
     })
     return
@@ -191,10 +165,7 @@ const getItemOptions = (index: number, val: string, update: any) => {
     const filtered = itemsStore.sortedItemsWithRecent
       .filter(item => matchesQuery(val, item.name, ...(item.searchNames ?? [])))
       .slice(0, 20)
-
-    if (!ingredientOptions.value[index]) {
-      ingredientOptions.value[index] = []
-    }
+    if (!ingredientOptions.value[index]) ingredientOptions.value[index] = []
     ingredientOptions.value[index] = filtered
   })
 }
@@ -207,8 +178,6 @@ const handleItemSelect = (index: number, val: any) => {
     ingredient.itemId = val._id
     ingredient.itemName = val.name
     ingredient.unit = val.defaultUnit || ingredient.unit || 'pcs'
-
-    // Mark item as recently used
     itemsStore.markItemsAsUsed([val._id])
   } else if (typeof val === 'string') {
     ingredient.itemName = val
@@ -254,348 +223,357 @@ const handleSaveNewItem = async (data: ItemFormData) => {
       ingredient.itemName = newItem.name
       ingredient.unit = newItem.defaultUnit || ingredient.unit || 'pcs'
     }
-
     const selectRef = ingredientSelectRefs.value[currentIngredientIndex.value]
-    if (selectRef) {
-      selectRef.hidePopup()
-    }
+    if (selectRef) selectRef.hidePopup()
   }
 
   showAddItemDialog.value = false
-
-  $q.notify({
-    type: 'positive',
-    message: `Item "${data.name}" created successfully`
-  })
+  Notify.create({ type: 'positive', message: `Item "${data.name}" created successfully` })
 }
 
-// Instruction management
 const addInstruction = () => {
   formInstructions.value.push('')
 }
 
 const removeInstruction = (index: number) => {
-  if (formInstructions.value.length > 1) {
-    formInstructions.value.splice(index, 1)
-  }
+  if (formInstructions.value.length > 1) formInstructions.value.splice(index, 1)
 }
 </script>
 
 <template>
-  <div>
-    <q-dialog :model-value="modelValue" @update:model-value="emit('update:modelValue', $event)" :full-width="$q.screen.lt.sm" :maximized="$q.screen.lt.sm">
-      <q-card :style="$q.screen.lt.sm ? 'height: 100vh; max-height: 100vh; display: flex; flex-direction: column' : 'width: 100%; max-width: 600px; max-height: 80vh'">
-        <q-card-section>
-          <div class="text-h6">
-            {{ readOnly ? 'View Recipe' : (editingRecipe ? 'Edit Recipe' : 'Add New Recipe') }}
-          </div>
-        </q-card-section>
+  <BaseDialog
+    :model-value="modelValue"
+    :title="dialogTitle"
+    size="lg"
+    @update:model-value="emit('update:modelValue', $event)"
+    @close="handleCloseDialog"
+  >
+    <!-- Basic Information -->
+    <h3 class="sp-form-label">Basic information</h3>
 
-        <q-card-section class="q-pt-none" :style="$q.screen.lt.sm ? 'flex: 1; overflow-y: auto' : 'max-height: 60vh; overflow-y: auto'">
-          <!-- Basic Information -->
-          <div class="text-subtitle1 text-weight-medium q-mb-sm">Basic Information</div>
-
-          <q-input
-            v-model="formName"
-            outlined
-            label="Recipe Name *"
-            class="q-mb-md"
-            :readonly="readOnly"
-            :disable="readOnly"
-          />
-
-          <q-input
-            v-model="formDescription"
-            outlined
-            label="Description"
-            type="textarea"
-            rows="2"
-            class="q-mb-md"
-            :readonly="readOnly"
-            :disable="readOnly"
-          />
-
-          <q-input
-            v-model="formSearchNames"
-            outlined
-            label="Alternative names"
-            hint="Comma-separated. Match diacritic-insensitively in search, e.g. palačinky, lívance"
-            class="q-mb-md"
-            :readonly="readOnly"
-            :disable="readOnly"
-          />
-
-          <div class="row q-col-gutter-md q-mb-md">
-            <div class="col-6">
-              <q-input
-                v-model="formIcon"
-                outlined
-                label="Icon (emoji)"
-                placeholder="🍽️"
-                :readonly="readOnly"
-                :disable="readOnly"
-              />
-            </div>
-            <div class="col-6">
-              <q-input
-                v-model.number="formServings"
-                outlined
-                label="Servings *"
-                type="number"
-                min="1"
-                :readonly="readOnly"
-                :disable="readOnly"
-              />
-            </div>
-          </div>
-
-          <!-- Recipe Type Toggle (only shown when adding new recipe) -->
-          <template v-if="!editingRecipe && canCreateGlobalRecipe">
-            <q-toggle
-              v-model="formRecipeType"
-              true-value="global"
-              false-value="group"
-              label="Add as Global Recipe"
-              color="primary"
-              class="q-mb-md"
-            >
-              <q-tooltip>
-                Global recipes are visible to all users and can only be managed by system moderators
-              </q-tooltip>
-            </q-toggle>
-          </template>
-
-          <!-- Tags -->
-          <TagSelector
-            v-model="formTags"
-            label="Tags"
-            class="q-mb-md"
-            :readonly="readOnly"
-          />
-
-          <q-separator class="q-my-md" />
-
-          <!-- Ingredients -->
-          <div class="text-subtitle1 text-weight-medium q-mb-sm">
-            Ingredients
-          </div>
-
-          <div
-            v-for="(ingredient, index) in formIngredients"
-            :key="index"
-            class="q-mb-sm"
-          >
-            <!-- Ingredient dropdown on its own row -->
-            <div class="row q-col-gutter-sm q-mb-xs">
-              <div class="col-12">
-                <q-select
-                  :ref="el => { if (el) ingredientSelectRefs[index] = el }"
-                  v-model="ingredient.itemName"
-                  outlined
-                  dense
-                  use-input
-                  input-debounce="300"
-                  label="Ingredient *"
-                  placeholder="Start typing to search items..."
-                  :options="ingredientOptions[index] || []"
-                  option-label="name"
-                  @filter="(val, update) => getItemOptions(index, val, update)"
-                  @update:model-value="(val) => handleItemSelect(index, val)"
-                  new-value-mode="add-unique"
-                  fill-input
-                  hide-selected
-                >
-                  <template v-slot:option="scope">
-                    <q-item v-bind="scope.itemProps" clickable>
-                      <q-item-section avatar>
-                        <span class="text-h6">{{ scope.opt.icon || '📦' }}</span>
-                      </q-item-section>
-                      <q-item-section>
-                        <q-item-label>{{ scope.opt.name }}</q-item-label>
-                        <q-item-label caption v-if="scope.opt.category">
-                          {{ scope.opt.category }}
-                        </q-item-label>
-                      </q-item-section>
-                      <q-item-section side v-if="scope.opt.defaultUnit">
-                        <q-item-label caption class="text-weight-medium">{{ scope.opt.defaultUnit }}</q-item-label>
-                      </q-item-section>
-                    </q-item>
-                  </template>
-                  <template v-slot:after-options>
-                    <template v-if="currentIngredientSearchValue[index]">
-                      <q-separator />
-                      <q-item clickable @click="openAddItemDialog(currentIngredientSearchValue[index] || '', index)">
-                        <q-item-section avatar>
-                          <q-icon name="add" color="primary" />
-                        </q-item-section>
-                        <q-item-section>
-                          <q-item-label>Add new item</q-item-label>
-                          <q-item-label caption>Create "{{ currentIngredientSearchValue[index] }}" as a new item</q-item-label>
-                        </q-item-section>
-                      </q-item>
-                    </template>
-                  </template>
-                  <template v-slot:no-option>
-                    <q-item>
-                      <q-item-section class="text-grey">
-                        No items found
-                      </q-item-section>
-                    </q-item>
-                    <template v-if="currentIngredientSearchValue[index]">
-                      <q-separator />
-                      <q-item clickable @click="openAddItemDialog(currentIngredientSearchValue[index] || '', index)">
-                        <q-item-section avatar>
-                          <q-icon name="add" color="primary" />
-                        </q-item-section>
-                        <q-item-section>
-                          <q-item-label>Add new item</q-item-label>
-                          <q-item-label caption>Create "{{ currentIngredientSearchValue[index] }}" as a new item</q-item-label>
-                        </q-item-section>
-                      </q-item>
-                    </template>
-                  </template>
-                </q-select>
-              </div>
-            </div>
-            <!-- Quantity, Unit, and Remove button on second row -->
-            <div class="row q-col-gutter-sm">
-              <div class="col-5">
-                <q-input
-                  v-model.number="ingredient.quantity"
-                  outlined
-                  dense
-                  label="Quantity"
-                  type="number"
-                  min="0"
-                  step="0.1"
-                  :readonly="readOnly"
-                  :disable="readOnly"
-                />
-              </div>
-              <div class="col-6">
-                <q-input
-                  v-model="ingredient.unit"
-                  outlined
-                  dense
-                  label="Unit"
-                  placeholder="kg, pcs"
-                  :readonly="readOnly"
-                  :disable="readOnly"
-                />
-              </div>
-              <div v-if="!readOnly" class="col-1 flex items-center">
-                <q-btn
-                  flat
-                  dense
-                  round
-                  icon="remove"
-                  size="sm"
-                  color="negative"
-                  @click="removeIngredient(index)"
-                  :disable="formIngredients.length === 1"
-                />
-              </div>
-            </div>
-          </div>
-
-          <!-- Add Ingredient Button -->
-          <div v-if="!readOnly" class="row q-mb-sm">
-            <div class="col-12 flex justify-center">
-              <q-btn
-                flat
-                dense
-                round
-                icon="add"
-                size="sm"
-                color="primary"
-                @click="addIngredient"
-              >
-                <q-tooltip>Add ingredient</q-tooltip>
-              </q-btn>
-            </div>
-          </div>
-
-          <q-separator class="q-my-md" />
-
-          <!-- Instructions -->
-          <div class="text-subtitle1 text-weight-medium q-mb-sm">
-            Instructions
-          </div>
-
-          <div
-            v-for="(_instruction, index) in formInstructions"
-            :key="index"
-            class="row q-col-gutter-sm q-mb-sm"
-          >
-            <div class="col-1 flex items-center justify-center">
-              <span class="text-weight-bold">{{ index + 1 }}.</span>
-            </div>
-            <div :class="readOnly ? 'col-11' : 'col-10'">
-              <q-input
-                v-model="formInstructions[index]"
-                outlined
-                dense
-                type="textarea"
-                rows="2"
-                :label="`Step ${index + 1}`"
-                placeholder="Describe this step..."
-                :readonly="readOnly"
-                :disable="readOnly"
-              />
-            </div>
-            <div v-if="!readOnly" class="col-1 flex items-center">
-              <q-btn
-                flat
-                dense
-                round
-                icon="remove"
-                size="sm"
-                color="negative"
-                @click="removeInstruction(index)"
-                :disable="formInstructions.length === 1"
-              />
-            </div>
-          </div>
-
-          <!-- Add Instruction Button -->
-          <div v-if="!readOnly" class="row q-mb-sm">
-            <div class="col-12 flex justify-center">
-              <q-btn
-                flat
-                dense
-                round
-                icon="add"
-                size="sm"
-                color="primary"
-                @click="addInstruction"
-              >
-                <q-tooltip>Add instruction step</q-tooltip>
-              </q-btn>
-            </div>
-          </div>
-        </q-card-section>
-
-        <q-card-actions align="right">
-          <q-btn flat :label="readOnly ? 'Close' : 'Cancel'" color="primary" @click="handleCloseDialog" />
-          <q-btn
-            v-if="!readOnly"
-            label="Save"
-            color="primary"
-            @click="handleSaveRecipe"
-            :disable="!isFormValid()"
-          />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-
-    <!-- Add Item Dialog -->
-    <AddItemDialog
-      v-model="showAddItemDialog"
-      title="Add New Item"
-      :initial-data="addItemDialogInitialData"
-      :show-pantry-fields="false"
-      :show-global-toggle="canCreateGlobalItem"
-      @save="handleSaveNewItem"
+    <q-input
+      v-model="formName"
+      outlined
+      label="Recipe name *"
+      class="q-mb-md"
+      :readonly="readOnly"
+      :disable="readOnly"
     />
-  </div>
+
+    <q-input
+      v-model="formDescription"
+      outlined
+      label="Description"
+      type="textarea"
+      rows="2"
+      class="q-mb-md"
+      :readonly="readOnly"
+      :disable="readOnly"
+    />
+
+    <q-input
+      v-model="formSearchNames"
+      outlined
+      label="Alternative names"
+      hint="Comma-separated. Diacritic-insensitive search, e.g. palačinky, lívance"
+      class="q-mb-md"
+      :readonly="readOnly"
+      :disable="readOnly"
+    />
+
+    <div class="row q-col-gutter-md q-mb-md">
+      <div class="col-6">
+        <q-input
+          v-model="formIcon"
+          outlined
+          label="Icon (emoji)"
+          placeholder="🍽️"
+          :readonly="readOnly"
+          :disable="readOnly"
+        />
+      </div>
+      <div class="col-6">
+        <q-input
+          v-model.number="formServings"
+          outlined
+          label="Servings *"
+          type="number"
+          min="1"
+          :readonly="readOnly"
+          :disable="readOnly"
+        />
+      </div>
+    </div>
+
+    <q-toggle
+      v-if="!editingRecipe && canCreateGlobalRecipe"
+      v-model="formRecipeType"
+      true-value="global"
+      false-value="group"
+      label="Add as global recipe"
+      color="primary"
+      class="q-mb-md"
+    >
+      <q-tooltip>
+        Global recipes are visible to all users and can only be managed by system moderators
+      </q-tooltip>
+    </q-toggle>
+
+    <TagSelector
+      v-model="formTags"
+      label="Tags"
+      class="q-mb-md"
+      :readonly="readOnly"
+    />
+
+    <q-separator class="q-my-lg" />
+
+    <!-- Ingredients -->
+    <h3 class="sp-form-label">Ingredients</h3>
+
+    <div
+      v-for="(ingredient, index) in formIngredients"
+      :key="index"
+      class="sp-recipe__row"
+    >
+      <q-select
+        :ref="el => { if (el) ingredientSelectRefs[index] = el }"
+        v-model="ingredient.itemName"
+        outlined
+        dense
+        use-input
+        input-debounce="300"
+        label="Ingredient *"
+        placeholder="Start typing to search items..."
+        :options="ingredientOptions[index] || []"
+        option-label="name"
+        new-value-mode="add-unique"
+        fill-input
+        hide-selected
+        class="q-mb-xs"
+        @filter="(val, update) => getItemOptions(index, val, update)"
+        @update:model-value="(val) => handleItemSelect(index, val)"
+      >
+        <template v-slot:option="scope">
+          <q-item v-bind="scope.itemProps" clickable>
+            <q-item-section avatar>
+              <span class="text-h6">{{ scope.opt.icon || '📦' }}</span>
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>{{ scope.opt.name }}</q-item-label>
+              <q-item-label caption v-if="scope.opt.category">
+                {{ scope.opt.category }}
+              </q-item-label>
+            </q-item-section>
+            <q-item-section side v-if="scope.opt.defaultUnit">
+              <q-item-label caption class="text-weight-medium">{{ scope.opt.defaultUnit }}</q-item-label>
+            </q-item-section>
+          </q-item>
+        </template>
+        <template v-slot:after-options>
+          <template v-if="currentIngredientSearchValue[index]">
+            <q-separator />
+            <q-item clickable @click="openAddItemDialog(currentIngredientSearchValue[index] || '', index)">
+              <q-item-section avatar>
+                <q-icon name="add" color="primary" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Add new item</q-item-label>
+                <q-item-label caption>Create "{{ currentIngredientSearchValue[index] }}" as a new item</q-item-label>
+              </q-item-section>
+            </q-item>
+          </template>
+        </template>
+        <template v-slot:no-option>
+          <q-item>
+            <q-item-section class="text-grey">No items found</q-item-section>
+          </q-item>
+          <template v-if="currentIngredientSearchValue[index]">
+            <q-separator />
+            <q-item clickable @click="openAddItemDialog(currentIngredientSearchValue[index] || '', index)">
+              <q-item-section avatar>
+                <q-icon name="add" color="primary" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Add new item</q-item-label>
+                <q-item-label caption>Create "{{ currentIngredientSearchValue[index] }}" as a new item</q-item-label>
+              </q-item-section>
+            </q-item>
+          </template>
+        </template>
+      </q-select>
+
+      <div class="row q-col-gutter-sm">
+        <div class="col-5">
+          <q-input
+            v-model.number="ingredient.quantity"
+            outlined
+            dense
+            label="Quantity"
+            type="number"
+            min="0"
+            step="0.1"
+            :readonly="readOnly"
+            :disable="readOnly"
+          />
+        </div>
+        <div class="col-6">
+          <q-input
+            v-model="ingredient.unit"
+            outlined
+            dense
+            label="Unit"
+            placeholder="kg, pcs"
+            :readonly="readOnly"
+            :disable="readOnly"
+          />
+        </div>
+        <div v-if="!readOnly" class="col-1 flex items-center">
+          <q-btn
+            flat
+            dense
+            round
+            icon="close"
+            size="sm"
+            color="grey-7"
+            :disable="formIngredients.length === 1"
+            @click="removeIngredient(index)"
+          >
+            <q-tooltip>Remove ingredient</q-tooltip>
+          </q-btn>
+        </div>
+      </div>
+    </div>
+
+    <q-btn
+      v-if="!readOnly"
+      flat
+      no-caps
+      dense
+      icon="add"
+      label="Add ingredient"
+      color="primary"
+      class="sp-recipe__add-btn"
+      @click="addIngredient"
+    />
+
+    <q-separator class="q-my-lg" />
+
+    <!-- Instructions -->
+    <h3 class="sp-form-label">Instructions</h3>
+
+    <div
+      v-for="(_instruction, index) in formInstructions"
+      :key="index"
+      class="sp-recipe__instruction"
+    >
+      <span class="sp-recipe__step-num">{{ index + 1 }}</span>
+      <q-input
+        v-model="formInstructions[index]"
+        outlined
+        dense
+        type="textarea"
+        rows="2"
+        :label="`Step ${index + 1}`"
+        placeholder="Describe this step..."
+        :readonly="readOnly"
+        :disable="readOnly"
+        class="sp-recipe__instruction-input"
+      />
+      <q-btn
+        v-if="!readOnly"
+        flat
+        dense
+        round
+        icon="close"
+        size="sm"
+        color="grey-7"
+        :disable="formInstructions.length === 1"
+        @click="removeInstruction(index)"
+      >
+        <q-tooltip>Remove step</q-tooltip>
+      </q-btn>
+    </div>
+
+    <q-btn
+      v-if="!readOnly"
+      flat
+      no-caps
+      dense
+      icon="add"
+      label="Add step"
+      color="primary"
+      class="sp-recipe__add-btn"
+      @click="addInstruction"
+    />
+
+    <template #footer>
+      <q-btn
+        flat
+        no-caps
+        :label="readOnly ? 'Close' : 'Cancel'"
+        color="grey-8"
+        @click="handleCloseDialog"
+      />
+      <q-btn
+        v-if="!readOnly"
+        unelevated
+        no-caps
+        label="Save"
+        color="primary"
+        :disable="!isFormValid()"
+        @click="handleSaveRecipe"
+      />
+    </template>
+  </BaseDialog>
+
+  <AddItemDialog
+    v-model="showAddItemDialog"
+    title="Add new item"
+    :initial-data="addItemDialogInitialData"
+    :show-pantry-fields="false"
+    :show-global-toggle="canCreateGlobalItem"
+    @save="handleSaveNewItem"
+  />
 </template>
+
+<style scoped>
+.sp-recipe__row {
+  background: var(--sp-surface-2);
+  border: 1px solid var(--sp-border);
+  border-radius: var(--sp-r-md);
+  padding: 10px 10px 6px;
+  margin-bottom: 8px;
+}
+
+.sp-recipe__add-btn {
+  margin-top: 4px;
+}
+
+.sp-recipe__instruction {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.sp-recipe__step-num {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--sp-primary-soft);
+  color: var(--sp-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  margin-top: 6px;
+}
+
+.sp-recipe__instruction-input {
+  flex: 1;
+  min-width: 0;
+}
+</style>

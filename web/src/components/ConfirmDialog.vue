@@ -1,25 +1,25 @@
 <script setup lang="ts">
-import { watch } from 'vue'
-import { useQuasar } from 'quasar'
-import { useBackButton } from '@/composables/useBackButton'
-
-const $q = useQuasar()
+import { computed } from 'vue'
+import BaseDialog from './BaseDialog.vue'
 
 export type ConfirmDialogType = 'warning' | 'danger' | 'info'
 
 interface Props {
   modelValue: boolean
   title: string
-  message: string
+  message?: string
   type?: ConfirmDialogType
   confirmLabel?: string
   cancelLabel?: string
+  /** Show a loading spinner on the confirm button (e.g. while a request is in-flight). */
+  loading?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   type: 'warning',
   confirmLabel: 'Confirm',
-  cancelLabel: 'Cancel'
+  cancelLabel: 'Cancel',
+  loading: false
 })
 
 const emit = defineEmits<{
@@ -28,29 +28,23 @@ const emit = defineEmits<{
   (e: 'cancel'): void
 }>()
 
-const getConfirmColor = () => {
+const confirmColor = computed(() => {
   switch (props.type) {
-    case 'danger':
-      return 'negative'
-    case 'info':
-      return 'primary'
+    case 'danger': return 'negative'
+    case 'info': return 'primary'
     case 'warning':
-    default:
-      return 'orange'
+    default: return 'warning'
   }
-}
+})
 
-const getIcon = () => {
+const headerIcon = computed(() => {
   switch (props.type) {
-    case 'danger':
-      return 'warning'
-    case 'info':
-      return 'info'
+    case 'danger': return 'warning_amber'
+    case 'info': return 'info'
     case 'warning':
-    default:
-      return 'help'
+    default: return 'help_outline'
   }
-}
+})
 
 const handleConfirm = () => {
   emit('confirm')
@@ -61,60 +55,54 @@ const handleCancel = () => {
   emit('cancel')
   emit('update:modelValue', false)
 }
-
-// Back button handler
-const { pushHistoryState, removeHistoryState } = useBackButton(
-  () => props.modelValue,
-  handleCancel
-)
-
-// Watch for dialog opening/closing to manage back button behavior
-watch(() => props.modelValue, (isOpen) => {
-  if (isOpen) {
-    pushHistoryState()
-  } else {
-    removeHistoryState()
-  }
-})
 </script>
 
 <template>
-  <q-dialog
+  <BaseDialog
     :model-value="modelValue"
-    @update:model-value="emit('update:modelValue', $event)"
+    :title="title"
+    :header-icon="headerIcon"
+    :header-icon-color="confirmColor"
+    size="sm"
     persistent
-    :full-width="$q.screen.lt.sm"
-    :maximized="$q.screen.lt.sm"
+    hide-close
+    @update:model-value="emit('update:modelValue', $event)"
+    @close="handleCancel"
   >
-    <q-card :style="$q.screen.lt.sm ? 'height: 100vh; max-height: 100vh; display: flex; flex-direction: column' : 'width: 100%; max-width: 400px'">
-      <q-card-section class="row items-center q-pb-none">
-        <q-icon
-          :name="getIcon()"
-          :color="getConfirmColor()"
-          size="32px"
-          class="q-mr-md"
-        />
-        <div class="text-h6">{{ title }}</div>
-      </q-card-section>
+    <p v-if="message" class="sp-confirm__message" v-html="message" />
+    <slot />
 
-      <q-card-section class="q-pt-sm" :style="$q.screen.lt.sm ? 'flex: 1; overflow-y: auto' : ''">
-        <div class="text-body1" v-html="message"></div>
-      </q-card-section>
-
-      <q-card-actions align="right">
-        <q-btn
-          flat
-          :label="cancelLabel"
-          color="grey-7"
-          @click="handleCancel"
-        />
-        <q-btn
-          flat
-          :label="confirmLabel"
-          :color="getConfirmColor()"
-          @click="handleConfirm"
-        />
-      </q-card-actions>
-    </q-card>
-  </q-dialog>
+    <template #footer>
+      <q-btn
+        flat
+        no-caps
+        :label="cancelLabel"
+        color="grey-8"
+        @click="handleCancel"
+      />
+      <q-btn
+        unelevated
+        no-caps
+        :label="confirmLabel"
+        :color="confirmColor"
+        :loading="loading"
+        text-color="white"
+        @click="handleConfirm"
+      />
+    </template>
+  </BaseDialog>
 </template>
+
+<style scoped>
+.sp-confirm__message {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--sp-text);
+  margin: 0;
+}
+
+.sp-confirm__message :deep(strong) {
+  color: var(--sp-text);
+  font-weight: 700;
+}
+</style>

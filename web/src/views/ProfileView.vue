@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useQuasar } from 'quasar'
 import { useAuthStore } from '@/stores/authStore'
 import PageWrapper from '@/components/PageWrapper.vue'
 import PageHeader from '@/components/common/PageHeader.vue'
 import SectionCard from '@/components/common/SectionCard.vue'
 import McpAccessCard from '@/components/McpAccessCard.vue'
+import BaseDialog from '@/components/BaseDialog.vue'
 
-const $q = useQuasar()
 const authStore = useAuthStore()
 
 // Form mode
@@ -343,126 +342,102 @@ const changePassword = async () => {
     </template>
 
     <!-- Edit Profile Dialog -->
-    <q-dialog v-model="showProfileDialog" :full-width="$q.screen.lt.sm" :maximized="$q.screen.lt.sm">
-      <q-card class="sp-dialog" :style="$q.screen.lt.sm ? '' : 'width: 100%; max-width: 400px'">
-        <q-card-section>
-          <div class="sp-dialog-title">Edit Profile</div>
-        </q-card-section>
+    <BaseDialog
+      v-model="showProfileDialog"
+      title="Edit profile"
+      size="sm"
+    >
+      <q-form @submit.prevent="updateProfile" class="q-gutter-sm">
+        <q-input
+          v-model="profileName"
+          label="Name"
+          outlined
+        >
+          <template #prepend>
+            <q-icon name="person" />
+          </template>
+        </q-input>
 
-        <q-card-section class="q-pt-none">
-          <q-form @submit.prevent="updateProfile" class="q-gutter-sm">
-            <q-input
-              v-model="profileName"
-              label="Name"
-              outlined
-              dense
-            >
-              <template #prepend>
-                <q-icon name="person" />
-              </template>
-            </q-input>
+        <q-input
+          v-model="profileEmail"
+          type="email"
+          label="Email"
+          outlined
+          :rules="[
+            val => !!val || 'Email is required',
+            val => validateEmail(val) || 'Invalid email address'
+          ]"
+        >
+          <template #prepend>
+            <q-icon name="email" />
+          </template>
+        </q-input>
+      </q-form>
 
-            <q-input
-              v-model="profileEmail"
-              type="email"
-              label="Email"
-              outlined
-              dense
-              :rules="[
-                val => !!val || 'Email is required',
-                val => validateEmail(val) || 'Invalid email address'
-              ]"
-            >
-              <template #prepend>
-                <q-icon name="email" />
-              </template>
-            </q-input>
-          </q-form>
-        </q-card-section>
-
-        <q-card-actions align="right" class="q-px-md q-pb-md">
-          <q-btn flat no-caps label="Cancel" color="primary" v-close-popup />
-          <q-btn
-            unelevated
-            no-caps
-            label="Save"
-            color="primary"
-            @click="updateProfile"
-            :loading="authStore.loading"
-          />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
+      <template #footer="{ close }">
+        <q-btn flat no-caps label="Cancel" color="grey-8" @click="close" />
+        <q-btn
+          unelevated
+          no-caps
+          label="Save"
+          color="primary"
+          :loading="authStore.loading"
+          @click="updateProfile"
+        />
+      </template>
+    </BaseDialog>
 
     <!-- Change Password Dialog -->
-    <q-dialog v-model="showPasswordDialog" :full-width="$q.screen.lt.sm" :maximized="$q.screen.lt.sm">
-      <q-card class="sp-dialog" :style="$q.screen.lt.sm ? '' : 'width: 100%; max-width: 400px'">
-        <q-card-section>
-          <div class="sp-dialog-title">Change Password</div>
-        </q-card-section>
+    <BaseDialog
+      v-model="showPasswordDialog"
+      title="Change password"
+      header-icon="lock"
+      size="sm"
+    >
+      <q-form @submit.prevent="changePassword" class="q-gutter-sm">
+        <q-input
+          v-model="oldPassword"
+          type="password"
+          label="Current password"
+          outlined
+          :rules="[val => !!val || 'Current password is required']"
+        />
 
-        <q-card-section class="q-pt-none">
-          <q-form @submit.prevent="changePassword" class="q-gutter-sm">
-            <q-input
-              v-model="oldPassword"
-              type="password"
-              label="Current Password"
-              outlined
-              dense
-              :rules="[val => !!val || 'Current password is required']"
-            >
-              <template #prepend>
-                <q-icon name="lock" />
-              </template>
-            </q-input>
+        <q-input
+          v-model="newPassword"
+          type="password"
+          label="New password"
+          outlined
+          :rules="[
+            val => !!val || 'New password is required',
+            val => val.length >= 6 || 'Password must be at least 6 characters'
+          ]"
+        />
 
-            <q-input
-              v-model="newPassword"
-              type="password"
-              label="New Password"
-              outlined
-              dense
-              :rules="[
-                val => !!val || 'New password is required',
-                val => val.length >= 6 || 'Password must be at least 6 characters'
-              ]"
-            >
-              <template #prepend>
-                <q-icon name="lock" />
-              </template>
-            </q-input>
+        <q-input
+          v-model="newPasswordConfirm"
+          type="password"
+          label="Confirm new password"
+          outlined
+          :rules="[
+            val => !!val || 'Please confirm new password',
+            val => val === newPassword || 'Passwords do not match'
+          ]"
+        />
+      </q-form>
 
-            <q-input
-              v-model="newPasswordConfirm"
-              type="password"
-              label="Confirm New Password"
-              outlined
-              dense
-              :rules="[
-                val => !!val || 'Please confirm new password',
-                val => val === newPassword || 'Passwords do not match'
-              ]"
-            >
-              <template #prepend>
-                <q-icon name="lock" />
-              </template>
-            </q-input>
-          </q-form>
-        </q-card-section>
-
-        <q-card-actions align="right" class="q-px-md q-pb-md">
-          <q-btn flat no-caps label="Cancel" color="primary" v-close-popup />
-          <q-btn
-            unelevated
-            no-caps
-            label="Change Password"
-            color="primary"
-            @click="changePassword"
-            :loading="authStore.loading"
-          />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
+      <template #footer="{ close }">
+        <q-btn flat no-caps label="Cancel" color="grey-8" @click="close" />
+        <q-btn
+          unelevated
+          no-caps
+          label="Change password"
+          color="primary"
+          :loading="authStore.loading"
+          @click="changePassword"
+        />
+      </template>
+    </BaseDialog>
 
   </PageWrapper>
 </template>
@@ -487,14 +462,6 @@ const changePassword = async () => {
 
 .sp-text-muted {
   color: var(--sp-text-muted);
-}
-
-/* Dialog */
-.sp-dialog-title {
-  font-family: 'Manrope', sans-serif;
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--sp-text);
 }
 
 /* Unwrap McpAccessCard's internal padding when nested in SectionCard */

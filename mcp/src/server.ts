@@ -81,6 +81,17 @@ async function handleMcpRequest(req: Request, res: Response): Promise<void> {
     tokenType = prev.tokenType;
     userId = prev.userId;
     cachedJwt = prev.cachedJwt;
+
+    // OAuth access tokens expire (1h TTL). Claude clients refresh them and
+    // attach the new JWT on the next request. Pick up rotated tokens so the
+    // session keeps working past the original JWT's expiry.
+    if (tokenType === 'oauth') {
+      const extracted = extractBearer(req.headers.authorization);
+      if (extracted && extracted.kind === 'oauth' && extracted.token !== token) {
+        token = extracted.token;
+        cachedJwt = undefined;
+      }
+    }
   } else {
     const extracted = extractBearer(req.headers.authorization);
     if (!extracted) {
@@ -111,6 +122,9 @@ async function handleMcpRequest(req: Request, res: Response): Promise<void> {
       jwt = verified.jwt;
       userId = verified.userId;
       cachedJwt = jwt;
+      if (sessionId && sessionAuth.has(sessionId)) {
+        sessionAuth.set(sessionId, { token, tokenType, userId: userId!, cachedJwt: jwt });
+      }
     } else {
       const resolved = await getJwtForPat(token);
       jwt = resolved.jwt;

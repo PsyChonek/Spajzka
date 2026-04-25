@@ -6,6 +6,7 @@ import type { HistoryEntry } from '@shared/api-client'
 import PageWrapper from '@/components/PageWrapper.vue'
 import PageHeader from '@/components/common/PageHeader.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
+import BaseDialog from '@/components/BaseDialog.vue'
 
 const $q = useQuasar()
 
@@ -297,28 +298,31 @@ onMounted(() => historyStore.fetchInitial())
         />
       </div>
 
-      <q-dialog v-model="showClearRangeDialog">
-        <q-card class="sp-dialog" style="min-width: 320px">
-          <q-card-section>
-            <div class="text-h6">Clear by date range</div>
-            <div class="text-caption text-grey-7">
-              Delete entries between these dates (inclusive). Leave either blank for an open-ended range.
-            </div>
-          </q-card-section>
-          <q-card-section class="q-gutter-sm">
-            <q-input v-model="rangeFrom" label="From" type="date" outlined dense stack-label />
-            <q-input v-model="rangeTo" label="To" type="date" outlined dense stack-label />
-          </q-card-section>
-          <q-card-actions align="right">
-            <q-btn flat no-caps label="Cancel" v-close-popup />
-            <q-btn
-              unelevated no-caps color="negative" label="Delete range"
-              :disable="!rangeFrom && !rangeTo"
-              @click="confirmClearRange"
-            />
-          </q-card-actions>
-        </q-card>
-      </q-dialog>
+      <BaseDialog
+        v-model="showClearRangeDialog"
+        title="Clear by date range"
+        subtitle="Delete entries between these dates (inclusive). Leave either blank for an open-ended range."
+        header-icon="delete_sweep"
+        header-icon-color="negative"
+        size="sm"
+      >
+        <div class="q-gutter-sm">
+          <q-input v-model="rangeFrom" label="From" type="date" outlined stack-label />
+          <q-input v-model="rangeTo" label="To" type="date" outlined stack-label />
+        </div>
+
+        <template #footer="{ close }">
+          <q-btn flat no-caps label="Cancel" color="grey-8" @click="close" />
+          <q-btn
+            unelevated
+            no-caps
+            color="negative"
+            label="Delete range"
+            :disable="!rangeFrom && !rangeTo"
+            @click="confirmClearRange"
+          />
+        </template>
+      </BaseDialog>
     </PageWrapper>
   </q-page>
 </template>

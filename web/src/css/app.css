@@ -140,6 +140,23 @@ h1, h2, h3, h4, h5, h6,
   margin: 16px 0;
 }
 
+/* Small uppercase form/section label — used inside dialogs and forms */
+.sp-form-label {
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sp-text-muted);
+  margin: 0 0 8px;
+}
+
+/* Push the next sibling(s) to the opposite end of a flex row.
+   Used in dialog footers to pin "Delete" at the left while Cancel/Save sit right. */
+.sp-dlg-footer__leading {
+  margin-right: auto;
+}
+
 /* Sticky filter bar pattern */
 .sp-sticky-bar {
   position: sticky;
@@ -370,13 +387,3 @@ h1, h2, h3, h4, h5, h6,
 /* Q-table refinements */
 .q-table tbody td { font-size: 0.95rem; }
 
-/* Dialog: full-screen on mobile */
-@media (max-width: 599px) {
-  .q-dialog .q-card.sp-dialog {
-    width: 100vw !important;
-    max-width: 100vw !important;
-    height: 100vh;
-    max-height: 100vh !important;
-    border-radius: 0;
-  }
-}

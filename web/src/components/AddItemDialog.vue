@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import { ref, watch, nextTick } from 'vue'
-import { useQuasar, type QInput } from 'quasar'
-import { useBackButton } from '@/composables/useBackButton'
+import { type QInput } from 'quasar'
+import BaseDialog from './BaseDialog.vue'
 import TagSelector from './TagSelector.vue'
-
-const $q = useQuasar()
 
 export interface ItemFormData {
   name: string
@@ -21,15 +19,10 @@ interface Props {
   modelValue: boolean
   title?: string
   initialData?: Partial<ItemFormData>
-  // Show separator and extra fields for pantry-specific data
   showPantryFields?: boolean
-  // Make item fields read-only (for editing pantry items where only quantity can change)
   readonlyItemFields?: boolean
-  // Show global item toggle (when user has permission)
   showGlobalToggle?: boolean
-  // Field to focus when dialog opens: 'name', 'quantity', 'icon', or default
   focusField?: 'name' | 'quantity' | 'icon' | 'unit' | 'category'
-  // Show delete button (for editing existing items)
   showDeleteButton?: boolean
 }
 
@@ -49,7 +42,6 @@ const emit = defineEmits<{
   (e: 'delete'): void
 }>()
 
-// Form fields
 const formName = ref('')
 const formQuantity = ref<number | undefined>()
 const formDefaultUnit = ref('pcs')
@@ -59,20 +51,12 @@ const formSearchNames = ref('')
 const formTags = ref<string[]>([])
 const formIsGlobal = ref(false)
 
-// Input refs for focusing
 const nameInputRef = ref<QInput | null>(null)
 const quantityInputRef = ref<QInput | null>(null)
 const iconInputRef = ref<QInput | null>(null)
 const unitInputRef = ref<QInput | null>(null)
 const categoryInputRef = ref<QInput | null>(null)
 
-// Back button handler
-const { pushHistoryState, removeHistoryState } = useBackButton(
-  () => props.modelValue,
-  () => handleClose()
-)
-
-// Watch for initial data changes
 watch(() => props.initialData, (newData) => {
   if (newData) {
     formName.value = newData.name || ''
@@ -86,30 +70,19 @@ watch(() => props.initialData, (newData) => {
   }
 }, { immediate: true })
 
-// Watch for dialog opening to focus the correct field
 watch(() => props.modelValue, (isOpen) => {
-  if (isOpen) {
-    // Add history entry when dialog opens
-    pushHistoryState()
-
-    nextTick(() => {
-      const focusMap = {
-        name: nameInputRef,
-        quantity: quantityInputRef,
-        icon: iconInputRef,
-        unit: unitInputRef,
-        category: categoryInputRef
-      }
-
-      const targetRef = focusMap[props.focusField]
-      if (targetRef?.value) {
-        targetRef.value.focus()
-      }
-    })
-  } else {
-    // Remove history entry when dialog closes
-    removeHistoryState()
-  }
+  if (!isOpen) return
+  nextTick(() => {
+    const focusMap = {
+      name: nameInputRef,
+      quantity: quantityInputRef,
+      icon: iconInputRef,
+      unit: unitInputRef,
+      category: categoryInputRef
+    }
+    const targetRef = focusMap[props.focusField]
+    if (targetRef?.value) targetRef.value.focus()
+  })
 })
 
 const handleClose = () => {
@@ -126,7 +99,6 @@ const handleSave = () => {
     icon: formIcon.value.trim() || undefined
   }
 
-  // Parse searchNames from comma-separated string
   if (formSearchNames.value.trim()) {
     data.searchNames = formSearchNames.value
       .split(',')
@@ -134,17 +106,8 @@ const handleSave = () => {
       .filter(name => name.length > 0)
   }
 
-  // Include quantity only if pantry fields are shown
-  if (props.showPantryFields) {
-    data.quantity = formQuantity.value
-  }
-
-  // Include isGlobal if toggle is shown
-  if (props.showGlobalToggle) {
-    data.isGlobal = formIsGlobal.value
-  }
-
-  // Include tags
+  if (props.showPantryFields) data.quantity = formQuantity.value
+  if (props.showGlobalToggle) data.isGlobal = formIsGlobal.value
   data.tags = formTags.value
 
   emit('save', data)
@@ -177,126 +140,121 @@ const handleDelete = () => {
 </script>
 
 <template>
-  <q-dialog :model-value="modelValue" @update:model-value="emit('update:modelValue', $event)" :full-width="$q.screen.lt.sm" :maximized="$q.screen.lt.sm">
-    <q-card :style="$q.screen.lt.sm ? 'height: 100vh; max-height: 100vh; display: flex; flex-direction: column' : 'width: 100%; max-width: 400px'">
-      <q-card-section>
-        <div class="text-h6">{{ title }}</div>
-      </q-card-section>
+  <BaseDialog
+    :model-value="modelValue"
+    :title="title"
+    size="sm"
+    @update:model-value="emit('update:modelValue', $event)"
+    @close="handleClose"
+  >
+    <q-input
+      ref="nameInputRef"
+      v-model="formName"
+      outlined
+      label="Item name *"
+      class="q-mb-md"
+      :readonly="readonlyItemFields"
+      :disable="readonlyItemFields"
+      @keyup.enter="handleSave"
+    />
 
-      <q-card-section class="q-pt-none" :style="$q.screen.lt.sm ? 'flex: 1; overflow-y: auto' : ''">
-        <!-- Base fields (always shown) -->
-        <q-input
-          ref="nameInputRef"
-          v-model="formName"
-          outlined
-          label="Item Name *"
-          class="q-mb-md"
-          :readonly="readonlyItemFields"
-          :disable="readonlyItemFields"
-          @keyup.enter="handleSave"
-        />
+    <q-input
+      ref="unitInputRef"
+      v-model="formDefaultUnit"
+      outlined
+      label="Unit *"
+      placeholder="e.g. kg, pcs, liter"
+      class="q-mb-md"
+      :readonly="readonlyItemFields"
+      :disable="readonlyItemFields"
+    />
 
-        <q-input
-          ref="unitInputRef"
-          v-model="formDefaultUnit"
-          outlined
-          label="Unit *"
-          placeholder="e.g., kg, pcs, liter"
-          class="q-mb-md"
-          :readonly="readonlyItemFields"
-          :disable="readonlyItemFields"
-        />
+    <q-input
+      ref="categoryInputRef"
+      v-model="formCategory"
+      outlined
+      label="Category"
+      placeholder="e.g. Dairy, Vegetables"
+      class="q-mb-md"
+      :readonly="readonlyItemFields"
+      :disable="readonlyItemFields"
+    />
 
-        <q-input
-          ref="categoryInputRef"
-          v-model="formCategory"
-          outlined
-          label="Category"
-          placeholder="e.g., Dairy, Vegetables"
-          class="q-mb-md"
-          :readonly="readonlyItemFields"
-          :disable="readonlyItemFields"
-        />
+    <q-input
+      ref="iconInputRef"
+      v-model="formIcon"
+      outlined
+      label="Icon (emoji)"
+      placeholder="📦"
+      class="q-mb-md"
+      :readonly="readonlyItemFields"
+      :disable="readonlyItemFields"
+    />
 
-        <q-input
-          ref="iconInputRef"
-          v-model="formIcon"
-          outlined
-          label="Icon (emoji)"
-          placeholder="📦"
-          class="q-mb-md"
-          :readonly="readonlyItemFields"
-          :disable="readonlyItemFields"
-        />
+    <q-input
+      v-model="formSearchNames"
+      outlined
+      label="Additional search names"
+      placeholder="e.g. tomato, tomate, rajčica"
+      hint="Comma-separated alternative names for search"
+      class="q-mb-md"
+      :readonly="readonlyItemFields"
+      :disable="readonlyItemFields"
+    />
 
-        <q-input
-          v-model="formSearchNames"
-          outlined
-          label="Additional Search Names"
-          placeholder="e.g., tomato, tomate, rajčica"
-          hint="Comma-separated alternative names for search"
-          class="q-mb-md"
-          :readonly="readonlyItemFields"
-          :disable="readonlyItemFields"
-        />
+    <TagSelector
+      v-model="formTags"
+      label="Tags"
+      class="q-mb-md"
+      :readonly="readonlyItemFields"
+    />
 
-        <!-- Tags -->
-        <TagSelector
-          v-model="formTags"
-          label="Tags"
-          class="q-mb-md"
-          :readonly="readonlyItemFields"
-        />
+    <q-toggle
+      v-if="showGlobalToggle"
+      v-model="formIsGlobal"
+      label="Add as global item"
+      color="primary"
+      class="q-mb-md"
+    >
+      <q-tooltip>
+        Global items are visible to all users and can only be managed by moderators
+      </q-tooltip>
+    </q-toggle>
 
-        <!-- Global item toggle -->
-        <template v-if="showGlobalToggle">
-          <q-toggle
-            v-model="formIsGlobal"
-            label="Add as Global Item"
-            color="primary"
-            class="q-mb-md"
-          >
-            <q-tooltip>
-              Global items are visible to all users and can only be managed by moderators
-            </q-tooltip>
-          </q-toggle>
-        </template>
+    <template v-if="showPantryFields">
+      <q-separator class="q-my-md" />
+      <div class="sp-form-label">Pantry information</div>
+      <q-input
+        ref="quantityInputRef"
+        v-model.number="formQuantity"
+        outlined
+        label="Quantity"
+        type="number"
+        min="1"
+      />
+    </template>
 
-        <!-- Separator and pantry-specific fields -->
-        <template v-if="showPantryFields">
-          <q-separator class="q-my-md" />
-
-          <div class="text-subtitle2 text-grey-7 q-mb-sm">Pantry Information</div>
-
-          <q-input
-            ref="quantityInputRef"
-            v-model.number="formQuantity"
-            outlined
-            label="Quantity"
-            type="number"
-            min="1"
-          />
-        </template>
-      </q-card-section>
-
-      <q-card-actions align="right">
-        <q-btn
-          v-if="showDeleteButton"
-          flat
-          label="Delete"
-          color="negative"
-          icon="delete"
-          @click="handleDelete"
-          class="q-mr-auto"
-        />
-        <q-btn flat label="Cancel" color="primary" @click="handleClose" />
-        <q-btn
-          label="Save"
-          color="primary"
-          @click="handleSave"
-          :disable="!isFormValid()"
-        />
-      </q-card-actions>
-    </q-card>
-  </q-dialog>
+    <template #footer>
+      <q-btn
+        v-if="showDeleteButton"
+        flat
+        no-caps
+        label="Delete"
+        color="negative"
+        icon="delete"
+        class="sp-dlg-footer__leading"
+        @click="handleDelete"
+      />
+      <q-btn flat no-caps label="Cancel" color="grey-8" @click="handleClose" />
+      <q-btn
+        unelevated
+        no-caps
+        label="Save"
+        color="primary"
+        :disable="!isFormValid()"
+        @click="handleSave"
+      />
+    </template>
+  </BaseDialog>
 </template>
+
