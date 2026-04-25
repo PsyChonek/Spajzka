@@ -78,6 +78,10 @@ function filterRecipes(val: string, update: (fn: () => void) => void) {
 const showDeleteConfirm = ref(false)
 const removeShoppingItems = ref(false)
 
+const hasGeneratedShopping = computed(
+  () => props.mode === 'edit' && !!props.initialData?.shoppingBatchId
+)
+
 watch(
   () => props.modelValue,
   (isOpen) => {
@@ -259,6 +263,11 @@ function parseServings(val: string | number | null) {
       :max-rows="3"
     />
 
+    <div v-if="hasGeneratedShopping" class="sp-meal__shopping-note q-mt-md">
+      <q-icon name="shopping_cart" size="16px" class="q-mr-xs" />
+      Ingredients have been added to the shopping list.
+    </div>
+
     <template #footer>
       <q-btn
         v-if="mode === 'edit'"
@@ -291,6 +300,7 @@ function parseServings(val: string | number | null) {
     @confirm="handleDeleteConfirmed"
   >
     <q-toggle
+      v-if="hasGeneratedShopping"
       v-model="removeShoppingItems"
       label="Also remove generated shopping items"
       color="negative"
@@ -346,5 +356,12 @@ function parseServings(val: string | number | null) {
   background: var(--sp-secondary);
   border-color: var(--sp-secondary);
   color: #fff;
+}
+
+.sp-meal__shopping-note {
+  display: flex;
+  align-items: center;
+  font-size: 0.85rem;
+  color: var(--sp-text-muted);
 }
 </style>
