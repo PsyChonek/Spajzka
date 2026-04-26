@@ -56,7 +56,7 @@ export const usePantryStore = defineStore('pantry', () => {
     }
   }
 
-  async function addItem(itemData: CreatePantryItemRequest) {
+  async function addItem(itemData: CreatePantryItemRequest): Promise<PantryItem> {
     // Create temporary item for immediate UI update
     const tempId = `temp_${Date.now()}`
 
@@ -89,6 +89,7 @@ export const usePantryStore = defineStore('pantry', () => {
           items.value[index] = savedItem
         }
         lastSynced.value = new Date()
+        return savedItem
       } catch (error: any) {
         // If 404, API doesn't exist - just use local data, don't queue
         const is404 = error instanceof ApiError && error.status === 404
@@ -113,6 +114,7 @@ export const usePantryStore = defineStore('pantry', () => {
         timeout: 2000
       })
     }
+    return tempItem
   }
 
   async function updateItem(id: string, updates: Partial<PantryItem>) {

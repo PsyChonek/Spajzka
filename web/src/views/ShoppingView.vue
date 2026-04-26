@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { Notify } from 'quasar'
 import { useShoppingStore } from '@/stores/shoppingStore'
 import { useItemsStore } from '@/stores/itemsStore'
-import { CreateShoppingItemRequest, type ShoppingItem } from '@shared/api-client'
+import { usePantryStore } from '@/stores/pantryStore'
+import { CreatePantryItemRequest, CreateShoppingItemRequest, type ShoppingItem } from '@shared/api-client'
 import PageWrapper from '@/components/PageWrapper.vue'
 import PageHeader from '@/components/common/PageHeader.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
@@ -15,6 +17,7 @@ import { matchesQuery, normalizeForSearch } from '@/utils/search'
 
 const shoppingStore = useShoppingStore()
 const itemsStore = useItemsStore()
+const pantryStore = usePantryStore()
 
 const searchQuery = ref('')
 const selectedTagIds = ref<string[]>([])
@@ -85,7 +88,37 @@ const saveNewItem = async (data: ItemFormData) => {
   searchQuery.value = ''
 }
 
-const toggleItem = (item: ShoppingItem) => item._id && shoppingStore.toggleItem(item._id)
+const toggleItem = async (item: ShoppingItem) => {
+  if (!item._id) return
+  const wasCompleted = !!item.completed
+  await shoppingStore.toggleItem(item._id)
+  // When checking off (becoming completed), auto-add to pantry with undo option.
+  // Unchecking later (after the undo window) leaves the pantry entry untouched.
+  if (!wasCompleted && item.itemId && item.itemType) {
+    const shoppingItemId = item._id
+    const itemName = item.name || 'Item'
+    const pantryItem = await pantryStore.addItem({
+      itemId: item.itemId,
+      itemType: item.itemType as unknown as CreatePantryItemRequest.itemType,
+      quantity: item.quantity || 1
+    })
+    Notify.create({
+      type: 'positive',
+      message: `${itemName} moved to pantry`,
+      timeout: 5000,
+      actions: [
+        {
+          label: 'Undo',
+          color: 'white',
+          handler: async () => {
+            if (pantryItem?._id) await pantryStore.deleteItem(pantryItem._id)
+            await shoppingStore.toggleItem(shoppingItemId)
+          }
+        }
+      ]
+    })
+  }
+}
 
 const incrementQuantity = (item: ShoppingItem) =>
   item._id && shoppingStore.updateItem(item._id, { quantity: (item.quantity || 1) + 1 })
