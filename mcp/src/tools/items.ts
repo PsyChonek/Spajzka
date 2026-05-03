@@ -60,7 +60,7 @@ export function registerItemsTools(server: McpServer): void {
   registerTool(
     server,
     'create_group_item',
-    'Create a new custom item in a group. Use when the required ingredient is not in the global catalog. unitType picks the unit family ("weight" → mg/g/dkg/kg, "volume" → ml/cl/dl/l, "count" → pcs, "length" → cm/m, "custom" for free-text units). defaultUnit must be a member of that family (or any string when unitType=custom).',
+    'Create a new custom item in a group. Use when the required ingredient is not in the global catalog. unitType picks the unit family ("weight" → mg/g/kg, "volume" → ml/cl/dl/l, "count" → pcs, "length" → cm/m, "custom" for free-text units). defaultUnit must be a member of that family (or any string when unitType=custom).',
     {
       groupId: z.string(),
       name: z.string().min(1),

@@ -23,7 +23,7 @@ export const DEFAULT_UNIT_FOR_TYPE: Record<UnitType, string> = {
   custom: '',
 };
 
-const MAX_DECIMALS = 3;
+const MAX_DECIMALS = 2;
 
 function trimDecimals(value: number, maxDecimals: number): string {
   if (Number.isInteger(value)) return value.toString();

@@ -9,7 +9,6 @@ export interface UnitDef {
 export const UNIT_TABLE: ReadonlyArray<UnitDef> = [
   { unit: 'mg', factor: 0.001, type: 'weight' },
   { unit: 'g', factor: 1, type: 'weight' },
-  { unit: 'dkg', factor: 10, type: 'weight' },
   { unit: 'kg', factor: 1000, type: 'weight' },
   { unit: 'ml', factor: 1, type: 'volume' },
   { unit: 'cl', factor: 10, type: 'volume' },
@@ -39,8 +38,6 @@ const ALIAS_MAP: Record<string, string> = {
   Ml: 'ml',
   CL: 'cl',
   DL: 'dl',
-  DKG: 'dkg',
-  Dkg: 'dkg',
   PCS: 'pcs',
   Pcs: 'pcs',
   ks: 'pcs',
