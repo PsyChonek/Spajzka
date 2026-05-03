@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
+import { ref, watch, computed, onMounted } from 'vue'
 import { Notify } from 'quasar'
 import type { Recipe } from '@/stores/recipesStore'
 import { useItemsStore } from '@/stores/itemsStore'
@@ -44,6 +44,10 @@ export interface RecipeFormData {
 
 const itemsStore = useItemsStore()
 const authStore = useAuthStore()
+
+onMounted(() => {
+  if (itemsStore.allItems.length === 0) itemsStore.fetchItems()
+})
 
 const formName = ref('')
 const formDescription = ref('')
@@ -102,6 +106,14 @@ const resetForm = () => {
   formSearchNames.value = ''
 }
 
+function resolveIngredientName(ing: RecipeIngredient): RecipeIngredient {
+  if (ing.itemId) {
+    const item = itemsStore.allItems.find(i => i._id === ing.itemId)
+    if (item) return { ...ing, itemName: item.name }
+  }
+  return { ...ing }
+}
+
 watch(() => props.editingRecipe, (recipe) => {
   if (recipe) {
     formRecipeType.value = recipe.recipeType
@@ -110,13 +122,7 @@ watch(() => props.editingRecipe, (recipe) => {
     formIcon.value = recipe.icon || ''
     formServings.value = recipe.servings
     formIngredients.value = recipe.ingredients?.length > 0
-      ? recipe.ingredients.map(ing => {
-          if (ing.itemId) {
-            const item = itemsStore.sortedItemsWithRecent.find(i => i._id === ing.itemId)
-            if (item) return { ...ing, itemName: item.name }
-          }
-          return { ...ing }
-        })
+      ? recipe.ingredients.map(resolveIngredientName)
       : [{ itemName: '', quantity: 1, unit: 'pcs' }]
     formInstructions.value = recipe.instructions?.length > 0
       ? [...recipe.instructions]
@@ -127,6 +133,19 @@ watch(() => props.editingRecipe, (recipe) => {
     resetForm()
   }
 }, { immediate: true })
+
+// Re-resolve ingredient names from the catalog when the items store loads
+// after the dialog has already opened (offline-first cold-start case).
+watch(() => itemsStore.allItems.length, () => {
+  for (const ing of formIngredients.value) {
+    if (ing.itemId) {
+      const item = itemsStore.allItems.find(i => i._id === ing.itemId)
+      if (item && item.name && ing.itemName !== item.name) {
+        ing.itemName = item.name
+      }
+    }
+  }
+})
 
 const handleSaveRecipe = () => {
   const recipeData: RecipeFormData = {

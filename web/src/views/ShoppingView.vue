@@ -230,6 +230,7 @@ const subtitle = computed(() => {
                 flat dense round size="sm" icon="add" color="primary"
                 @click.stop="incrementQuantity(row)"
               />
+              <span class="sp-shop-card__unit">{{ row.defaultUnit || 'pcs' }}</span>
             </div>
           </q-card-section>
         </q-card>
@@ -334,6 +335,13 @@ const subtitle = computed(() => {
   align-items: center;
   gap: 4px;
   flex-shrink: 0;
+}
+
+.sp-shop-card__unit {
+  font-size: 0.85rem;
+  color: var(--sp-text-muted);
+  margin-left: 2px;
+  min-width: 28px;
 }
 
 .sp-shop-card__qty-wrapper {

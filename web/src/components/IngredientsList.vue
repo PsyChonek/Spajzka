@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import type { RecipeIngredient } from '@shared/api-client'
 import { useItemsStore } from '@/stores/itemsStore'
 import { formatQuantity } from '@shared/units'
@@ -22,10 +22,23 @@ const emit = defineEmits<{
 
 const itemsStore = useItemsStore()
 
+// Ensure items are loaded so itemId -> primary name resolution works on first render.
+onMounted(() => {
+  if (itemsStore.allItems.length === 0) itemsStore.fetchItems()
+})
+
+const itemNameById = computed(() => {
+  const map = new Map<string, string>()
+  for (const item of itemsStore.allItems) {
+    if (item._id && item.name) map.set(item._id, item.name)
+  }
+  return map
+})
+
 const adjustedIngredients = computed(() => {
   return props.ingredients.map(ingredient => {
     const resolvedName = ingredient.itemId
-      ? (itemsStore.sortedItemsWithRecent.find(i => i._id === ingredient.itemId)?.name ?? ingredient.itemName)
+      ? (itemNameById.value.get(ingredient.itemId) ?? ingredient.itemName)
       : ingredient.itemName
     return {
       ...ingredient,
