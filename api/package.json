@@ -2,12 +2,12 @@
   "name": "spajzka-api",
   "version": "1.0.0",
   "description": "Spajzka API with Express and Swagger",
-  "main": "dist/server.js",
+  "main": "dist/api/src/server.js",
   "type": "commonjs",
   "scripts": {
     "dev": "nodemon",
     "build": "tsc",
-    "start": "node dist/server.js",
+    "start": "node dist/api/src/server.js",
     "generate-spec": "node generate-spec.js",
     "generate-client": "npm run generate-spec && npx openapi-typescript-codegen --input ./openapi.json --output ../shared/api-client --client axios"
   },

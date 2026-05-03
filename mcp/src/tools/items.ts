@@ -60,13 +60,14 @@ export function registerItemsTools(server: McpServer): void {
   registerTool(
     server,
     'create_group_item',
-    'Create a new custom item in a group. Use when the required ingredient is not in the global catalog.',
+    'Create a new custom item in a group. Use when the required ingredient is not in the global catalog. unitType picks the unit family ("weight" → mg/g/dkg/kg, "volume" → ml/cl/dl/l, "count" → pcs, "length" → cm/m, "custom" for free-text units). defaultUnit must be a member of that family (or any string when unitType=custom).',
     {
       groupId: z.string(),
       name: z.string().min(1),
       category: z.string().min(1),
       icon: z.string().optional(),
-      defaultUnit: z.string().optional(),
+      unitType: z.enum(['weight', 'volume', 'count', 'length', 'custom']),
+      defaultUnit: z.string().min(1),
       barcode: z.string().optional(),
       searchNames: z.array(z.string()).optional(),
       tags: z.array(z.string()).optional()
@@ -83,13 +84,14 @@ export function registerItemsTools(server: McpServer): void {
   registerTool(
     server,
     'update_group_item',
-    "Update a custom group item's metadata.",
+    "Update a custom group item's metadata. Changing unitType or defaultUnit re-validates them together.",
     {
       groupId: z.string(),
       itemId: z.string(),
       name: z.string().min(1).optional(),
       category: z.string().optional(),
       icon: z.string().optional(),
+      unitType: z.enum(['weight', 'volume', 'count', 'length', 'custom']).optional(),
       defaultUnit: z.string().optional(),
       barcode: z.string().optional(),
       searchNames: z.array(z.string()).optional(),

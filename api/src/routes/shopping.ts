@@ -37,6 +37,9 @@ const router = Router();
  *           type: string
  *         defaultUnit:
  *           type: string
+ *         unitType:
+ *           type: string
+ *           enum: [weight, volume, count, length, custom]
  *         createdAt:
  *           type: string
  *           format: date-time
@@ -103,7 +106,8 @@ router.get('/shopping', authMiddleware, async (req: AuthRequest, res: Response) 
           name: itemDetails?.name || 'Unknown Item',
           category: itemDetails?.category,
           icon: itemDetails?.icon,
-          defaultUnit: itemDetails?.defaultUnit
+          defaultUnit: itemDetails?.defaultUnit,
+          unitType: itemDetails?.unitType
         };
       })
     );
@@ -275,7 +279,8 @@ router.put('/shopping/:id', authMiddleware, requirePermission('shopping:update')
       name: itemDetails?.name || 'Unknown Item',
       category: itemDetails?.category,
       icon: itemDetails?.icon,
-      defaultUnit: itemDetails?.defaultUnit
+      defaultUnit: itemDetails?.defaultUnit,
+      unitType: itemDetails?.unitType
     });
   } catch (error) {
     if (handleGroupResolutionError(error, res)) return;

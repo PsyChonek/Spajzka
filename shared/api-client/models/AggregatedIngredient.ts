@@ -13,11 +13,19 @@ export type AggregatedIngredient = {
     icon?: string;
     category?: string;
     defaultUnit?: string;
+    unitType?: AggregatedIngredient.unitType;
 };
 export namespace AggregatedIngredient {
     export enum itemType {
         GLOBAL = 'global',
         GROUP = 'group',
+    }
+    export enum unitType {
+        WEIGHT = 'weight',
+        VOLUME = 'volume',
+        COUNT = 'count',
+        LENGTH = 'length',
+        CUSTOM = 'custom',
     }
 }
 

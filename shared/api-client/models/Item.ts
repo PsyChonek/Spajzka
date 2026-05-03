@@ -20,9 +20,13 @@ export type Item = {
      */
     icon?: string;
     /**
-     * Default unit of measurement
+     * Default unit of measurement (must be valid for the item's unitType)
      */
     defaultUnit?: string;
+    /**
+     * Unit family — gates which units are accepted
+     */
+    unitType?: Item.unitType;
     /**
      * Barcode
      */
@@ -58,6 +62,16 @@ export type Item = {
     createdAt?: string;
 };
 export namespace Item {
+    /**
+     * Unit family — gates which units are accepted
+     */
+    export enum unitType {
+        WEIGHT = 'weight',
+        VOLUME = 'volume',
+        COUNT = 'count',
+        LENGTH = 'length',
+        CUSTOM = 'custom',
+    }
     /**
      * Item type
      */

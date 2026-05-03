@@ -37,19 +37,18 @@ export function registerShoppingTools(server: McpServer): void {
   registerTool(
     server,
     'add_shopping_item',
-    'Add an item to the shopping list.',
+    'Add an item to the shopping list. The quantity is in the item\'s defaultUnit (call search_items to find out which unit). Adding an item that is already on the list (and not completed) sums quantities.',
     {
       ...groupIdSchema,
       itemId: z.string(),
       itemType: z.enum(['global', 'group']),
-      quantity: z.number().positive(),
-      unit: z.string().optional()
+      quantity: z.number().positive()
     },
-    async ({ groupId, itemId, itemType, quantity, unit }) => {
+    async ({ groupId, itemId, itemType, quantity }) => {
       return apiRequest({
         method: 'POST',
         path: '/api/shopping',
-        body: { groupId, itemId, itemType, quantity, unit }
+        body: { groupId, itemId, itemType, quantity }
       });
     }
   );
@@ -57,19 +56,18 @@ export function registerShoppingTools(server: McpServer): void {
   registerTool(
     server,
     'update_shopping_item',
-    "Update a shopping-list entry. Pass completed=true to mark an item as bought without removing it.",
+    "Update a shopping-list entry. Pass completed=true to mark an item as bought without removing it. Quantity is in the item's defaultUnit.",
     {
       ...groupIdSchema,
       shoppingItemId: z.string(),
       quantity: z.number().positive().optional(),
-      unit: z.string().optional(),
       completed: z.boolean().optional()
     },
-    async ({ groupId, shoppingItemId, quantity, unit, completed }) => {
+    async ({ groupId, shoppingItemId, quantity, completed }) => {
       return apiRequest({
         method: 'PUT',
         path: `/api/shopping/${shoppingItemId}`,
-        body: { groupId, quantity, unit, completed }
+        body: { groupId, quantity, completed }
       });
     }
   );
@@ -115,8 +113,7 @@ export function registerShoppingTools(server: McpServer): void {
             groupId,
             itemId: item.itemId,
             itemType: item.itemType,
-            quantity: item.quantity,
-            unit: item.unit
+            quantity: item.quantity
           }
         });
         await apiRequest({

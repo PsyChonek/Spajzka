@@ -34,6 +34,9 @@ const router = Router();
  *           type: string
  *         defaultUnit:
  *           type: string
+ *         unitType:
+ *           type: string
+ *           enum: [weight, volume, count, length, custom]
  *         barcode:
  *           type: string
  *         createdAt:
@@ -120,6 +123,7 @@ router.get('/pantry', authMiddleware, async (req: AuthRequest, res: Response) =>
       category: pantryItem.item?.category || '',
       icon: pantryItem.item?.icon || '',
       defaultUnit: pantryItem.item?.defaultUnit || 'pcs',
+      unitType: pantryItem.item?.unitType || 'custom',
       barcode: pantryItem.item?.barcode || ''
     })));
   } catch (error) {
@@ -183,20 +187,21 @@ router.post('/pantry', authMiddleware, requirePermission('pantry:create'), async
       });
     }
 
-    const newItem = {
-      groupId,
-      itemId: new ObjectId(itemId),
-      itemType,
-      quantity,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-
-    const result = await db.collection('pantry').insertOne(newItem);
+    // Merge-on-add: same item id sums into the existing row, otherwise insert.
+    const upserted = await db.collection('pantry').findOneAndUpdate(
+      { groupId, itemId: new ObjectId(itemId), itemType },
+      {
+        $inc: { quantity },
+        $set: { updatedAt: new Date() },
+        $setOnInsert: { createdAt: new Date() },
+      },
+      { upsert: true, returnDocument: 'after' }
+    );
+    const resultId: ObjectId = upserted!._id;
 
     // Fetch the created item with populated details
     const createdItems = await db.collection('pantry').aggregate([
-      { $match: { _id: result.insertedId } },
+      { $match: { _id: resultId } },
       {
         $lookup: {
           from: 'items',
@@ -237,6 +242,7 @@ router.post('/pantry', authMiddleware, requirePermission('pantry:create'), async
       category: createdItem.item?.category || '',
       icon: createdItem.item?.icon || '',
       defaultUnit: createdItem.item?.defaultUnit || 'pcs',
+      unitType: createdItem.item?.unitType || 'custom',
       barcode: createdItem.item?.barcode || ''
     });
   } catch (error) {

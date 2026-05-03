@@ -390,7 +390,7 @@ export const useItemsStore = defineStore('items', () => {
           }
         } else if (action === 'update' && item && !id.startsWith('temp_')) {
           const { _id, groupId, createdBy, type, ...updates } = item
-          await ItemsService.putApiItemsGroup(id, updates)
+          await ItemsService.putApiItemsGroup(id, updates as any)
         } else if (action === 'delete' && !id.startsWith('temp_')) {
           await ItemsService.deleteApiItemsGroup(id)
         }

@@ -6,7 +6,8 @@ export type CreateGlobalItemRequest = {
     name: string;
     category: string;
     icon?: string;
-    defaultUnit?: string;
+    defaultUnit: string;
+    unitType: CreateGlobalItemRequest.unitType;
     barcode?: string;
     /**
      * Additional names for search
@@ -17,4 +18,13 @@ export type CreateGlobalItemRequest = {
      */
     tags?: Array<string>;
 };
+export namespace CreateGlobalItemRequest {
+    export enum unitType {
+        WEIGHT = 'weight',
+        VOLUME = 'volume',
+        COUNT = 'count',
+        LENGTH = 'length',
+        CUSTOM = 'custom',
+    }
+}
 

@@ -38,8 +38,8 @@ services:
 
   api:
     build:
-      context: ./api
-      dockerfile: Dockerfile.dev
+      context: .
+      dockerfile: api/Dockerfile.dev
     container_name: spajzka-api-dev
     ports:
       - "3000:3000"
@@ -50,12 +50,13 @@ services:
         condition: service_completed_successfully
     volumes:
       # Mount source code for hot-reload
-      - ./api/src:/app/src
-      - ./api/nodemon.json:/app/nodemon.json
-      - ./api/tsconfig.json:/app/tsconfig.json
-      - ./api/.env:/app/.env
+      - ./api/src:/app/api/src
+      - ./api/nodemon.json:/app/api/nodemon.json
+      - ./api/tsconfig.json:/app/api/tsconfig.json
+      - ./api/.env:/app/api/.env
+      - ./shared:/app/shared
       # Prevent overwriting node_modules
-      - /app/node_modules
+      - /app/api/node_modules
     environment:
       - NODE_ENV=development
       - PORT=3000
@@ -98,18 +99,19 @@ services:
 
   mcp:
     build:
-      context: ./mcp
-      dockerfile: Dockerfile.dev
+      context: .
+      dockerfile: mcp/Dockerfile.dev
     ports:
       - "3001:3001"
     container_name: spajzka-mcp-dev
     depends_on:
       - api
     volumes:
-      - ./mcp/src:/app/src
-      - ./mcp/nodemon.json:/app/nodemon.json
-      - ./mcp/tsconfig.json:/app/tsconfig.json
-      - /app/node_modules
+      - ./mcp/src:/app/mcp/src
+      - ./mcp/nodemon.json:/app/mcp/nodemon.json
+      - ./mcp/tsconfig.json:/app/mcp/tsconfig.json
+      - ./shared:/app/shared
+      - /app/mcp/node_modules
     environment:
       - NODE_ENV=development
       - PORT=3001

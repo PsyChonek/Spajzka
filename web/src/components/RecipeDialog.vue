@@ -9,6 +9,7 @@ import { matchesQuery } from '@/utils/search'
 import BaseDialog from './BaseDialog.vue'
 import AddItemDialog, { type ItemFormData } from './AddItemDialog.vue'
 import TagSelector from './TagSelector.vue'
+import { allowedUnits, type UnitType } from '@shared/units'
 
 interface Props {
   modelValue: boolean
@@ -65,6 +66,15 @@ const ingredientSelectRefs = ref<any[]>([])
 const canCreateGlobalRecipe = computed(() =>
   authStore.hasGlobalPermission('global_recipes:create')
 )
+
+const ingredientUnitChoices = computed(() => {
+  return formIngredients.value.map((ing) => {
+    if (!ing.itemId) return null
+    const item: any = itemsStore.sortedItemsWithRecent.find((i: any) => i._id === ing.itemId)
+    if (!item?.unitType || item.unitType === 'custom') return null
+    return allowedUnits(item.unitType as UnitType)
+  })
+})
 
 const canCreateGlobalItem = computed(() =>
   authStore.hasGlobalPermission('global_items:create')
@@ -424,7 +434,18 @@ const removeInstruction = (index: number) => {
           />
         </div>
         <div class="col-6">
+          <q-select
+            v-if="ingredientUnitChoices[index]"
+            v-model="ingredient.unit"
+            :options="ingredientUnitChoices[index] || []"
+            outlined
+            dense
+            label="Unit"
+            :readonly="readOnly"
+            :disable="readOnly"
+          />
           <q-input
+            v-else
             v-model="ingredient.unit"
             outlined
             dense

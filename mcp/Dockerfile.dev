@@ -1,15 +1,21 @@
+# Build context is repo root so ../shared/units TS sources are visible.
+
 FROM node:20-alpine
 
 WORKDIR /app
 
 RUN apk add --no-cache tini
 
-COPY package*.json ./
-RUN npm install
+COPY mcp/package*.json ./mcp/
 
-COPY nodemon.json ./
-COPY tsconfig.json ./
-COPY src ./src
+RUN cd mcp && npm install
+
+COPY mcp/nodemon.json ./mcp/
+COPY mcp/tsconfig.json ./mcp/
+COPY mcp/src ./mcp/src
+COPY shared ./shared
+
+WORKDIR /app/mcp
 
 EXPOSE 3001
 

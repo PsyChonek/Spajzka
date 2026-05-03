@@ -1,4 +1,5 @@
 import { Db, ObjectId } from 'mongodb';
+import { canConvert, convert, normaliseUnit } from '../../../shared/units';
 
 export interface AggregatedIngredient {
   itemId: string;
@@ -11,6 +12,7 @@ export interface AggregatedIngredient {
   icon?: string;
   category?: string;
   defaultUnit?: string;
+  unitType?: string;
 }
 
 export interface SkippedFreeText {
@@ -31,10 +33,14 @@ export interface AggregateResult {
   entryIds: string[];
 }
 
-/**
- * Aggregate all ingredients for meal-plan entries within a date range, scaled by
- * servings ratio, with optional pantry-stock subtraction.
- */
+interface AccumulatorRow {
+  itemId: string;
+  /** Quantity in the row's display unit. */
+  quantity: number;
+  /** Display unit — either the item's defaultUnit (typed) or the first source unit (custom). */
+  unit: string;
+}
+
 export async function aggregateMealPlanShopping(
   db: Db,
   groupId: ObjectId,
@@ -42,10 +48,8 @@ export async function aggregateMealPlanShopping(
   toDate: Date,
   options?: AggregateOptions
 ): Promise<AggregateResult> {
-  // Default missingOnly to true when not specified
   const missingOnly = options?.missingOnly !== false;
 
-  // 1. Load meal-plan entries in range
   const entries = await db.collection('mealPlan').find({
     groupId,
     cookDate: { $gte: fromDate, $lte: toDate }
@@ -53,11 +57,6 @@ export async function aggregateMealPlanShopping(
 
   const entryIds = entries.map(e => e._id.toString());
 
-  // Accumulator: key = `${itemId}::${unit}` → { quantity, recipeId, recipeName }
-  const accumulator = new Map<string, { quantity: number; itemId: string; unit: string }>();
-  const skippedFreeText: SkippedFreeText[] = [];
-
-  // 2. Batch-load recipes for all entries (one query, not N).
   const recipeIds = [...new Set(entries.map(e => e.recipeId?.toString()).filter(Boolean))];
   const recipeDocs = recipeIds.length > 0
     ? await db.collection('recipes').find({
@@ -66,9 +65,32 @@ export async function aggregateMealPlanShopping(
     : [];
   const recipeMap = new Map(recipeDocs.map(r => [r._id.toString(), r]));
 
+  // Pre-collect all itemIds referenced by any ingredient in scope so we can
+  // load item docs (with unitType) before aggregation — needed to know the
+  // canonical unit each item should aggregate into.
+  const candidateItemIds = new Set<string>();
   for (const entry of entries) {
     const recipe = recipeMap.get(entry.recipeId?.toString());
-    // Enforce ownership scoping the single query skipped.
+    if (!recipe) continue;
+    for (const ing of recipe.ingredients ?? []) {
+      if (ing.itemId) candidateItemIds.add(ing.itemId.toString());
+    }
+  }
+
+  const itemDocs = candidateItemIds.size > 0
+    ? await db.collection('items').find({
+        _id: { $in: [...candidateItemIds].map(id => new ObjectId(id)) }
+      }).toArray()
+    : [];
+  const itemMap = new Map(itemDocs.map(doc => [doc._id.toString(), doc]));
+
+  // Accumulator keyed by `itemId` for typed items (single canonical unit per item),
+  // and by `itemId::unit` for custom-typed items (no conversion possible).
+  const accumulator = new Map<string, AccumulatorRow>();
+  const skippedFreeText: SkippedFreeText[] = [];
+
+  for (const entry of entries) {
+    const recipe = recipeMap.get(entry.recipeId?.toString());
     if (!recipe
       || (entry.recipeType === 'group' && recipe.groupId?.toString() !== groupId.toString())
       || (entry.recipeType !== 'group' && recipe.recipeType !== 'global')
@@ -77,13 +99,11 @@ export async function aggregateMealPlanShopping(
       continue;
     }
 
-    // 3. Scale factor
     const recipeServings = recipe.servings || 1;
     const scale = (entry.servings || recipeServings) / recipeServings;
 
     for (const ing of recipe.ingredients ?? []) {
       if (!ing.itemId) {
-        // 4. Free-text ingredient — cannot add to shopping without an itemId
         skippedFreeText.push({
           recipeId: entry.recipeId.toString(),
           recipeName: entry.recipeName || recipe.name,
@@ -92,16 +112,25 @@ export async function aggregateMealPlanShopping(
         continue;
       }
 
-      const key = `${ing.itemId.toString()}::${ing.unit}`;
+      const itemId = ing.itemId.toString();
+      const item = itemMap.get(itemId);
+      const ingUnit = normaliseUnit(ing.unit) || ing.unit || '';
+      const isTyped = !!item?.unitType && item.unitType !== 'custom';
+      const targetUnit = isTyped ? (item!.defaultUnit as string) : ingUnit;
+      const key = isTyped ? itemId : `${itemId}::${ingUnit}`;
+
+      let qtyInTarget = ing.quantity * scale;
+      if (isTyped && ingUnit && targetUnit && ingUnit !== targetUnit) {
+        if (canConvert(ingUnit, targetUnit)) {
+          qtyInTarget = convert(ing.quantity * scale, ingUnit, targetUnit);
+        }
+      }
+
       const existing = accumulator.get(key);
       if (existing) {
-        existing.quantity += ing.quantity * scale;
+        existing.quantity += qtyInTarget;
       } else {
-        accumulator.set(key, {
-          quantity: ing.quantity * scale,
-          itemId: ing.itemId.toString(),
-          unit: ing.unit
-        });
+        accumulator.set(key, { quantity: qtyInTarget, itemId, unit: targetUnit });
       }
     }
   }
@@ -110,30 +139,19 @@ export async function aggregateMealPlanShopping(
     return { aggregated: [], skippedFreeText, entryIds };
   }
 
-  // 5. Load item docs for all unique itemIds in one query
-  const allItemIds = [...new Set([...accumulator.values()].map(v => v.itemId))];
-  const itemDocs = await db.collection('items').find({
-    _id: { $in: allItemIds.map(id => new ObjectId(id)) }
-  }).toArray();
-  const itemMap = new Map(itemDocs.map(doc => [doc._id.toString(), doc]));
-
-  // 6. Load pantry when missingOnly
   let pantryMap = new Map<string, number>();
   if (missingOnly) {
     const pantryItems = await db.collection('pantry').find({
       groupId,
-      itemId: { $in: allItemIds.map(id => new ObjectId(id)) }
+      itemId: { $in: [...candidateItemIds].map(id => new ObjectId(id)) }
     }).toArray();
 
     for (const pi of pantryItems) {
-      // Key: itemId string — we may have multiple pantry entries per item;
-      // accumulate total stock for the same item
       const existing = pantryMap.get(pi.itemId.toString()) ?? 0;
       pantryMap.set(pi.itemId.toString(), existing + (pi.quantity ?? 0));
     }
   }
 
-  // 7. Build output
   const aggregated: AggregatedIngredient[] = [];
 
   for (const [, row] of accumulator) {
@@ -143,14 +161,16 @@ export async function aggregateMealPlanShopping(
     const icon = itemDoc?.icon;
     const category = itemDoc?.category;
     const defaultUnit = itemDoc?.defaultUnit;
+    const unitType = itemDoc?.unitType;
 
     let inPantry = 0;
     let toAdd = row.quantity;
 
-    if (missingOnly && row.unit === defaultUnit) {
-      // Only subtract pantry stock when units match. Mismatched units imply a
-      // different SKU concept (e.g. "ml" vs "bottle") — treat as distinct.
-      inPantry = pantryMap.get(row.itemId) ?? 0;
+    if (missingOnly) {
+      // Typed rows already live in defaultUnit (so do pantry rows). Custom
+      // rows match only when the source unit equals defaultUnit verbatim.
+      const isTypedOrUnitMatch = (unitType && unitType !== 'custom') || row.unit === defaultUnit;
+      if (isTypedOrUnitMatch) inPantry = pantryMap.get(row.itemId) ?? 0;
       toAdd = Math.max(0, row.quantity - inPantry);
     }
 
@@ -164,11 +184,11 @@ export async function aggregateMealPlanShopping(
       toAdd,
       icon,
       category,
-      defaultUnit
+      defaultUnit,
+      unitType
     });
   }
 
-  // 8. Sort by category then itemName for stable output
   aggregated.sort((a, b) => {
     const catA = a.category ?? '';
     const catB = b.category ?? '';

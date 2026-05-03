@@ -5,24 +5,53 @@ import { authMiddleware, AuthRequest } from '../middleware/auth';
 import { requirePermission, requireGlobalPermission } from '../rbac/middleware';
 import { resolveGroupId, handleGroupResolutionError } from '../utils/resolveGroup';
 import { logHistory, computeDiff } from '../utils/historyLog';
+import { allowedUnits, isUnitAllowed, normaliseUnit } from '../../../shared/units';
 
 const router = Router();
 
-/** Resolve ingredient names from the items collection so itemName is always the canonical item name. */
+class IngredientUnitError extends Error {
+  constructor(public readonly detail: string) {
+    super(detail);
+    this.name = 'IngredientUnitError';
+  }
+}
+
+/** Resolve ingredient names + validate units against the referenced item's unitType. */
 async function resolveIngredientNames(db: Db, ingredients: any[]): Promise<any[]> {
-  return Promise.all(ingredients.map(async (ing: any) => {
-    let itemName = ing.itemName?.trim() ?? '';
-    if (ing.itemId && ObjectId.isValid(ing.itemId)) {
-      const item = await db.collection('items').findOne({ _id: new ObjectId(ing.itemId) });
-      if (item?.name) itemName = item.name;
+  const ids = ingredients
+    .map((ing) => ing.itemId)
+    .filter((id) => id && ObjectId.isValid(id))
+    .map((id) => new ObjectId(id));
+  const items = ids.length
+    ? await db.collection('items').find({ _id: { $in: ids } }).toArray()
+    : [];
+  const itemById = new Map(items.map((i) => [i._id.toString(), i]));
+
+  return ingredients.map((ing: any) => {
+    const item = ing.itemId ? itemById.get(ing.itemId.toString()) : undefined;
+    const itemName = item?.name ?? ing.itemName?.trim() ?? '';
+    const rawUnit = (ing.unit ?? '').toString().trim();
+    const unit = normaliseUnit(rawUnit) || rawUnit;
+    if (item && item.unitType && item.unitType !== 'custom' && !isUnitAllowed(unit, item.unitType)) {
+      throw new IngredientUnitError(
+        `Ingredient "${itemName || rawUnit}" has unit "${rawUnit}" not valid for item unitType "${item.unitType}". Allowed: ${allowedUnits(item.unitType).join(', ')}`,
+      );
     }
     return {
       itemId: ing.itemId || null,
       itemName,
       quantity: Number(ing.quantity),
-      unit: (ing.unit ?? '').trim()
+      unit,
     };
-  }));
+  });
+}
+
+function handleIngredientUnitError(error: unknown, res: Response): boolean {
+  if (error instanceof IngredientUnitError) {
+    res.status(400).json({ message: error.detail, code: 'UNIT_VALIDATION_ERROR' });
+    return true;
+  }
+  return false;
 }
 
 /**
@@ -457,6 +486,7 @@ router.post('/recipes/global', authMiddleware, requireGlobalPermission('global_r
       userId: createdRecipe!.userId?.toString()
     });
   } catch (error) {
+    if (handleIngredientUnitError(error, res)) return;
     console.error('Error creating global recipe:', error);
     res.status(500).json({
       message: 'Failed to create global recipe',
@@ -551,6 +581,7 @@ router.put('/recipes/global/:id', authMiddleware, requireGlobalPermission('globa
       userId: result.userId?.toString()
     });
   } catch (error) {
+    if (handleIngredientUnitError(error, res)) return;
     console.error('Error updating global recipe:', error);
     res.status(500).json({
       message: 'Failed to update global recipe',
@@ -815,6 +846,7 @@ router.post('/recipes/group', authMiddleware, requirePermission('group_recipes:c
     });
   } catch (error) {
     if (handleGroupResolutionError(error, res)) return;
+    if (handleIngredientUnitError(error, res)) return;
     console.error('Error creating group recipe:', error);
     res.status(500).json({
       message: 'Failed to create group recipe',
@@ -940,6 +972,7 @@ router.put('/recipes/group/:id', authMiddleware, requirePermission('group_recipe
     });
   } catch (error) {
     if (handleGroupResolutionError(error, res)) return;
+    if (handleIngredientUnitError(error, res)) return;
     console.error('Error updating group recipe:', error);
     res.status(500).json({
       message: 'Failed to update group recipe',

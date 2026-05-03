@@ -6,6 +6,7 @@ import { isOnline } from '@/utils/network'
 import BaseDialog from './BaseDialog.vue'
 import EmptyState from './common/EmptyState.vue'
 import type { AggregatedIngredient, ShoppingPreviewResponse } from '@shared/api-client'
+import { formatQuantity } from '@shared/units'
 
 const mealPlanStore = useMealPlanStore()
 
@@ -141,9 +142,9 @@ function handleClose() {
           <div class="sp-preview__body">
             <div class="sp-preview__name">{{ item.itemName }}</div>
             <div class="sp-preview__meta">
-              Need {{ item.quantity }} {{ item.unit }}
+              Need {{ formatQuantity(item.quantity ?? 0, item.unit ?? '', { promote: true }) }}
               <span v-if="(item.inPantry ?? 0) > 0" class="sp-preview__meta-pantry">
-                · {{ item.inPantry }} in pantry
+                · {{ formatQuantity(item.inPantry ?? 0, item.unit ?? '', { promote: true }) }} in pantry
               </span>
             </div>
           </div>
@@ -151,7 +152,7 @@ function handleClose() {
             class="sp-preview__badge"
             :class="(item.toAdd ?? 0) > 0 ? 'sp-preview__badge--add' : 'sp-preview__badge--none'"
           >
-            +{{ item.toAdd ?? 0 }} {{ item.unit ?? '' }}
+            +{{ formatQuantity(item.toAdd ?? 0, item.unit ?? '', { promote: true }) }}
           </span>
         </li>
       </ul>

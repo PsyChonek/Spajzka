@@ -1,13 +1,20 @@
 <script setup lang="ts">
-import { ref, watch, nextTick } from 'vue'
+import { ref, watch, nextTick, computed } from 'vue'
 import { type QInput } from 'quasar'
 import BaseDialog from './BaseDialog.vue'
 import TagSelector from './TagSelector.vue'
+import {
+  allowedUnits,
+  DEFAULT_UNIT_FOR_TYPE,
+  UNIT_TYPE_OPTIONS,
+  type UnitType,
+} from '@shared/units'
 
 export interface ItemFormData {
   name: string
   quantity?: number
   defaultUnit?: string
+  unitType?: UnitType
   category?: string
   icon?: string
   searchNames?: string[]
@@ -45,23 +52,35 @@ const emit = defineEmits<{
 const formName = ref('')
 const formQuantity = ref<number | undefined>()
 const formDefaultUnit = ref('pcs')
+const formUnitType = ref<UnitType>('count')
 const formCategory = ref('')
 const formIcon = ref('')
 const formSearchNames = ref('')
 const formTags = ref<string[]>([])
 const formIsGlobal = ref(false)
 
+const unitOptions = computed(() => allowedUnits(formUnitType.value))
+
+const handleUnitTypeChange = (next: UnitType) => {
+  formUnitType.value = next
+  if (next === 'custom') return
+  if (!unitOptions.value.includes(formDefaultUnit.value)) {
+    formDefaultUnit.value = DEFAULT_UNIT_FOR_TYPE[next]
+  }
+}
+
 const nameInputRef = ref<QInput | null>(null)
 const quantityInputRef = ref<QInput | null>(null)
 const iconInputRef = ref<QInput | null>(null)
-const unitInputRef = ref<QInput | null>(null)
+const unitInputRef = ref<{ focus: () => void } | null>(null)
 const categoryInputRef = ref<QInput | null>(null)
 
 watch(() => props.initialData, (newData) => {
   if (newData) {
     formName.value = newData.name || ''
     formQuantity.value = newData.quantity || undefined
-    formDefaultUnit.value = newData.defaultUnit || 'pcs'
+    formUnitType.value = newData.unitType || 'count'
+    formDefaultUnit.value = newData.defaultUnit || DEFAULT_UNIT_FOR_TYPE[formUnitType.value] || 'pcs'
     formCategory.value = newData.category || ''
     formIcon.value = newData.icon || ''
     formSearchNames.value = Array.isArray(newData.searchNames) ? newData.searchNames.join(', ') : ''
@@ -94,6 +113,7 @@ const handleClose = () => {
 const handleSave = () => {
   const data: ItemFormData = {
     name: formName.value.trim(),
+    unitType: formUnitType.value,
     defaultUnit: formDefaultUnit.value.trim(),
     category: formCategory.value.trim() || undefined,
     icon: formIcon.value.trim() || undefined
@@ -118,6 +138,7 @@ const handleSave = () => {
 const resetForm = () => {
   formName.value = ''
   formQuantity.value = 1
+  formUnitType.value = 'count'
   formDefaultUnit.value = 'pcs'
   formCategory.value = ''
   formIcon.value = ''
@@ -158,12 +179,38 @@ const handleDelete = () => {
       @keyup.enter="handleSave"
     />
 
+    <q-select
+      :model-value="formUnitType"
+      :options="UNIT_TYPE_OPTIONS"
+      outlined
+      label="Unit type *"
+      emit-value
+      map-options
+      class="q-mb-md"
+      :readonly="readonlyItemFields"
+      :disable="readonlyItemFields"
+      @update:model-value="handleUnitTypeChange"
+    />
+
+    <q-select
+      v-if="formUnitType !== 'custom'"
+      ref="unitInputRef"
+      v-model="formDefaultUnit"
+      :options="unitOptions"
+      outlined
+      label="Default unit *"
+      class="q-mb-md"
+      :readonly="readonlyItemFields"
+      :disable="readonlyItemFields"
+    />
+
     <q-input
+      v-else
       ref="unitInputRef"
       v-model="formDefaultUnit"
       outlined
-      label="Unit *"
-      placeholder="e.g. kg, pcs, liter"
+      label="Default unit *"
+      placeholder="e.g. bottle, packet"
       class="q-mb-md"
       :readonly="readonlyItemFields"
       :disable="readonlyItemFields"

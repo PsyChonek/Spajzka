@@ -20,19 +20,18 @@ export function registerPantryTools(server: McpServer): void {
   registerTool(
     server,
     'add_pantry_item',
-    'Add an item to the pantry. itemType=global references the catalog; itemType=group references a custom item in the group.',
+    'Add an item to the pantry. The quantity is in the item\'s defaultUnit (call search_items to find out which unit). Adding an item that already exists in the pantry sums quantities.',
     {
       ...groupIdSchema,
       itemId: z.string(),
       itemType: z.enum(['global', 'group']),
-      quantity: z.number().positive(),
-      unit: z.string().optional()
+      quantity: z.number().positive()
     },
-    async ({ groupId, itemId, itemType, quantity, unit }) => {
+    async ({ groupId, itemId, itemType, quantity }) => {
       return apiRequest({
         method: 'POST',
         path: '/api/pantry',
-        body: { groupId, itemId, itemType, quantity, unit }
+        body: { groupId, itemId, itemType, quantity }
       });
     }
   );
@@ -40,18 +39,17 @@ export function registerPantryTools(server: McpServer): void {
   registerTool(
     server,
     'update_pantry_item',
-    "Update a pantry entry's quantity or unit. Use list_pantry to find pantryItemId.",
+    "Update a pantry entry's quantity (in the item's defaultUnit). Use list_pantry to find pantryItemId.",
     {
       ...groupIdSchema,
       pantryItemId: z.string(),
-      quantity: z.number().positive().optional(),
-      unit: z.string().optional()
+      quantity: z.number().positive()
     },
-    async ({ groupId, pantryItemId, quantity, unit }) => {
+    async ({ groupId, pantryItemId, quantity }) => {
       return apiRequest({
         method: 'PUT',
         path: `/api/pantry/${pantryItemId}`,
-        body: { groupId, quantity, unit }
+        body: { groupId, quantity }
       });
     }
   );

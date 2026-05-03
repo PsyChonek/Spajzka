@@ -13,6 +13,7 @@ export type ShoppingItem = {
     category?: string;
     icon?: string;
     defaultUnit?: string;
+    unitType?: ShoppingItem.unitType;
     createdAt?: string;
     updatedAt?: string;
 };
@@ -20,6 +21,13 @@ export namespace ShoppingItem {
     export enum itemType {
         GLOBAL = 'global',
         GROUP = 'group',
+    }
+    export enum unitType {
+        WEIGHT = 'weight',
+        VOLUME = 'volume',
+        COUNT = 'count',
+        LENGTH = 'length',
+        CUSTOM = 'custom',
     }
 }
 

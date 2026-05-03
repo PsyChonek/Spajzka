@@ -12,6 +12,7 @@ export type PantryItem = {
     category?: string;
     icon?: string;
     defaultUnit?: string;
+    unitType?: PantryItem.unitType;
     barcode?: string;
     createdAt?: string;
     updatedAt?: string;
@@ -20,6 +21,13 @@ export namespace PantryItem {
     export enum itemType {
         GLOBAL = 'global',
         GROUP = 'group',
+    }
+    export enum unitType {
+        WEIGHT = 'weight',
+        VOLUME = 'volume',
+        COUNT = 'count',
+        LENGTH = 'length',
+        CUSTOM = 'custom',
     }
 }
 

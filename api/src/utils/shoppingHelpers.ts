@@ -11,6 +11,7 @@ export interface ShoppingItem {
   category?: string;
   icon?: string;
   defaultUnit?: string;
+  unitType?: string;
   mealPlanRefs?: Array<{ mealPlanId?: string; batchId: string }>;
   createdAt: Date;
   updatedAt: Date;
@@ -47,6 +48,46 @@ export async function insertShoppingItem(
     throw err;
   }
 
+  // Merge-on-add: same item id + not yet completed → sum quantities into existing row.
+  const updateOps: any = {
+    $inc: { quantity },
+    $set: { updatedAt: new Date() },
+  };
+  if (mealPlanRef) {
+    updateOps.$push = {
+      mealPlanRefs: mealPlanRef.mealPlanId
+        ? { mealPlanId: mealPlanRef.mealPlanId, batchId: mealPlanRef.batchId }
+        : { batchId: mealPlanRef.batchId },
+    };
+  }
+  const existing = await db.collection('shopping').findOneAndUpdate(
+    { groupId, itemId: new ObjectId(itemId), itemType, completed: { $ne: true } },
+    updateOps,
+    { returnDocument: 'after' }
+  );
+
+  if (existing) {
+    return {
+      _id: existing._id.toString(),
+      groupId: groupId.toString(),
+      itemId,
+      itemType,
+      quantity: existing.quantity,
+      completed: false,
+      createdAt: existing.createdAt,
+      updatedAt: existing.updatedAt,
+      name: item.name || 'Unknown Item',
+      category: item.category,
+      icon: item.icon,
+      defaultUnit: item.defaultUnit,
+      unitType: item.unitType,
+      mealPlanRefs: existing.mealPlanRefs?.map((r: any) => ({
+        ...(r.mealPlanId ? { mealPlanId: r.mealPlanId.toString() } : {}),
+        batchId: r.batchId,
+      })),
+    } as ShoppingItem;
+  }
+
   const newDoc: any = {
     groupId,
     itemId: new ObjectId(itemId),
@@ -76,6 +117,7 @@ export async function insertShoppingItem(
     category: item.category,
     icon: item.icon,
     defaultUnit: item.defaultUnit,
+    unitType: item.unitType,
     mealPlanRefs: newDoc.mealPlanRefs?.map((r: any) => ({
       ...(r.mealPlanId ? { mealPlanId: r.mealPlanId.toString() } : {}),
       batchId: r.batchId

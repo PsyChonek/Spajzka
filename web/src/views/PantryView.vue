@@ -14,6 +14,7 @@ import AddItemDialog, { type ItemFormData } from '@/components/AddItemDialog.vue
 import SearchInput from '@/components/SearchInput.vue'
 import TagFilter from '@/components/TagFilter.vue'
 import { matchesQuery, normalizeForSearch } from '@/utils/search'
+import { formatQuantity, type UnitType } from '@shared/units'
 
 const $q = useQuasar()
 const pantryStore = usePantryStore()
@@ -75,7 +76,7 @@ const canEditItemFields = computed(() => {
 })
 
 const openAddDialog = () => {
-  initialFormData.value = { name: searchQuery.value, defaultUnit: 'pcs', category: '', quantity: 1 }
+  initialFormData.value = { name: searchQuery.value, unitType: 'count', defaultUnit: 'pcs', category: '', quantity: 1 }
   showAddDialog.value = true
 }
 
@@ -84,6 +85,7 @@ const openEditDialog = (item: PantryItem, field: 'name' | 'quantity' | 'icon' | 
   focusField.value = field
   initialFormData.value = {
     name: item.name || 'Unknown Item',
+    unitType: item.unitType as UnitType | undefined,
     defaultUnit: item.defaultUnit || 'pcs',
     category: item.category || '',
     icon: item.icon || '',
@@ -112,6 +114,7 @@ const saveNewItem = async (data: ItemFormData) => {
       name: data.name,
       category: data.category || 'Other',
       icon: data.icon || '📦',
+      unitType: (data.unitType || 'count') as any,
       defaultUnit: data.defaultUnit || 'pcs'
     })
     const created = itemsStore.sortedItems.find(i => i.name === data.name && i.type === 'group')
@@ -133,7 +136,7 @@ const saveEditedItem = async (data: ItemFormData) => {
         data.category !== editingItem.value.category ||
         data.icon !== editingItem.value.icon
       if (changed) {
-        const updates = { name: data.name, defaultUnit: data.defaultUnit, category: data.category, icon: data.icon }
+        const updates: any = { name: data.name, unitType: data.unitType, defaultUnit: data.defaultUnit, category: data.category, icon: data.icon }
         if (editingItem.value.itemType === 'global') {
           await itemsStore.updateGlobalItem(editingItem.value.itemId, updates)
         } else {
@@ -218,7 +221,7 @@ const subtitle = computed(() => {
             <div class="col">
               <div class="sp-pantry-card__name">{{ row.name || 'Unknown Item' }}</div>
               <div class="sp-pantry-card__meta">
-                <span>{{ row.quantity || 0 }} {{ row.defaultUnit || 'pcs' }}</span>
+                <span>{{ formatQuantity(row.quantity || 0, row.defaultUnit || 'pcs', { promote: true }) }}</span>
               </div>
             </div>
             <q-btn

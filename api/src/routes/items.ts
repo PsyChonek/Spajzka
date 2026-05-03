@@ -5,6 +5,34 @@ import { authMiddleware, AuthRequest } from '../middleware/auth';
 import { requirePermission, requireGlobalPermission } from '../rbac/middleware';
 import { resolveGroupId, handleGroupResolutionError } from '../utils/resolveGroup';
 import { logHistory, computeDiff } from '../utils/historyLog';
+import {
+  UNIT_TYPES,
+  UnitType,
+  allowedUnits,
+  isUnitAllowed,
+  normaliseUnit,
+} from '../../../shared/units';
+
+function normaliseItemUnit(input: { unitType?: unknown; defaultUnit?: unknown }):
+  | { unitType: UnitType; defaultUnit: string }
+  | { error: string } {
+  const rawType = typeof input.unitType === 'string' ? input.unitType : '';
+  if (!UNIT_TYPES.includes(rawType as UnitType)) {
+    return { error: `unitType must be one of ${UNIT_TYPES.join(', ')}` };
+  }
+  const unitType = rawType as UnitType;
+  const rawUnit = typeof input.defaultUnit === 'string' ? input.defaultUnit.trim() : '';
+  if (!rawUnit) {
+    return { error: 'defaultUnit is required' };
+  }
+  const normalised = normaliseUnit(rawUnit);
+  if (unitType !== 'custom' && !isUnitAllowed(normalised, unitType)) {
+    return {
+      error: `defaultUnit "${rawUnit}" not valid for unitType ${unitType}. Allowed: ${allowedUnits(unitType).join(', ')}`,
+    };
+  }
+  return { unitType, defaultUnit: normalised };
+}
 
 const router = Router();
 
@@ -54,7 +82,11 @@ function parseLimit(raw: unknown): number | undefined {
  *           description: Emoji icon
  *         defaultUnit:
  *           type: string
- *           description: Default unit of measurement
+ *           description: Default unit of measurement (must be valid for the item's unitType)
+ *         unitType:
+ *           type: string
+ *           enum: [weight, volume, count, length, custom]
+ *           description: Unit family — gates which units are accepted
  *         barcode:
  *           type: string
  *           description: Barcode
@@ -102,6 +134,9 @@ function parseLimit(raw: unknown): number | undefined {
  *           type: string
  *         defaultUnit:
  *           type: string
+ *         unitType:
+ *           type: string
+ *           enum: [weight, volume, count, length, custom]
  *         barcode:
  *           type: string
  *         searchNames:
@@ -117,6 +152,8 @@ function parseLimit(raw: unknown): number | undefined {
  *       required:
  *         - name
  *         - category
+ *         - unitType
+ *         - defaultUnit
  *     CreateGroupItemRequest:
  *       type: object
  *       properties:
@@ -128,6 +165,9 @@ function parseLimit(raw: unknown): number | undefined {
  *           type: string
  *         defaultUnit:
  *           type: string
+ *         unitType:
+ *           type: string
+ *           enum: [weight, volume, count, length, custom]
  *         barcode:
  *           type: string
  *         searchNames:
@@ -143,6 +183,8 @@ function parseLimit(raw: unknown): number | undefined {
  *       required:
  *         - name
  *         - category
+ *         - unitType
+ *         - defaultUnit
  */
 
 /**
@@ -323,7 +365,7 @@ router.get('/items/global', authMiddleware, async (req: AuthRequest, res: Respon
 router.post('/items/global', authMiddleware, requireGlobalPermission('global_items:create'), async (req: AuthRequest, res: Response) => {
   try {
     const db = getDatabase();
-    const { name, category, icon, defaultUnit, barcode, searchNames, tags } = req.body;
+    const { name, category, icon, barcode, searchNames, tags } = req.body;
 
     if (!name || !category) {
       return res.status(400).json({
@@ -332,11 +374,17 @@ router.post('/items/global', authMiddleware, requireGlobalPermission('global_ite
       });
     }
 
+    const unit = normaliseItemUnit(req.body);
+    if ('error' in unit) {
+      return res.status(400).json({ message: unit.error, code: 'VALIDATION_ERROR' });
+    }
+
     const newItem = {
       name: name.trim(),
       category: category.trim(),
       icon: icon || null,
-      defaultUnit: defaultUnit || null,
+      unitType: unit.unitType,
+      defaultUnit: unit.defaultUnit,
       barcode: barcode || null,
       searchNames: Array.isArray(searchNames) ? searchNames.map((n: string) => n.trim()).filter(Boolean) : [],
       tags: Array.isArray(tags) ? tags.filter(Boolean).map((t: string) => new ObjectId(t)) : [],
@@ -358,6 +406,7 @@ router.post('/items/global', authMiddleware, requireGlobalPermission('global_ite
       name: newItem.name,
       category: newItem.category,
       icon: newItem.icon,
+      unitType: newItem.unitType,
       defaultUnit: newItem.defaultUnit,
       barcode: newItem.barcode,
       searchNames: newItem.searchNames,
@@ -418,7 +467,7 @@ router.put('/items/global/:id', authMiddleware, requireGlobalPermission('global_
   try {
     const db = getDatabase();
     const { id } = req.params;
-    const { name, category, icon, defaultUnit, barcode, searchNames, tags } = req.body;
+    const { name, category, icon, defaultUnit, unitType, barcode, searchNames, tags } = req.body;
 
     if (!ObjectId.isValid(id)) {
       return res.status(400).json({
@@ -431,10 +480,25 @@ router.put('/items/global/:id', authMiddleware, requireGlobalPermission('global_
       updatedAt: new Date()
     };
 
+    if (unitType !== undefined || defaultUnit !== undefined) {
+      const existing = await db.collection('items').findOne(
+        { _id: new ObjectId(id), itemType: 'global' },
+        { projection: { unitType: 1, defaultUnit: 1 } }
+      );
+      const merged = normaliseItemUnit({
+        unitType: unitType ?? existing?.unitType,
+        defaultUnit: defaultUnit ?? existing?.defaultUnit,
+      });
+      if ('error' in merged) {
+        return res.status(400).json({ message: merged.error, code: 'VALIDATION_ERROR' });
+      }
+      updateData.unitType = merged.unitType;
+      updateData.defaultUnit = merged.defaultUnit;
+    }
+
     if (name !== undefined) updateData.name = name.trim();
     if (category !== undefined) updateData.category = category.trim();
     if (icon !== undefined) updateData.icon = icon;
-    if (defaultUnit !== undefined) updateData.defaultUnit = defaultUnit;
     if (barcode !== undefined) updateData.barcode = barcode;
     if (searchNames !== undefined) {
       updateData.searchNames = Array.isArray(searchNames) ? searchNames.map((n: string) => n.trim()).filter(Boolean) : [];
@@ -464,7 +528,8 @@ router.put('/items/global/:id', authMiddleware, requireGlobalPermission('global_
     if (name !== undefined) groupItemUpdateData.name = name.trim();
     if (category !== undefined) groupItemUpdateData.category = category.trim();
     if (icon !== undefined) groupItemUpdateData.icon = icon;
-    if (defaultUnit !== undefined) groupItemUpdateData.defaultUnit = defaultUnit;
+    if (updateData.defaultUnit !== undefined) groupItemUpdateData.defaultUnit = updateData.defaultUnit;
+    if (updateData.unitType !== undefined) groupItemUpdateData.unitType = updateData.unitType;
     if (barcode !== undefined) groupItemUpdateData.barcode = barcode;
     if (searchNames !== undefined) {
       groupItemUpdateData.searchNames = Array.isArray(searchNames) ? searchNames.map((n: string) => n.trim()).filter(Boolean) : [];
@@ -642,13 +707,18 @@ router.get('/items/group', authMiddleware, async (req: AuthRequest, res: Respons
 router.post('/items/group', authMiddleware, requirePermission('group_items:create'), async (req: AuthRequest, res: Response) => {
   try {
     const db = getDatabase();
-    const { name, category, icon, defaultUnit, barcode, searchNames, tags } = req.body;
+    const { name, category, icon, barcode, searchNames, tags } = req.body;
 
     if (!name || !category) {
       return res.status(400).json({
         message: 'Missing required fields: name, category',
         code: 'VALIDATION_ERROR'
       });
+    }
+
+    const unit = normaliseItemUnit(req.body);
+    if ('error' in unit) {
+      return res.status(400).json({ message: unit.error, code: 'VALIDATION_ERROR' });
     }
 
     const groupId = await resolveGroupId(db, req, req.userId!);
@@ -658,7 +728,8 @@ router.post('/items/group', authMiddleware, requirePermission('group_items:creat
       name: name.trim(),
       category: category.trim(),
       icon: icon || null,
-      defaultUnit: defaultUnit || null,
+      unitType: unit.unitType,
+      defaultUnit: unit.defaultUnit,
       barcode: barcode || null,
       searchNames: Array.isArray(searchNames) ? searchNames.map((n: string) => n.trim()).filter(Boolean) : [],
       tags: Array.isArray(tags) ? tags.filter(Boolean).map((t: string) => new ObjectId(t)) : [],
@@ -730,7 +801,7 @@ router.put('/items/group/:id', authMiddleware, requirePermission('group_items:up
   try {
     const db = getDatabase();
     const { id } = req.params;
-    const { name, category, icon, defaultUnit, barcode, searchNames, tags } = req.body;
+    const { name, category, icon, defaultUnit, unitType, barcode, searchNames, tags } = req.body;
 
     if (!ObjectId.isValid(id)) {
       return res.status(400).json({
@@ -745,10 +816,25 @@ router.put('/items/group/:id', authMiddleware, requirePermission('group_items:up
       updatedAt: new Date()
     };
 
+    if (unitType !== undefined || defaultUnit !== undefined) {
+      const existing = await db.collection('items').findOne(
+        { _id: new ObjectId(id), itemType: 'group', groupId },
+        { projection: { unitType: 1, defaultUnit: 1 } }
+      );
+      const merged = normaliseItemUnit({
+        unitType: unitType ?? existing?.unitType,
+        defaultUnit: defaultUnit ?? existing?.defaultUnit,
+      });
+      if ('error' in merged) {
+        return res.status(400).json({ message: merged.error, code: 'VALIDATION_ERROR' });
+      }
+      updateData.unitType = merged.unitType;
+      updateData.defaultUnit = merged.defaultUnit;
+    }
+
     if (name !== undefined) updateData.name = name.trim();
     if (category !== undefined) updateData.category = category.trim();
     if (icon !== undefined) updateData.icon = icon;
-    if (defaultUnit !== undefined) updateData.defaultUnit = defaultUnit;
     if (barcode !== undefined) updateData.barcode = barcode;
     if (searchNames !== undefined) {
       updateData.searchNames = Array.isArray(searchNames) ? searchNames.map((n: string) => n.trim()).filter(Boolean) : [];

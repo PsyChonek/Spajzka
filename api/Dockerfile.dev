@@ -1,32 +1,25 @@
-# Development Dockerfile with hot-reload
+# Development Dockerfile with hot-reload. Build context is the repo root so
+# ../shared/units TS sources are visible to ts-node and nodemon.
 
 FROM node:20-alpine
 
 WORKDIR /app
 
-# Install dependencies for nodemon
 RUN apk add --no-cache tini
 
-# Copy package files
-COPY package*.json ./
+COPY api/package*.json ./api/
 
-# Install all dependencies (including dev)
-RUN npm install
+RUN cd api && npm install
 
-# Copy nodemon config
-COPY nodemon.json ./
+COPY api/nodemon.json ./api/
+COPY api/tsconfig.json ./api/
+COPY api/src ./api/src
+COPY shared ./shared
 
-# Copy TypeScript config
-COPY tsconfig.json ./
+WORKDIR /app/api
 
-# Copy source code
-COPY src ./src
-
-# Expose port
 EXPOSE 3000
 
-# Use tini to handle signals properly
 ENTRYPOINT ["/sbin/tini", "--"]
 
-# Start with nodemon for hot-reload
 CMD ["npm", "run", "dev"]

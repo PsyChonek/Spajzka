@@ -14,6 +14,7 @@ import AddItemDialog, { type ItemFormData } from '@/components/AddItemDialog.vue
 import SearchInput from '@/components/SearchInput.vue'
 import TagFilter from '@/components/TagFilter.vue'
 import { matchesQuery, normalizeForSearch } from '@/utils/search'
+import { formatQuantity } from '@shared/units'
 
 const shoppingStore = useShoppingStore()
 const itemsStore = useItemsStore()
@@ -59,7 +60,7 @@ const suggestedItems = computed(() => {
 })
 
 const openAddDialog = () => {
-  initialFormData.value = { name: searchQuery.value, defaultUnit: 'pcs', category: '' }
+  initialFormData.value = { name: searchQuery.value, unitType: 'count', defaultUnit: 'pcs', category: '' }
   showAddDialog.value = true
 }
 
@@ -78,6 +79,7 @@ const saveNewItem = async (data: ItemFormData) => {
     name: data.name,
     category: data.category || 'Other',
     icon: data.icon || '📦',
+    unitType: (data.unitType || 'count') as any,
     defaultUnit: data.defaultUnit || 'pcs'
   })
   const created = itemsStore.sortedItems.find(i => i.name === data.name && i.type === 'group')
@@ -258,7 +260,7 @@ const subtitle = computed(() => {
               <div class="col sp-shop-card__body" @click="toggleItem(row)">
                 <div class="sp-shop-card__name sp-shop-card__name--done">{{ row.name || 'Loading...' }}</div>
               </div>
-              <div class="text-grey-6 q-mr-sm">{{ row.quantity || 1 }}</div>
+              <div class="text-grey-6 q-mr-sm">{{ formatQuantity(row.quantity || 1, row.defaultUnit || 'pcs', { promote: true }) }}</div>
             </q-card-section>
           </q-card>
         </div>

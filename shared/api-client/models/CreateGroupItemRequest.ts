@@ -6,7 +6,8 @@ export type CreateGroupItemRequest = {
     name: string;
     category: string;
     icon?: string;
-    defaultUnit?: string;
+    defaultUnit: string;
+    unitType: CreateGroupItemRequest.unitType;
     barcode?: string;
     /**
      * Additional names for search
@@ -17,4 +18,13 @@ export type CreateGroupItemRequest = {
      */
     tags?: Array<string>;
 };
+export namespace CreateGroupItemRequest {
+    export enum unitType {
+        WEIGHT = 'weight',
+        VOLUME = 'volume',
+        COUNT = 'count',
+        LENGTH = 'length',
+        CUSTOM = 'custom',
+    }
+}
 

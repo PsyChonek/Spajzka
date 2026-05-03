@@ -2,6 +2,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { apiRequest } from '../apiClient';
 import { registerTool } from './helpers';
+import { canConvert, convert } from '../../../shared/units';
 
 const ingredientSchema = z.object({
   itemId: z.string().optional(),
@@ -32,6 +33,8 @@ interface CatalogItem {
   name: string;
   itemType: string;
   searchNames?: string[];
+  unitType?: string;
+  defaultUnit?: string;
 }
 
 export function registerRecipeTools(server: McpServer): void {
@@ -206,7 +209,6 @@ export function registerRecipeTools(server: McpServer): void {
       const skipped: string[] = [];
 
       for (const ing of recipe.ingredients) {
-        // Resolve item: prefer explicit itemId, fall back to name match (handles Czech searchNames)
         const item = (ing.itemId ? itemById.get(ing.itemId) : undefined)
           ?? itemByName.get(ing.itemName.toLowerCase().trim());
 
@@ -217,6 +219,16 @@ export function registerRecipeTools(server: McpServer): void {
 
         if (missingOnly && pantryItemIds.has(item._id)) continue;
 
+        // Convert ingredient quantity into the item's defaultUnit when possible.
+        // For typed items (weight/volume/count/length) units are convertible;
+        // for custom items we leave quantity as-is.
+        let qty = ing.quantity;
+        if (item.unitType && item.unitType !== 'custom' && item.defaultUnit && ing.unit && ing.unit !== item.defaultUnit) {
+          if (canConvert(ing.unit, item.defaultUnit)) {
+            qty = convert(ing.quantity, ing.unit, item.defaultUnit);
+          }
+        }
+
         try {
           const result = await apiRequest({
             method: 'POST',
@@ -225,7 +237,7 @@ export function registerRecipeTools(server: McpServer): void {
               groupId,
               itemId: item._id,
               itemType: item.itemType,
-              quantity: ing.quantity
+              quantity: qty
             }
           });
           added.push(result);

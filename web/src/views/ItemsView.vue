@@ -13,6 +13,7 @@ import SearchInput from '@/components/SearchInput.vue'
 import TagFilter from '@/components/TagFilter.vue'
 import { useTagsStore } from '@/stores/tagsStore'
 import { matchesQuery } from '@/utils/search'
+import type { UnitType } from '@shared/units'
 
 const $q = useQuasar()
 const itemsStore = useItemsStore()
@@ -68,7 +69,7 @@ const canUpdateGlobalItems = computed(() => authStore.hasGlobalPermission('globa
 const canDeleteGlobalItems = computed(() => authStore.hasGlobalPermission('global_items:delete'))
 
 const openAddDialog = () => {
-  initialFormData.value = { name: searchQuery.value, defaultUnit: 'pcs', category: '' }
+  initialFormData.value = { name: searchQuery.value, unitType: 'count', defaultUnit: 'pcs', category: '' }
   showAddDialog.value = true
 }
 
@@ -77,6 +78,7 @@ const openEditDialog = (item: Item, field: 'name' | 'icon' | 'unit' | 'category'
   focusField.value = field
   initialFormData.value = {
     name: item.name,
+    unitType: item.unitType as UnitType | undefined,
     defaultUnit: item.defaultUnit,
     category: item.category || '',
     icon: item.icon || '',
@@ -88,25 +90,33 @@ const openEditDialog = (item: Item, field: 'name' | 'icon' | 'unit' | 'category'
 }
 
 const saveNewItem = async (data: ItemFormData) => {
+  const payload: any = {
+    name: data.name,
+    category: data.category || 'Other',
+    unitType: data.unitType || 'count',
+    defaultUnit: data.defaultUnit || 'pcs',
+    icon: data.icon,
+    searchNames: data.searchNames,
+    tags: data.tags,
+  }
   if (data.isGlobal) {
-    await itemsStore.addGlobalItem({
-      name: data.name, category: data.category || 'Other', defaultUnit: data.defaultUnit || 'pcs',
-      icon: data.icon, searchNames: data.searchNames, tags: data.tags
-    })
+    await itemsStore.addGlobalItem(payload)
   } else {
-    await itemsStore.addGroupItem({
-      name: data.name, category: data.category || 'Other', defaultUnit: data.defaultUnit || 'pcs',
-      icon: data.icon, searchNames: data.searchNames, tags: data.tags
-    })
+    await itemsStore.addGroupItem(payload)
   }
   searchQuery.value = ''
 }
 
 const saveEditedItem = async (data: ItemFormData) => {
   if (!editingItem.value?._id) return
-  const updates = {
-    name: data.name, category: data.category || 'Other', defaultUnit: data.defaultUnit || 'pcs',
-    icon: data.icon, searchNames: data.searchNames, tags: data.tags
+  const updates: any = {
+    name: data.name,
+    category: data.category || 'Other',
+    unitType: data.unitType,
+    defaultUnit: data.defaultUnit || 'pcs',
+    icon: data.icon,
+    searchNames: data.searchNames,
+    tags: data.tags,
   }
   const wasGlobal = editingItem.value.type === 'global'
   const isNowGlobal = data.isGlobal ?? wasGlobal

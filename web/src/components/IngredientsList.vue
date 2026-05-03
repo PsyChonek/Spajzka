@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import type { RecipeIngredient } from '@shared/api-client'
 import { useItemsStore } from '@/stores/itemsStore'
+import { formatQuantity } from '@shared/units'
 
 interface Props {
   ingredients: RecipeIngredient[]
@@ -68,7 +69,7 @@ const handleToggle = (index: number) => {
         </q-item-section>
         <q-item-section side>
           <q-item-label caption>
-            {{ ingredient.quantity }} {{ ingredient.unit }}
+            {{ formatQuantity(ingredient.quantity, ingredient.unit, { promote: true }) }}
           </q-item-label>
         </q-item-section>
       </q-item>

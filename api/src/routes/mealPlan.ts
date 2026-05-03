@@ -144,6 +144,9 @@ const router = Router();
  *           type: string
  *         defaultUnit:
  *           type: string
+ *         unitType:
+ *           type: string
+ *           enum: [weight, volume, count, length, custom]
  *     ShoppingPreviewRequest:
  *       type: object
  *       required:
