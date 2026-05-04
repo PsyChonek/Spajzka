@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useRecipesStore, type Recipe } from '@/stores/recipesStore'
 import { useAuthStore } from '@/stores/authStore'
 import PageWrapper from '@/components/PageWrapper.vue'
@@ -14,12 +15,20 @@ import TagFilter from '@/components/TagFilter.vue'
 import { GlobalRecipe } from '@shared/api-client'
 import { useTagsStore } from '@/stores/tagsStore'
 import { matchesQuery } from '@/utils/search'
+import { useContentLocale, tName } from '@/services/i18n/translateContent'
 
 const $q = useQuasar()
 const router = useRouter()
+const { t } = useI18n({ useScope: 'global' })
 const recipesStore = useRecipesStore()
 const authStore = useAuthStore()
 const tagsStore = useTagsStore()
+const itemsLocale = useContentLocale()
+const recipeName = (r: Recipe) => tName(r as any, itemsLocale.value) || r.name
+const tagName = (tagId: string) => {
+  const tag = tagsStore.getTagById(tagId)
+  return tag ? (tName(tag as any, itemsLocale.value) || tag.name) : ''
+}
 
 const searchQuery = ref('')
 const selectedTagIds = ref<string[]>([])
@@ -91,32 +100,32 @@ const openRecipe = (id: string) => router.push(`/cook/${id}`)
 const subtitle = computed(() => {
   const total = recipesStore.sortedItems.length
   if (searchQuery.value || selectedTagIds.value.length > 0) {
-    return `${displayedRecipes.value.length} of ${total} recipe${total !== 1 ? 's' : ''}`
+    return t('recipes.subtitleFiltered', { shown: displayedRecipes.value.length, total })
   }
-  return total === 0 ? 'Build your recipe collection' : `${total} recipe${total !== 1 ? 's' : ''} in collection`
+  return total === 0 ? t('recipes.subtitleEmpty') : t('recipes.subtitleCount', { count: total })
 })
 </script>
 
 <template>
   <q-page>
     <PageWrapper>
-      <PageHeader title="Recipes" :subtitle="subtitle" icon="restaurant_menu">
+      <PageHeader :title="t('recipes.title')" :subtitle="subtitle" icon="restaurant_menu">
         <template #actions>
           <q-btn
             color="secondary"
             unelevated
             no-caps
             icon="add"
-            label="Add"
+            :label="t('common.add')"
             class="gt-sm"
-            aria-label="Add recipe"
+            :aria-label="t('recipes.addNew')"
             @click="openAddDialog"
           />
         </template>
       </PageHeader>
 
       <div class="sp-recipes__filters">
-        <SearchInput v-model="searchQuery" placeholder="Search recipes..." @add="openAddDialog" />
+        <SearchInput v-model="searchQuery" :placeholder="t('common.search')" @add="openAddDialog" />
         <div class="q-mt-sm">
           <TagFilter v-model="selectedTagIds" />
         </div>
@@ -125,11 +134,11 @@ const subtitle = computed(() => {
       <EmptyState
         v-if="displayedRecipes.length === 0"
         :icon="searchQuery ? 'search_off' : 'restaurant_menu'"
-        :title="searchQuery ? 'No recipes found' : 'No recipes yet'"
-        :hint="searchQuery ? 'Try a different search.' : 'Save your favorite dishes here. Tap Add to get started.'"
+        :title="searchQuery ? t('items.noneFound') : t('recipes.subtitleEmpty')"
+        :hint="searchQuery ? t('items.tryDifferentSearch') : ''"
       >
         <template #action>
-          <q-btn color="secondary" unelevated no-caps icon="add" label="Add recipe" @click="openAddDialog" />
+          <q-btn color="secondary" unelevated no-caps icon="add" :label="t('recipes.addNew')" @click="openAddDialog" />
         </template>
       </EmptyState>
 
@@ -149,12 +158,12 @@ const subtitle = computed(() => {
               color="secondary"
               class="sp-recipe-card__badge"
             >
-              Global
+              {{ t('items.globalItem') }}
             </q-badge>
           </div>
           <div class="sp-recipe-card__content">
             <q-card-section class="sp-recipe-card__body">
-              <div class="sp-recipe-card__name">{{ recipe.name }}</div>
+              <div class="sp-recipe-card__name">{{ recipeName(recipe) }}</div>
               <div v-if="recipe.description" class="sp-recipe-card__desc">
                 {{ recipe.description }}
               </div>
@@ -171,14 +180,14 @@ const subtitle = computed(() => {
                   <span v-if="tagsStore.getTagById(tagId)?.icon" style="margin-right: 4px">
                     {{ tagsStore.getTagById(tagId)?.icon }}
                   </span>
-                  {{ tagsStore.getTagById(tagId)?.name }}
+                  {{ tagName(tagId) }}
                 </q-chip>
               </div>
             </q-card-section>
             <q-card-actions class="sp-recipe-card__actions">
               <q-btn
                 flat dense color="primary" no-caps
-                icon="soup_kitchen" label="Cook"
+                icon="soup_kitchen" :label="t('recipes.cook')"
                 :disable="!recipe._id"
                 @click.stop="recipe._id && openRecipe(recipe._id)"
               />
@@ -188,21 +197,21 @@ const subtitle = computed(() => {
                 :disable="!canEditRecipe(recipe)"
                 @click.stop="openEditDialog(recipe)"
               >
-                <q-tooltip>Edit</q-tooltip>
+                <q-tooltip>{{ t('common.edit') }}</q-tooltip>
               </q-btn>
               <q-btn
                 flat dense round color="negative" icon="delete"
                 :disable="!canDeleteRecipe(recipe) || !recipe._id"
                 @click.stop="recipe._id && deleteRecipe(recipe._id)"
               >
-                <q-tooltip>Delete</q-tooltip>
+                <q-tooltip>{{ t('common.delete') }}</q-tooltip>
               </q-btn>
             </q-card-actions>
           </div>
         </q-card>
       </div>
 
-      <FabAdd class="lt-md" aria-label="Add recipe" @click="openAddDialog" />
+      <FabAdd class="lt-md" :aria-label="t('recipes.addNew')" @click="openAddDialog" />
 
       <RecipeDialog
         v-model="showRecipeDialog"

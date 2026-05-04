@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, computed, onMounted } from 'vue'
 import { Notify } from 'quasar'
+import { useI18n } from 'vue-i18n'
 import type { Recipe } from '@/stores/recipesStore'
 import { useItemsStore } from '@/stores/itemsStore'
 import { useAuthStore } from '@/stores/authStore'
@@ -10,6 +11,9 @@ import BaseDialog from './BaseDialog.vue'
 import AddItemDialog, { type ItemFormData } from './AddItemDialog.vue'
 import TagSelector from './TagSelector.vue'
 import { allowedUnits, type UnitType } from '@shared/units'
+import { useContentLocale, tName } from '@/services/i18n/translateContent'
+
+const { t } = useI18n({ useScope: 'global' })
 
 interface Props {
   modelValue: boolean
@@ -106,10 +110,15 @@ const resetForm = () => {
   formSearchNames.value = ''
 }
 
+const itemsLocale = useContentLocale()
+
 function resolveIngredientName(ing: RecipeIngredient): RecipeIngredient {
   if (ing.itemId) {
     const item = itemsStore.allItems.find(i => i._id === ing.itemId)
-    if (item) return { ...ing, itemName: item.name }
+    if (item) {
+      const localized = tName(item, itemsLocale.value) || item.name
+      return { ...ing, itemName: localized }
+    }
   }
   return { ...ing }
 }
@@ -134,14 +143,15 @@ watch(() => props.editingRecipe, (recipe) => {
   }
 }, { immediate: true })
 
-// Re-resolve ingredient names from the catalog when the items store loads
-// after the dialog has already opened (offline-first cold-start case).
-watch(() => itemsStore.allItems.length, () => {
+// Re-resolve ingredient names from the catalog when the items store loads or
+// when the user's items language changes — keeps in-flight edit dialogs live.
+watch([() => itemsStore.allItems.length, itemsLocale], () => {
   for (const ing of formIngredients.value) {
     if (ing.itemId) {
       const item = itemsStore.allItems.find(i => i._id === ing.itemId)
-      if (item && item.name && ing.itemName !== item.name) {
-        ing.itemName = item.name
+      if (item) {
+        const localized = tName(item, itemsLocale.value) || item.name
+        if (localized && ing.itemName !== localized) ing.itemName = localized
       }
     }
   }
@@ -185,13 +195,15 @@ const removeIngredient = (index: number) => {
   if (formIngredients.value.length > 1) formIngredients.value.splice(index, 1)
 }
 
+const localizeOption = (item: any) => ({ ...item, name: tName(item, itemsLocale.value) || item.name })
+
 const getItemOptions = (index: number, val: string, update: any) => {
   currentIngredientSearchValue.value[index] = val
 
   if (val === '') {
     update(() => {
       if (!ingredientOptions.value[index]) ingredientOptions.value[index] = []
-      ingredientOptions.value[index] = itemsStore.sortedItemsWithRecent.slice(0, 20)
+      ingredientOptions.value[index] = itemsStore.sortedItemsWithRecent.slice(0, 20).map(localizeOption)
     })
     return
   }
@@ -200,6 +212,7 @@ const getItemOptions = (index: number, val: string, update: any) => {
     const filtered = itemsStore.sortedItemsWithRecent
       .filter(item => matchesQuery(val, item.name, ...(item.searchNames ?? [])))
       .slice(0, 20)
+      .map(localizeOption)
     if (!ingredientOptions.value[index]) ingredientOptions.value[index] = []
     ingredientOptions.value[index] = filtered
   })
@@ -284,12 +297,12 @@ const removeInstruction = (index: number) => {
     @close="handleCloseDialog"
   >
     <!-- Basic Information -->
-    <h3 class="sp-form-label">Basic information</h3>
+    <h3 class="sp-form-label">{{ t('recipes.editRecipe') }}</h3>
 
     <q-input
       v-model="formName"
       outlined
-      label="Recipe name *"
+      :label="t('recipes.recipeName')"
       class="q-mb-md"
       :readonly="readOnly"
       :disable="readOnly"
@@ -298,7 +311,7 @@ const removeInstruction = (index: number) => {
     <q-input
       v-model="formDescription"
       outlined
-      label="Description"
+      :label="t('recipes.description')"
       type="textarea"
       rows="2"
       class="q-mb-md"
@@ -309,8 +322,7 @@ const removeInstruction = (index: number) => {
     <q-input
       v-model="formSearchNames"
       outlined
-      label="Alternative names"
-      hint="Comma-separated. Diacritic-insensitive search, e.g. palačinky, lívance"
+      :label="t('recipes.alternativeNames')"
       class="q-mb-md"
       :readonly="readOnly"
       :disable="readOnly"
@@ -321,7 +333,7 @@ const removeInstruction = (index: number) => {
         <q-input
           v-model="formIcon"
           outlined
-          label="Icon (emoji)"
+          :label="t('recipes.iconEmoji')"
           placeholder="🍽️"
           :readonly="readOnly"
           :disable="readOnly"
@@ -331,7 +343,7 @@ const removeInstruction = (index: number) => {
         <q-input
           v-model.number="formServings"
           outlined
-          label="Servings *"
+          :label="t('recipes.servingsRequired')"
           type="number"
           min="1"
           :readonly="readOnly"
@@ -345,18 +357,14 @@ const removeInstruction = (index: number) => {
       v-model="formRecipeType"
       true-value="global"
       false-value="group"
-      label="Add as global recipe"
+      :label="t('recipes.addAsGlobal')"
       color="primary"
       class="q-mb-md"
-    >
-      <q-tooltip>
-        Global recipes are visible to all users and can only be managed by system moderators
-      </q-tooltip>
-    </q-toggle>
+    />
 
     <TagSelector
       v-model="formTags"
-      label="Tags"
+      :label="t('common.tags')"
       class="q-mb-md"
       :readonly="readOnly"
     />
@@ -364,7 +372,7 @@ const removeInstruction = (index: number) => {
     <q-separator class="q-my-lg" />
 
     <!-- Ingredients -->
-    <h3 class="sp-form-label">Ingredients</h3>
+    <h3 class="sp-form-label">{{ t('recipes.ingredients') }}</h3>
 
     <div
       v-for="(ingredient, index) in formIngredients"
@@ -378,8 +386,8 @@ const removeInstruction = (index: number) => {
         dense
         use-input
         input-debounce="300"
-        label="Ingredient *"
-        placeholder="Start typing to search items..."
+        :label="t('recipes.ingredientRequired')"
+        :placeholder="t('recipes.ingredientPlaceholder')"
         :options="ingredientOptions[index] || []"
         option-label="name"
         new-value-mode="add-unique"
@@ -444,7 +452,7 @@ const removeInstruction = (index: number) => {
             v-model.number="ingredient.quantity"
             outlined
             dense
-            label="Quantity"
+            :label="t('common.quantity')"
             type="number"
             min="0"
             step="0.1"
@@ -459,7 +467,7 @@ const removeInstruction = (index: number) => {
             :options="ingredientUnitChoices[index] || []"
             outlined
             dense
-            label="Unit"
+            :label="t('common.unit')"
             :readonly="readOnly"
             :disable="readOnly"
           />
@@ -468,7 +476,7 @@ const removeInstruction = (index: number) => {
             v-model="ingredient.unit"
             outlined
             dense
-            label="Unit"
+            :label="t('common.unit')"
             placeholder="kg, pcs"
             :readonly="readOnly"
             :disable="readOnly"
@@ -497,7 +505,7 @@ const removeInstruction = (index: number) => {
       no-caps
       dense
       icon="add"
-      label="Add ingredient"
+      :label="t('recipes.addIngredient')"
       color="primary"
       class="sp-recipe__add-btn"
       @click="addIngredient"
@@ -506,7 +514,7 @@ const removeInstruction = (index: number) => {
     <q-separator class="q-my-lg" />
 
     <!-- Instructions -->
-    <h3 class="sp-form-label">Instructions</h3>
+    <h3 class="sp-form-label">{{ t('recipes.instructions') }}</h3>
 
     <div
       v-for="(_instruction, index) in formInstructions"
@@ -520,8 +528,8 @@ const removeInstruction = (index: number) => {
         dense
         type="textarea"
         rows="2"
-        :label="`Step ${index + 1}`"
-        placeholder="Describe this step..."
+        :label="`${t('recipes.instructions')} ${index + 1}`"
+        :placeholder="t('recipes.stepPlaceholder')"
         :readonly="readOnly"
         :disable="readOnly"
         class="sp-recipe__instruction-input"
@@ -547,7 +555,7 @@ const removeInstruction = (index: number) => {
       no-caps
       dense
       icon="add"
-      label="Add step"
+      :label="t('recipes.addStep')"
       color="primary"
       class="sp-recipe__add-btn"
       @click="addInstruction"
@@ -557,7 +565,7 @@ const removeInstruction = (index: number) => {
       <q-btn
         flat
         no-caps
-        :label="readOnly ? 'Close' : 'Cancel'"
+        :label="readOnly ? t('common.close') : t('common.cancel')"
         color="grey-8"
         @click="handleCloseDialog"
       />
@@ -565,7 +573,7 @@ const removeInstruction = (index: number) => {
         v-if="!readOnly"
         unelevated
         no-caps
-        label="Save"
+        :label="t('common.save')"
         color="primary"
         :disable="!isFormValid()"
         @click="handleSaveRecipe"
@@ -575,7 +583,7 @@ const removeInstruction = (index: number) => {
 
   <AddItemDialog
     v-model="showAddItemDialog"
-    title="Add new item"
+    :title="t('recipes.addNewItem')"
     :initial-data="addItemDialogInitialData"
     :show-pantry-fields="false"
     :show-global-toggle="canCreateGlobalItem"

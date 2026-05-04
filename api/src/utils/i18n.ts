@@ -44,6 +44,11 @@ export function pickTranslation<F extends string>(
 // Project an entity that has both legacy flat fields AND a translations map
 // down to the requested locale. Falls back to the legacy fields if a
 // translation entry doesn't exist (covers pre-migration docs).
+// Project an entity that has both legacy flat fields AND a translations map
+// down to the requested locale. Falls back to the legacy fields if a
+// translation entry doesn't exist (covers pre-migration docs). Keeps the
+// `translations` map on the response so the frontend can still switch locales
+// reactively without re-fetching.
 export function localizeEntity<T extends Record<string, any>>(
   entity: T,
   locale: Locale,
@@ -61,7 +66,6 @@ export function localizeEntity<T extends Record<string, any>>(
     const v = pickTranslation(translations, locale, f as any);
     if (Array.isArray(v)) out[f] = v;
   }
-  delete out.translations;
   return out;
 }
 

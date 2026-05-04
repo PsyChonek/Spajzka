@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRecipesStore, type Recipe } from '@/stores/recipesStore'
+
+const { t } = useI18n({ useScope: 'global' })
 import { GlobalRecipe, CreateMealPlanEntryRequest } from '@shared/api-client'
 import type { MealPlanEntry } from '@shared/api-client'
 import { matchesQuery } from '@/utils/search'
@@ -196,7 +199,7 @@ function parseServings(val: string | number | null) {
 <template>
   <BaseDialog
     :model-value="modelValue"
-    :title="mode === 'edit' ? 'Edit meal' : 'Add meal'"
+    :title="mode === 'edit' ? t('mealPlan.title') : t('common.add')"
     size="md"
     @update:model-value="emit('update:modelValue', $event)"
     @close="handleClose"
@@ -206,7 +209,7 @@ function parseServings(val: string | number | null) {
       :options="filteredRecipes"
       option-label="name"
       option-value="_id"
-      label="Recipe *"
+      :label="t('mealPlanDialog.recipeRequired')"
       outlined
       use-input
       input-debounce="300"
@@ -232,14 +235,14 @@ function parseServings(val: string | number | null) {
       </template>
       <template #no-option>
         <q-item>
-          <q-item-section class="text-grey">No recipes found</q-item-section>
+          <q-item-section class="text-grey">{{ t('items.noneFound') }}</q-item-section>
         </q-item>
       </template>
     </q-select>
 
     <q-input
       v-model="cookDate"
-      label="Cook date *"
+      :label="t('mealPlanDialog.cookDate')"
       type="date"
       outlined
       class="q-mb-md"
@@ -247,19 +250,17 @@ function parseServings(val: string | number | null) {
 
     <q-input
       :model-value="servings ?? ''"
-      label="Servings"
+      :label="t('mealPlanDialog.servings')"
       type="number"
       min="0.5"
       step="0.5"
       outlined
-      placeholder="(uses recipe default)"
       class="q-mb-md"
       @update:model-value="parseServings"
     />
 
     <div class="sp-meal__field">
-      <div class="sp-form-label">Eat dates</div>
-      <div class="sp-meal__hint">For leftovers — leave empty to use cook date</div>
+      <div class="sp-form-label">{{ t('mealPlan.title') }}</div>
       <div class="sp-meal__date-picker">
         <div class="sp-meal__cal-toolbar">
           <q-btn
@@ -267,17 +268,17 @@ function parseServings(val: string | number | null) {
             dense
             round
             icon="chevron_left"
-            aria-label="Previous month"
+            :aria-label="t('mealPlanDialog.previousMonth')"
             @click="shiftPickerMonth(-1)"
           />
           <div class="sp-meal__cal-title">{{ pickerLabel }}</div>
-          <q-btn flat dense no-caps label="Today" @click="pickerToday" />
+          <q-btn flat dense no-caps :label="t('mealPlanDialog.today')" @click="pickerToday" />
           <q-btn
             flat
             dense
             round
             icon="chevron_right"
-            aria-label="Next month"
+            :aria-label="t('mealPlanDialog.nextMonth')"
             @click="shiftPickerMonth(1)"
           />
         </div>
@@ -325,7 +326,7 @@ function parseServings(val: string | number | null) {
 
     <q-input
       v-model="notes"
-      label="Notes"
+      :label="t('mealPlanDialog.notes')"
       type="textarea"
       outlined
       autogrow
@@ -333,27 +334,22 @@ function parseServings(val: string | number | null) {
       :max-rows="3"
     />
 
-    <div v-if="hasGeneratedShopping" class="sp-meal__shopping-note q-mt-md">
-      <q-icon name="shopping_cart" size="16px" class="q-mr-xs" />
-      Ingredients have been added to the shopping list.
-    </div>
-
     <template #footer>
       <q-btn
         v-if="mode === 'edit'"
         flat
         no-caps
-        label="Delete"
+        :label="t('common.delete')"
         color="negative"
         icon="delete"
         class="sp-dlg-footer__leading"
         @click="handleDeleteClick"
       />
-      <q-btn flat no-caps label="Cancel" color="grey-8" @click="handleClose" />
+      <q-btn flat no-caps :label="t('common.cancel')" color="grey-8" @click="handleClose" />
       <q-btn
         unelevated
         no-caps
-        label="Save"
+        :label="t('common.save')"
         color="primary"
         :disable="!isValid"
         @click="handleSave"
@@ -363,16 +359,16 @@ function parseServings(val: string | number | null) {
 
   <ConfirmDialog
     v-model="showDeleteConfirm"
-    title="Delete meal entry"
-    message="Are you sure you want to remove this meal from the calendar?"
+    :title="t('mealPlanDialog.deleteEntry')"
+    :message="t('mealPlanDialog.deleteEntry')"
     type="danger"
-    confirm-label="Delete"
+    :confirm-label="t('common.delete')"
     @confirm="handleDeleteConfirmed"
   >
     <q-toggle
       v-if="hasGeneratedShopping"
       v-model="removeShoppingItems"
-      label="Also remove generated shopping items"
+      :label="t('mealPlanDialog.alsoRemoveShopping')"
       color="negative"
       class="q-mt-md"
     />

@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 
 interface NavLink {
   to: string
@@ -7,13 +9,15 @@ interface NavLink {
   icon: string
 }
 
-const navLinks: NavLink[] = [
-  { to: '/', label: 'Home', icon: 'home' },
-  { to: '/pantry', label: 'Pantry', icon: 'kitchen' },
-  { to: '/shopping', label: 'Shopping', icon: 'shopping_cart' },
-  { to: '/recipes', label: 'Recipes', icon: 'restaurant_menu' },
-  { to: '/meal-plan', label: 'Meal Plan', icon: 'event' }
-]
+const { t } = useI18n({ useScope: 'global' })
+
+const navLinks = computed<NavLink[]>(() => [
+  { to: '/', label: t('nav.home'), icon: 'home' },
+  { to: '/pantry', label: t('nav.pantry'), icon: 'kitchen' },
+  { to: '/shopping', label: t('nav.shopping'), icon: 'shopping_cart' },
+  { to: '/recipes', label: t('nav.recipes'), icon: 'restaurant_menu' },
+  { to: '/meal-plan', label: t('nav.mealPlan'), icon: 'event' }
+])
 
 const route = useRoute()
 const router = useRouter()

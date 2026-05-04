@@ -16,11 +16,19 @@ import SearchInput from '@/components/SearchInput.vue'
 import TagFilter from '@/components/TagFilter.vue'
 import { matchesQuery, normalizeForSearch } from '@/utils/search'
 import { formatQuantity } from '@shared/units'
+import { useContentLocale, tName } from '@/services/i18n/translateContent'
 
 const { t } = useI18n({ useScope: 'global' })
 const shoppingStore = useShoppingStore()
 const itemsStore = useItemsStore()
 const pantryStore = usePantryStore()
+const itemsLocale = useContentLocale()
+const displayName = (row: { itemId?: string; name?: string | null }): string => {
+  const fallback = row?.name || t('common.loading')
+  if (!row?.itemId) return fallback
+  const ref = itemsStore.sortedItems.find((i: any) => i._id === row.itemId)
+  return tName(ref, itemsLocale.value) || fallback
+}
 
 const searchQuery = ref('')
 const selectedTagIds = ref<string[]>([])
@@ -100,7 +108,7 @@ const toggleItem = async (item: ShoppingItem) => {
   // Unchecking later (after the undo window) leaves the pantry entry untouched.
   if (!wasCompleted && item.itemId && item.itemType) {
     const shoppingItemId = item._id
-    const itemName = item.name || 'Item'
+    const itemName = displayName(item)
     const pantryItem = await pantryStore.addItem({
       itemId: item.itemId,
       itemType: item.itemType as unknown as CreatePantryItemRequest.itemType,
@@ -212,7 +220,7 @@ const subtitle = computed(() => {
             />
             <div class="sp-shop-card__icon">{{ row.icon || '📦' }}</div>
             <div class="col sp-shop-card__body" @click="toggleItem(row)">
-              <div class="sp-shop-card__name">{{ row.name || t('common.loading') }}</div>
+              <div class="sp-shop-card__name">{{ displayName(row) }}</div>
             </div>
             <div class="sp-shop-card__qty">
               <q-btn
@@ -261,7 +269,7 @@ const subtitle = computed(() => {
               />
               <div class="sp-shop-card__icon sp-shop-card__icon--muted">{{ row.icon || '📦' }}</div>
               <div class="col sp-shop-card__body" @click="toggleItem(row)">
-                <div class="sp-shop-card__name sp-shop-card__name--done">{{ row.name || t('common.loading') }}</div>
+                <div class="sp-shop-card__name sp-shop-card__name--done">{{ displayName(row) }}</div>
               </div>
               <div class="text-grey-6 q-mr-sm">{{ formatQuantity(row.quantity || 1, row.defaultUnit || 'pcs', { promote: true }) }}</div>
             </q-card-section>

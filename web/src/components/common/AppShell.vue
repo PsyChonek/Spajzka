@@ -99,16 +99,16 @@ const navigateTo = (to: string) => {
     >
       <div class="sp-shell__drawer-header">
         <div class="sp-shell__drawer-brand">Špajzka</div>
-        <div class="sp-shell__drawer-tag">Pantry &amp; shopping</div>
+        <div class="sp-shell__drawer-tag">{{ t('nav.pantry') }} &amp; {{ t('nav.shopping') }}</div>
       </div>
       <q-scroll-area class="sp-shell__drawer-scroll">
         <q-list padding>
-          <q-item-label header>Group</q-item-label>
+          <q-item-label header>{{ t('nav.groups') }}</q-item-label>
           <GroupSelector variant="drawer" />
 
           <q-separator class="q-my-md" />
 
-          <q-item-label header>Navigate</q-item-label>
+          <q-item-label header>{{ t('common.more') }}</q-item-label>
           <q-item
             v-for="link in navLinks"
             :key="link.to"

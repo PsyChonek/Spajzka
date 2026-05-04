@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, computed, ref } from 'vue'
 import { useQuasar } from 'quasar'
+import { useI18n } from 'vue-i18n'
 import { useHistoryStore, type HistoryEntityFilter, type HistoryActionFilter } from '@/stores/historyStore'
 import type { HistoryEntry } from '@shared/api-client'
 import PageWrapper from '@/components/PageWrapper.vue'
@@ -9,6 +10,7 @@ import EmptyState from '@/components/common/EmptyState.vue'
 import BaseDialog from '@/components/BaseDialog.vue'
 
 const $q = useQuasar()
+const { t } = useI18n({ useScope: 'global' })
 
 const showClearRangeDialog = ref(false)
 const rangeFrom = ref<string>('')
@@ -16,36 +18,46 @@ const rangeTo = ref<string>('')
 
 const historyStore = useHistoryStore()
 
-const entityTypeOptions: { label: string; value: HistoryEntityFilter; icon: string }[] = [
-  { label: 'Pantry', value: 'pantry', icon: 'kitchen' },
-  { label: 'Shopping', value: 'shopping', icon: 'shopping_cart' },
-  { label: 'Meal Plan', value: 'mealPlan', icon: 'event' },
-  { label: 'Recipes', value: 'recipe', icon: 'restaurant_menu' },
-  { label: 'Tags', value: 'tag', icon: 'label' },
-  { label: 'Items', value: 'item', icon: 'inventory' },
-  { label: 'Group', value: 'group', icon: 'group' }
-]
+const entityTypeOptions = computed<{ label: string; value: HistoryEntityFilter; icon: string }[]>(() => [
+  { label: t('nav.pantry'), value: 'pantry', icon: 'kitchen' },
+  { label: t('nav.shopping'), value: 'shopping', icon: 'shopping_cart' },
+  { label: t('nav.mealPlan'), value: 'mealPlan', icon: 'event' },
+  { label: t('nav.recipes'), value: 'recipe', icon: 'restaurant_menu' },
+  { label: t('common.tags'), value: 'tag', icon: 'label' },
+  { label: t('nav.items'), value: 'item', icon: 'inventory' },
+  { label: t('nav.groups'), value: 'group', icon: 'group' }
+])
 
-const actionOptions: { label: string; value: HistoryActionFilter | null }[] = [
-  { label: 'All actions', value: null },
-  { label: 'Created', value: 'create' },
-  { label: 'Updated', value: 'update' },
-  { label: 'Deleted', value: 'delete' },
-  { label: 'Joined', value: 'join' },
-  { label: 'Left', value: 'leave' },
-  { label: 'Kicked', value: 'kick' },
-  { label: 'Role change', value: 'role_change' }
-]
+const actionOptions = computed<{ label: string; value: HistoryActionFilter | null }[]>(() => [
+  { label: t('history.allActions'), value: null },
+  { label: t('history.actions.create'), value: 'create' },
+  { label: t('history.actions.update'), value: 'update' },
+  { label: t('history.actions.delete'), value: 'delete' },
+  { label: t('history.actions.join'), value: 'join' },
+  { label: t('history.actions.leave'), value: 'leave' },
+  { label: t('history.actions.kick'), value: 'kick' },
+  { label: t('history.actions.role_change'), value: 'role_change' }
+])
 
-const actionLabels: Record<string, string> = {
-  create: 'Created', update: 'Updated', delete: 'Deleted',
-  join: 'Joined', leave: 'Left', kick: 'Kicked', role_change: 'Role changed'
-}
+const actionLabels = computed<Record<string, string>>(() => ({
+  create: t('history.actions.create'),
+  update: t('history.actions.update'),
+  delete: t('history.actions.delete'),
+  join: t('history.actions.join'),
+  leave: t('history.actions.leave'),
+  kick: t('history.actions.kick'),
+  role_change: t('history.actions.role_change')
+}))
 
-const entityLabels: Record<string, string> = {
-  pantry: 'pantry item', shopping: 'shopping item', mealPlan: 'meal plan',
-  recipe: 'recipe', tag: 'tag', item: 'item', group: 'group'
-}
+const entityLabels = computed<Record<string, string>>(() => ({
+  pantry: t('history.entities.pantry'),
+  shopping: t('history.entities.shopping'),
+  mealPlan: t('history.entities.mealPlan'),
+  recipe: t('history.entities.recipe'),
+  tag: t('history.entities.tag'),
+  item: t('history.entities.item'),
+  group: t('history.entities.group')
+}))
 
 const actionColors: Record<string, string> = {
   create: 'positive', update: 'primary', delete: 'negative',
@@ -60,9 +72,9 @@ const actionIcons: Record<string, string> = {
 const hasEntries = computed(() => historyStore.entries.length > 0)
 
 function entrySummary(entry: HistoryEntry): string {
-  const a = actionLabels[entry.action ?? ''] ?? entry.action ?? ''
-  const e = entityLabels[entry.entityType ?? ''] ?? entry.entityType ?? ''
-  return `${a} ${e}: ${entry.entityName ?? '(unnamed)'}`
+  const a = actionLabels.value[entry.action ?? ''] ?? entry.action ?? ''
+  const e = entityLabels.value[entry.entityType ?? ''] ?? entry.entityType ?? ''
+  return `${a} ${e}: ${entry.entityName ?? t('history.unnamed')}`
 }
 
 function formatTimestamp(iso?: string): string {
@@ -70,12 +82,12 @@ function formatTimestamp(iso?: string): string {
   const date = new Date(iso)
   const diff = Date.now() - date.getTime()
   const min = Math.round(diff / 60000)
-  if (min < 1) return 'just now'
-  if (min < 60) return `${min} min ago`
+  if (min < 1) return t('time.justNow')
+  if (min < 60) return t('time.minutesAgo', { n: min })
   const hr = Math.round(min / 60)
-  if (hr < 24) return `${hr}h ago`
+  if (hr < 24) return t('time.hoursAgo', { n: hr })
   const day = Math.round(hr / 24)
-  if (day < 7) return `${day}d ago`
+  if (day < 7) return t('time.daysAgo', { n: day })
   return date.toLocaleDateString()
 }
 
@@ -157,41 +169,41 @@ onMounted(() => historyStore.fetchInitial())
 <template>
   <q-page>
     <PageWrapper>
-      <PageHeader title="History" :subtitle="subtitle" icon="history">
+      <PageHeader :title="t('history.title')" :subtitle="subtitle" icon="history">
         <template #actions>
           <q-btn
             flat
             dense
             round
             icon="refresh"
-            aria-label="Refresh"
+            :aria-label="t('common.more')"
             :loading="historyStore.loading"
             @click="historyStore.fetchInitial()"
           />
-          <q-btn flat dense round icon="more_vert" aria-label="More actions">
+          <q-btn flat dense round icon="more_vert" :aria-label="t('common.more')">
             <q-menu>
               <q-list style="min-width: 240px">
                 <q-item clickable v-close-popup @click="confirmClearOlderThan(7)">
                   <q-item-section avatar><q-icon name="schedule" /></q-item-section>
-                  <q-item-section>Clear older than 7 days</q-item-section>
+                  <q-item-section>{{ t('history.clearOlder', { n: 7 }) }}</q-item-section>
                 </q-item>
                 <q-item clickable v-close-popup @click="confirmClearOlderThan(30)">
                   <q-item-section avatar><q-icon name="schedule" /></q-item-section>
-                  <q-item-section>Clear older than 30 days</q-item-section>
+                  <q-item-section>{{ t('history.clearOlder', { n: 30 }) }}</q-item-section>
                 </q-item>
                 <q-item clickable v-close-popup @click="confirmClearOlderThan(90)">
                   <q-item-section avatar><q-icon name="schedule" /></q-item-section>
-                  <q-item-section>Clear older than 90 days</q-item-section>
+                  <q-item-section>{{ t('history.clearOlder', { n: 90 }) }}</q-item-section>
                 </q-item>
                 <q-separator />
                 <q-item clickable v-close-popup @click="openClearRangeDialog">
                   <q-item-section avatar><q-icon name="date_range" /></q-item-section>
-                  <q-item-section>Clear by date range…</q-item-section>
+                  <q-item-section>{{ t('history.clearByRange') }}</q-item-section>
                 </q-item>
                 <q-separator />
                 <q-item clickable v-close-popup class="text-negative" @click="confirmClearAll">
                   <q-item-section avatar><q-icon name="delete_forever" /></q-item-section>
-                  <q-item-section>Clear all history</q-item-section>
+                  <q-item-section>{{ t('history.clearAll') }}</q-item-section>
                 </q-item>
               </q-list>
             </q-menu>
@@ -200,7 +212,7 @@ onMounted(() => historyStore.fetchInitial())
       </PageHeader>
 
       <div class="sp-history__filters">
-        <div class="text-caption text-grey-7 q-mb-xs">Filter by type</div>
+        <div class="text-caption text-grey-7 q-mb-xs">{{ t('history.filterByType') }}</div>
         <div class="row q-gutter-xs">
           <q-chip
             v-for="opt in entityTypeOptions"
@@ -223,7 +235,7 @@ onMounted(() => historyStore.fetchInitial())
             option-value="value"
             option-label="label"
             emit-value map-options
-            label="Action"
+            :label="t('history.action')"
             outlined dense
             style="min-width: 180px"
             @update:model-value="historyStore.setAction($event)"
@@ -231,7 +243,7 @@ onMounted(() => historyStore.fetchInitial())
           <q-btn
             v-if="historyStore.filterEntityTypes.length > 0 || historyStore.filterAction"
             flat dense no-caps
-            label="Clear filters"
+            :label="t('history.clearFilters')"
             icon="clear"
             @click="clearFilters"
           />
@@ -243,8 +255,8 @@ onMounted(() => historyStore.fetchInitial())
       <EmptyState
         v-if="historyStore.isEmpty"
         icon="history"
-        title="No activity yet"
-        hint="Make some changes — they'll show up here as you go."
+        :title="t('home.noActivity')"
+        :hint="t('history.emptyHint')"
       />
 
       <q-list v-else class="sp-history__list">
@@ -268,14 +280,14 @@ onMounted(() => historyStore.fetchInitial())
             <q-item-section>
               <q-item-label>{{ entrySummary(entry) }}</q-item-label>
               <q-item-label caption>
-                {{ entry.userEmail ?? 'unknown user' }} · {{ formatTimestamp(entry.timestamp) }}
+                {{ entry.userEmail ?? t('history.unknownUser') }} · {{ formatTimestamp(entry.timestamp) }}
               </q-item-label>
             </q-item-section>
             <q-item-section side>
               <q-btn
                 flat round dense size="sm"
                 icon="delete" color="grey-7"
-                aria-label="Delete entry"
+                :aria-label="t('common.delete')"
                 @click.stop="confirmDeleteEntry(entry)"
               />
             </q-item-section>
@@ -293,31 +305,31 @@ onMounted(() => historyStore.fetchInitial())
         <q-btn
           flat color="primary" no-caps
           :loading="historyStore.loadingMore"
-          label="Load more"
+          :label="t('history.loadMore')"
           @click="historyStore.fetchMore()"
         />
       </div>
 
       <BaseDialog
         v-model="showClearRangeDialog"
-        title="Clear by date range"
-        subtitle="Delete entries between these dates (inclusive). Leave either blank for an open-ended range."
+        :title="t('history.clearByRange')"
+        :subtitle="t('history.clearByRangeHint')"
         header-icon="delete_sweep"
         header-icon-color="negative"
         size="sm"
       >
         <div class="q-gutter-sm">
-          <q-input v-model="rangeFrom" label="From" type="date" outlined stack-label />
-          <q-input v-model="rangeTo" label="To" type="date" outlined stack-label />
+          <q-input v-model="rangeFrom" :label="t('history.from')" type="date" outlined stack-label />
+          <q-input v-model="rangeTo" :label="t('history.to')" type="date" outlined stack-label />
         </div>
 
         <template #footer="{ close }">
-          <q-btn flat no-caps label="Cancel" color="grey-8" @click="close" />
+          <q-btn flat no-caps :label="t('common.cancel')" color="grey-8" @click="close" />
           <q-btn
             unelevated
             no-caps
             color="negative"
-            label="Delete range"
+            :label="t('history.deleteRange')"
             :disable="!rangeFrom && !rangeTo"
             @click="confirmClearRange"
           />

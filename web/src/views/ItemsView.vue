@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useQuasar } from 'quasar'
+import { useI18n } from 'vue-i18n'
 import { useItemsStore, type Item } from '@/stores/itemsStore'
 import PageWrapper from '@/components/PageWrapper.vue'
 import PageHeader from '@/components/common/PageHeader.vue'
@@ -14,11 +15,19 @@ import TagFilter from '@/components/TagFilter.vue'
 import { useTagsStore } from '@/stores/tagsStore'
 import { matchesQuery } from '@/utils/search'
 import type { UnitType } from '@shared/units'
+import { useContentLocale, tName } from '@/services/i18n/translateContent'
 
 const $q = useQuasar()
+const { t } = useI18n({ useScope: 'global' })
 const itemsStore = useItemsStore()
 const authStore = useAuthStore()
 const tagsStore = useTagsStore()
+const itemsLocale = useContentLocale()
+const itemName = (item: Item) => tName(item, itemsLocale.value) || item.name
+const tagName = (tagId: string) => {
+  const tag = tagsStore.getTagById(tagId)
+  return tag ? (tName(tag as any, itemsLocale.value) || tag.name) : ''
+}
 
 const searchQuery = ref('')
 const selectedTagIds = ref<string[]>([])
@@ -30,16 +39,16 @@ const deletingItem = ref<Item | null>(null)
 const initialFormData = ref<Partial<ItemFormData>>({})
 const focusField = ref<'name' | 'icon' | 'unit' | 'category'>('name')
 
-const allColumns = [
+const allColumns = computed(() => [
   { name: 'icon', label: '', align: 'center' as const, field: (r: Item) => r.icon || '', sortable: false, classes: 'col-icon', headerClasses: 'col-icon' },
-  { name: 'name', required: true, label: 'Name', align: 'left' as const, field: (r: Item) => r.name, sortable: true, classes: 'col-name', headerClasses: 'col-name' },
-  { name: 'defaultUnit', label: 'Unit', align: 'left' as const, field: (r: Item) => r.defaultUnit || '-', sortable: true, classes: 'col-unit', headerClasses: 'col-unit' },
-  { name: 'category', label: 'Category', align: 'left' as const, field: (r: Item) => r.category || '-', sortable: true, hideOnMobile: true, classes: 'col-category', headerClasses: 'col-category' },
-  { name: 'tags', label: 'Tags', align: 'left' as const, field: (r: Item) => r.tags || [], sortable: false, hideOnMobile: true, classes: 'col-tags', headerClasses: 'col-tags' },
+  { name: 'name', required: true, label: t('common.name'), align: 'left' as const, field: (r: Item) => itemName(r), sortable: true, classes: 'col-name', headerClasses: 'col-name' },
+  { name: 'defaultUnit', label: t('common.unit'), align: 'left' as const, field: (r: Item) => r.defaultUnit || '-', sortable: true, classes: 'col-unit', headerClasses: 'col-unit' },
+  { name: 'category', label: t('common.category'), align: 'left' as const, field: (r: Item) => r.category || '-', sortable: true, hideOnMobile: true, classes: 'col-category', headerClasses: 'col-category' },
+  { name: 'tags', label: t('common.tags'), align: 'left' as const, field: (r: Item) => r.tags || [], sortable: false, hideOnMobile: true, classes: 'col-tags', headerClasses: 'col-tags' },
   { name: 'actions', label: '', align: 'center' as const, field: '', sortable: false, hideOnMobile: true, classes: 'col-actions', headerClasses: 'col-actions' }
-]
+])
 
-const columns = computed(() => $q.screen.lt.md ? allColumns.filter((c: any) => !c.hideOnMobile) : allColumns)
+const columns = computed(() => $q.screen.lt.md ? allColumns.value.filter((c: any) => !c.hideOnMobile) : allColumns.value)
 
 const filteredItems = computed(() => {
   let items = itemsStore.sortedItems
@@ -154,7 +163,7 @@ const cancelDelete = () => { deletingItem.value = null }
 
 const deleteDialogMessage = computed(() => {
   if (!deletingItem.value) return ''
-  return `Are you sure you want to delete "<strong>${deletingItem.value.name}</strong>"?<br><br>This item will be removed from all pantry and shopping lists.`
+  return t('items.deleteConfirm', { name: itemName(deletingItem.value) })
 })
 
 const canEditItem = (item: Item) => item.type === 'global' ? canUpdateGlobalItems.value : true
@@ -169,25 +178,25 @@ const canEditItemFields = computed(() => {
 const subtitle = computed(() => {
   const total = itemsStore.sortedItems.length
   if (searchQuery.value || selectedTagIds.value.length > 0) {
-    return `${filteredItems.value.length} of ${total} item${total !== 1 ? 's' : ''}`
+    return t('items.subtitleFiltered', { shown: filteredItems.value.length, total })
   }
-  return total === 0 ? 'Catalog of all items you can add' : `${total} item${total !== 1 ? 's' : ''} in catalog`
+  return total === 0 ? t('items.subtitleEmpty') : t('items.subtitleCount', { count: total })
 })
 </script>
 
 <template>
   <q-page>
     <PageWrapper>
-      <PageHeader title="Items" :subtitle="subtitle" icon="inventory">
+      <PageHeader :title="t('items.title')" :subtitle="subtitle" icon="inventory">
         <template #actions>
           <q-btn
             color="secondary"
             unelevated
             no-caps
             icon="add"
-            label="Add"
+            :label="t('common.add')"
             class="gt-sm"
-            aria-label="Add item"
+            :aria-label="t('items.addNew')"
             @click="openAddDialog"
           />
         </template>
@@ -203,11 +212,11 @@ const subtitle = computed(() => {
       <EmptyState
         v-if="filteredItems.length === 0"
         :icon="searchQuery ? 'search_off' : 'inventory_2'"
-        :title="searchQuery ? 'No items found' : 'No items yet'"
-        :hint="searchQuery ? 'Try a different search.' : 'Items in your catalog can be added to pantry or shopping list.'"
+        :title="searchQuery ? t('items.noneFound') : t('items.noneYet')"
+        :hint="searchQuery ? t('items.tryDifferentSearch') : t('items.catalogHint')"
       >
         <template #action>
-          <q-btn color="secondary" unelevated no-caps icon="add" label="Add item" @click="openAddDialog" />
+          <q-btn color="secondary" unelevated no-caps icon="add" :label="t('common.add')" @click="openAddDialog" />
         </template>
       </EmptyState>
 
@@ -224,12 +233,12 @@ const subtitle = computed(() => {
           <q-card-section class="row items-center q-gutter-md no-wrap">
             <div class="sp-item-card__icon">{{ row.icon || '📦' }}</div>
             <div class="col sp-item-card__body">
-              <div class="sp-item-card__name">{{ row.name }}</div>
+              <div class="sp-item-card__name">{{ itemName(row) }}</div>
               <div class="sp-item-card__meta">
                 <span>{{ row.defaultUnit || '-' }}</span>
                 <span v-if="row.category" class="dot">·</span>
                 <span v-if="row.category">{{ row.category }}</span>
-                <q-badge v-if="row.type === 'global'" color="secondary" class="q-ml-xs">Global</q-badge>
+                <q-badge v-if="row.type === 'global'" color="secondary" class="q-ml-xs">{{ t('items.globalItem') }}</q-badge>
               </div>
               <div v-if="row.tags && row.tags.length > 0" class="row q-gutter-xs q-mt-xs">
                 <q-chip
@@ -241,7 +250,7 @@ const subtitle = computed(() => {
                     color: getContrastColor(tagsStore.getTagById(tagId)?.color || '#6200EA')
                   }"
                 >
-                  {{ tagsStore.getTagById(tagId)?.name }}
+                  {{ tagName(tagId) }}
                 </q-chip>
               </div>
             </div>
@@ -266,8 +275,8 @@ const subtitle = computed(() => {
           </template>
           <template v-slot:body-cell-name="props">
             <q-td :props="props" class="cursor-pointer" @click="openEditDialog(props.row, 'name')">
-              <strong>{{ props.row.name }}</strong>
-              <q-badge v-if="props.row.type === 'global'" color="secondary" class="q-ml-sm">Global</q-badge>
+              <strong>{{ itemName(props.row) }}</strong>
+              <q-badge v-if="props.row.type === 'global'" color="secondary" class="q-ml-sm">{{ t('items.globalItem') }}</q-badge>
             </q-td>
           </template>
           <template v-slot:body-cell-defaultUnit="props">
@@ -296,7 +305,7 @@ const subtitle = computed(() => {
                   <span v-if="tagsStore.getTagById(tagId)?.icon" style="margin-right: 6px">
                     {{ tagsStore.getTagById(tagId)?.icon }}
                   </span>
-                  <span>{{ tagsStore.getTagById(tagId)?.name }}</span>
+                  <span>{{ tagName(tagId) }}</span>
                 </q-chip>
               </div>
               <span v-else class="text-grey-6">-</span>
@@ -306,22 +315,22 @@ const subtitle = computed(() => {
             <q-td :props="props">
               <q-btn flat dense round color="primary" icon="edit" size="sm"
                 :disable="!canEditItem(props.row)" @click="openEditDialog(props.row)">
-                <q-tooltip>{{ canEditItem(props.row) ? 'Edit' : 'No permission' }}</q-tooltip>
+                <q-tooltip>{{ canEditItem(props.row) ? t('common.edit') : t('errors.unauthorized') }}</q-tooltip>
               </q-btn>
               <q-btn flat dense round color="negative" icon="delete" size="sm"
                 :disable="!canDeleteItem(props.row)" @click="deleteItem(props.row)">
-                <q-tooltip>{{ canDeleteItem(props.row) ? 'Delete' : 'No permission' }}</q-tooltip>
+                <q-tooltip>{{ canDeleteItem(props.row) ? t('common.delete') : t('errors.unauthorized') }}</q-tooltip>
               </q-btn>
             </q-td>
           </template>
         </q-table>
       </div>
 
-      <FabAdd class="lt-md" aria-label="Add item" @click="openAddDialog" />
+      <FabAdd class="lt-md" :aria-label="t('items.addNew')" @click="openAddDialog" />
 
       <AddItemDialog
         v-model="showAddDialog"
-        title="Add New Item"
+        :title="t('items.addNew')"
         :initial-data="initialFormData"
         :show-global-toggle="canCreateGlobalItems"
         @save="saveNewItem"
@@ -329,7 +338,7 @@ const subtitle = computed(() => {
 
       <AddItemDialog
         v-model="showEditDialog"
-        title="Edit Item"
+        :title="t('items.editItem')"
         :initial-data="initialFormData"
         :readonly-item-fields="!canEditItemFields"
         :focus-field="focusField"
@@ -341,10 +350,10 @@ const subtitle = computed(() => {
 
       <ConfirmDialog
         v-model="showDeleteDialog"
-        title="Delete Item"
+        :title="t('items.deleteTitle')"
         :message="deleteDialogMessage"
         type="danger"
-        confirm-label="Delete"
+        :confirm-label="t('common.delete')"
         @confirm="confirmDelete"
         @cancel="cancelDelete"
       />

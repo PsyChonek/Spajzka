@@ -1,5 +1,11 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import type { Item } from '@/stores/itemsStore'
+import { useContentLocale, tName } from '@/services/i18n/translateContent'
+
+const { t } = useI18n({ useScope: 'global' })
+const itemsLocale = useContentLocale()
+const itemDisplayName = (item: Item) => tName(item, itemsLocale.value) || item.name
 
 interface Props {
   suggestedItems: Item[]
@@ -18,7 +24,7 @@ const handleAddItem = (item: Item) => {
 
 <template>
   <div v-if="suggestedItems.length > 0" class="suggestions-container">
-    <div class="text-subtitle2 text-grey-7 q-mb-sm">Suggested from Items:</div>
+    <div class="text-subtitle2 text-grey-7 q-mb-sm">{{ t('items.title') }}:</div>
     <div class="suggestions-list">
       <q-card
         v-for="item in suggestedItems"
@@ -31,7 +37,7 @@ const handleAddItem = (item: Item) => {
             <div class="suggestion-text">
               <div class="suggestion-icon">{{ item.icon || '📦' }}</div>
               <div>
-                <div class="text-weight-medium">{{ item.name }}</div>
+                <div class="text-weight-medium">{{ itemDisplayName(item) }}</div>
                 <div class="text-caption text-grey-7">
                   {{ item.defaultUnit || '-' }}
                   <span v-if="item.category"> • {{ item.category }}</span>

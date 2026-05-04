@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
 import { Notify } from 'quasar'
+import { useI18n } from 'vue-i18n'
 import { useMealPlanStore } from '@/stores/mealPlanStore'
+
+const { t } = useI18n({ useScope: 'global' })
 import { isOnline } from '@/utils/network'
 import BaseDialog from './BaseDialog.vue'
 import EmptyState from './common/EmptyState.vue'
@@ -101,7 +104,7 @@ function handleClose() {
 <template>
   <BaseDialog
     :model-value="modelValue"
-    title="Generate shopping list"
+    :title="t('shoppingDialog.title')"
     :subtitle="subtitle"
     header-icon="shopping_cart"
     header-icon-color="secondary"
@@ -118,12 +121,12 @@ function handleClose() {
       <template #avatar>
         <q-icon name="cloud_off" />
       </template>
-      Shopping generation requires an online connection.
+      {{ t('errors.networkError') }}
     </q-banner>
 
     <q-toggle
       v-model="missingOnly"
-      label="Subtract pantry stock (only add what's missing)"
+      :label="t('shoppingDialog.subtractPantry')"
       color="primary"
       :disable="loading"
       class="q-mb-md"
@@ -161,8 +164,8 @@ function handleClose() {
     <EmptyState
       v-else-if="!loading"
       icon="check_circle"
-      title="Nothing to add"
-      hint="No ingredients are missing for this period."
+      :title="t('shoppingDialog.nothingToAdd')"
+      hint=""
     />
 
     <q-banner
@@ -181,14 +184,14 @@ function handleClose() {
     </q-banner>
 
     <template #footer>
-      <q-btn flat no-caps label="Cancel" color="grey-8" @click="handleClose" />
+      <q-btn flat no-caps :label="t('common.cancel')" color="grey-8" @click="handleClose" />
       <q-btn
         unelevated
         no-caps
         color="secondary"
         text-color="white"
         icon="shopping_cart"
-        :label="willAddCount === 0 ? 'Nothing to add' : `Add ${willAddCount} to shopping`"
+        :label="willAddCount === 0 ? t('shoppingDialog.nothingToAdd') : t('shopping.addItem')"
         :loading="generating"
         :disable="!online || willAddCount === 0 || loading"
         @click="handleGenerate"

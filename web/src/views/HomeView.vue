@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import PageWrapper from '@/components/PageWrapper.vue'
 import PageHeader from '@/components/common/PageHeader.vue'
 import Stat from '@/components/common/Stat.vue'
@@ -14,6 +15,7 @@ import { useHistoryStore } from '@/stores/historyStore'
 import { useAuthStore } from '@/stores/authStore'
 
 const router = useRouter()
+const { t } = useI18n({ useScope: 'global' })
 const pantryStore = usePantryStore()
 const shoppingStore = useShoppingStore()
 const recipesStore = useRecipesStore()
@@ -41,10 +43,10 @@ const recentActivity = computed(() => (historyStore.entries ?? []).slice(0, 5))
 
 const greeting = computed(() => {
   const h = new Date().getHours()
-  if (h < 5) return 'Late night'
-  if (h < 12) return 'Good morning'
-  if (h < 18) return 'Good afternoon'
-  return 'Good evening'
+  if (h < 5) return t('time.lateNight')
+  if (h < 12) return t('time.goodMorning')
+  if (h < 18) return t('time.goodAfternoon')
+  return t('time.goodEvening')
 })
 
 const userName = computed(() => {
@@ -53,11 +55,11 @@ const userName = computed(() => {
   return e.split('@')[0]
 })
 
-const quickActions = [
-  { icon: 'add_shopping_cart', label: 'Add to shopping', route: '/shopping', color: 'primary' },
-  { icon: 'restaurant_menu', label: 'Browse recipes', route: '/recipes', color: 'primary' },
-  { icon: 'event', label: 'Plan a meal', route: '/meal-plan', color: 'secondary' }
-]
+const quickActions = computed(() => [
+  { icon: 'add_shopping_cart', label: t('home.addToShopping'), route: '/shopping', color: 'primary' },
+  { icon: 'restaurant_menu', label: t('home.browseRecipes'), route: '/recipes', color: 'primary' },
+  { icon: 'event', label: t('home.planMeal'), route: '/meal-plan', color: 'secondary' }
+])
 
 const formatActivity = (e: any) => {
   const action = e.action ?? ''
@@ -74,10 +76,10 @@ const formatTime = (ts: any) => {
   if (isNaN(date.getTime())) return ''
   const now = new Date()
   const diff = (now.getTime() - date.getTime()) / 1000
-  if (diff < 60) return 'just now'
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`
-  if (diff < 86400 * 7) return `${Math.floor(diff / 86400)}d ago`
+  if (diff < 60) return t('time.justNow')
+  if (diff < 3600) return t('time.minutesAgo', { n: Math.floor(diff / 60) })
+  if (diff < 86400) return t('time.hoursAgo', { n: Math.floor(diff / 3600) })
+  if (diff < 86400 * 7) return t('time.daysAgo', { n: Math.floor(diff / 86400) })
   return date.toLocaleDateString()
 }
 
@@ -89,35 +91,35 @@ const navigateTo = (path: string) => router.push(path)
     <PageWrapper>
       <PageHeader
         :subtitle="userName
-          ? `${greeting}, ${userName} — here's what's in your kitchen today.`
-          : `${greeting} — here's what's in your kitchen today.`"
+          ? t('home.subtitleWithName', { greeting, name: userName })
+          : t('home.subtitle', { greeting })"
       />
 
       <!-- Stats -->
       <section class="sp-stats-grid sp-section">
         <Stat
-          label="In pantry"
+          :label="t('home.stats.pantry')"
           :value="pantryCount"
           icon="kitchen"
           color="primary"
           to="/pantry"
         />
         <Stat
-          label="To buy"
+          :label="t('home.stats.toBuy')"
           :value="shoppingPending"
           icon="shopping_cart"
           color="secondary"
           to="/shopping"
         />
         <Stat
-          label="Recipes"
+          :label="t('home.stats.recipes')"
           :value="recipeCount"
           icon="restaurant_menu"
           color="primary"
           to="/recipes"
         />
         <Stat
-          label="Meals this week"
+          :label="t('home.stats.mealsThisWeek')"
           :value="upcomingMeals"
           icon="event"
           color="secondary"
@@ -126,7 +128,7 @@ const navigateTo = (path: string) => router.push(path)
       </section>
 
       <!-- Quick actions -->
-      <SectionCard title="Quick actions" subtitle="Jump into common tasks">
+      <SectionCard :title="t('home.quickActions')" :subtitle="t('home.quickActionsHint')">
         <div class="sp-quick-grid">
           <q-btn
             v-for="action in quickActions"
@@ -143,12 +145,12 @@ const navigateTo = (path: string) => router.push(path)
       </SectionCard>
 
       <!-- Recent activity -->
-      <SectionCard title="Recent activity">
+      <SectionCard :title="t('home.recentActivity')">
         <template #actions>
           <q-btn
             flat
             no-caps
-            label="View all"
+            :label="t('home.viewAll')"
             icon-right="chevron_right"
             color="primary"
             @click="navigateTo('/history')"
@@ -158,8 +160,8 @@ const navigateTo = (path: string) => router.push(path)
         <EmptyState
           v-if="recentActivity.length === 0"
           icon="history"
-          title="No activity yet"
-          hint="Add an item to your pantry or shopping list to see it here."
+          :title="t('home.noActivity')"
+          :hint="t('home.noActivityHint')"
         />
         <q-list v-else padding separator>
           <q-item

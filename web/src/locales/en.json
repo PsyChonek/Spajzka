@@ -95,7 +95,27 @@
     "addItem": "Add to pantry",
     "itemAdded": "Item added to pantry",
     "itemRemoved": "Item removed from pantry",
-    "itemUpdated": "Item updated"
+    "itemUpdated": "Item updated",
+    "stat": "In pantry"
+  },
+  "home": {
+    "subtitleWithName": "{greeting}, {name} — here's what's in your kitchen today.",
+    "subtitle": "{greeting} — here's what's in your kitchen today.",
+    "noActivity": "No activity yet",
+    "noActivityHint": "Add an item to your pantry or shopping list to see it here.",
+    "recentActivity": "Recent activity",
+    "viewAll": "View all",
+    "quickActions": "Quick actions",
+    "quickActionsHint": "Jump into common tasks",
+    "addToShopping": "Add to shopping",
+    "browseRecipes": "Browse recipes",
+    "planMeal": "Plan a meal",
+    "stats": {
+      "pantry": "In pantry",
+      "toBuy": "To buy",
+      "recipes": "Recipes",
+      "mealsThisWeek": "Meals this week"
+    }
   },
   "shopping": {
     "title": "Shopping",
@@ -121,7 +141,16 @@
     "unitType": "Unit type",
     "barcode": "Barcode",
     "unknown": "Unknown Item",
-    "fillTranslations": "Fill translations"
+    "fillTranslations": "Fill translations",
+    "deleteTitle": "Delete Item",
+    "deleteConfirm": "Are you sure you want to delete \"{name}\"? This item will be removed from all pantry and shopping lists.",
+    "noneFound": "No items found",
+    "noneYet": "No items yet",
+    "tryDifferentSearch": "Try a different search.",
+    "catalogHint": "Items in your catalog can be added to pantry or shopping list.",
+    "subtitleEmpty": "Catalog of all items you can add",
+    "subtitleCount": "{count} item(s) in catalog",
+    "subtitleFiltered": "{shown} of {total} item(s)"
   },
   "recipes": {
     "title": "Recipes",
@@ -136,14 +165,93 @@
     "prepTime": "Prep time",
     "cookTime": "Cook time",
     "minutes": "min",
-    "permissionDenied": "You do not have permission to create global recipes"
+    "permissionDenied": "You do not have permission to create global recipes",
+    "cook": "Cook",
+    "subtitleEmpty": "Build your recipe collection",
+    "subtitleCount": "{count} recipe(s) in collection",
+    "subtitleFiltered": "{shown} of {total} recipe(s)",
+    "recipeName": "Recipe name *",
+    "alternativeNames": "Alternative names",
+    "iconEmoji": "Icon (emoji)",
+    "servingsRequired": "Servings *",
+    "addAsGlobal": "Add as global recipe",
+    "ingredientRequired": "Ingredient *",
+    "ingredientPlaceholder": "Start typing to search items...",
+    "addIngredient": "Add ingredient",
+    "stepPlaceholder": "Describe this step...",
+    "addStep": "Add step",
+    "addNewItem": "Add new item"
+  },
+  "mealPlanDialog": {
+    "recipeRequired": "Recipe *",
+    "cookDate": "Cook date *",
+    "servings": "Servings",
+    "previousMonth": "Previous month",
+    "today": "Today",
+    "nextMonth": "Next month",
+    "notes": "Notes",
+    "deleteEntry": "Delete meal entry",
+    "alsoRemoveShopping": "Also remove generated shopping items"
+  },
+  "shoppingDialog": {
+    "title": "Generate shopping list",
+    "subtractPantry": "Subtract pantry stock (only add what's missing)",
+    "nothingToAdd": "Nothing to add"
+  },
+  "suggestion": {
+    "title": "Suggest a meal",
+    "placeholder": "Search recipes…"
+  },
+  "groupsActions": {
+    "createGroup": "Create Group",
+    "joinGroup": "Join Group",
+    "groupName": "Group Name",
+    "create": "Create",
+    "join": "Join",
+    "inviteCode": "Invite Code"
+  },
+  "groupSelector": {
+    "currentGroup": "Current Group",
+    "goToProfile": "Go to Profile"
   },
   "mealPlan": {
     "title": "Meal Plan"
   },
   "history": {
     "title": "History",
-    "unnamed": "(unnamed)"
+    "unnamed": "(unnamed)",
+    "allActions": "All actions",
+    "actions": {
+      "create": "Created",
+      "update": "Updated",
+      "delete": "Deleted",
+      "join": "Joined",
+      "leave": "Left",
+      "kick": "Kicked",
+      "role_change": "Role changed"
+    },
+    "entities": {
+      "pantry": "pantry item",
+      "shopping": "shopping item",
+      "mealPlan": "meal plan",
+      "recipe": "recipe",
+      "tag": "tag",
+      "item": "item",
+      "group": "group"
+    },
+    "filterByType": "Filter by type",
+    "action": "Action",
+    "clearFilters": "Clear filters",
+    "clearOlder": "Clear older than {n} days",
+    "clearByRange": "Clear by date range…",
+    "clearByRangeHint": "Delete entries between these dates (inclusive). Leave either blank for an open-ended range.",
+    "clearAll": "Clear all history",
+    "emptyHint": "Make some changes — they'll show up here as you go.",
+    "loadMore": "Load more",
+    "from": "From",
+    "to": "To",
+    "deleteRange": "Delete range",
+    "unknownUser": "unknown user"
   },
   "groups": {
     "title": "Groups",

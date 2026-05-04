@@ -95,7 +95,27 @@
     "addItem": "Přidat do spajzky",
     "itemAdded": "Položka přidána do spajzky",
     "itemRemoved": "Položka odebrána ze spajzky",
-    "itemUpdated": "Položka aktualizována"
+    "itemUpdated": "Položka aktualizována",
+    "stat": "Ve spajzce"
+  },
+  "home": {
+    "subtitleWithName": "{greeting}, {name} — co se dnes děje v kuchyni.",
+    "subtitle": "{greeting} — co se dnes děje v kuchyni.",
+    "noActivity": "Zatím žádná aktivita",
+    "noActivityHint": "Přidejte položku do spajzky nebo nákupu a uvidíte ji zde.",
+    "recentActivity": "Nedávná aktivita",
+    "viewAll": "Zobrazit vše",
+    "quickActions": "Rychlé akce",
+    "quickActionsHint": "Spusťte běžné úkoly",
+    "addToShopping": "Přidat do nákupu",
+    "browseRecipes": "Procházet recepty",
+    "planMeal": "Naplánovat jídlo",
+    "stats": {
+      "pantry": "Ve spajzce",
+      "toBuy": "Koupit",
+      "recipes": "Receptů",
+      "mealsThisWeek": "Jídla tento týden"
+    }
   },
   "shopping": {
     "title": "Nákup",
@@ -121,7 +141,16 @@
     "unitType": "Typ jednotky",
     "barcode": "Čárový kód",
     "unknown": "Neznámá položka",
-    "fillTranslations": "Vyplnit překlady"
+    "fillTranslations": "Vyplnit překlady",
+    "deleteTitle": "Smazat položku",
+    "deleteConfirm": "Opravdu chcete smazat „{name}“? Tato položka bude odstraněna ze spajzky i z nákupního seznamu.",
+    "noneFound": "Žádné položky nenalezeny",
+    "noneYet": "Zatím žádné položky",
+    "tryDifferentSearch": "Zkuste jiný dotaz.",
+    "catalogHint": "Položky z katalogu můžete přidat do spajzky nebo nákupu.",
+    "subtitleEmpty": "Katalog všech položek, které lze přidat",
+    "subtitleCount": "{count} položek v katalogu",
+    "subtitleFiltered": "{shown} z {total} položek"
   },
   "recipes": {
     "title": "Recepty",
@@ -136,14 +165,93 @@
     "prepTime": "Příprava",
     "cookTime": "Vaření",
     "minutes": "min",
-    "permissionDenied": "Nemáte oprávnění vytvářet globální recepty"
+    "permissionDenied": "Nemáte oprávnění vytvářet globální recepty",
+    "cook": "Vařit",
+    "subtitleEmpty": "Vytvořte si sbírku receptů",
+    "subtitleCount": "{count} receptů ve sbírce",
+    "subtitleFiltered": "{shown} z {total} receptů",
+    "recipeName": "Název receptu *",
+    "alternativeNames": "Alternativní názvy",
+    "iconEmoji": "Ikona (emoji)",
+    "servingsRequired": "Porcí *",
+    "addAsGlobal": "Přidat jako globální recept",
+    "ingredientRequired": "Ingredience *",
+    "ingredientPlaceholder": "Začněte psát pro hledání položek...",
+    "addIngredient": "Přidat ingredienci",
+    "stepPlaceholder": "Popište tento krok...",
+    "addStep": "Přidat krok",
+    "addNewItem": "Přidat novou položku"
+  },
+  "mealPlanDialog": {
+    "recipeRequired": "Recept *",
+    "cookDate": "Datum vaření *",
+    "servings": "Porce",
+    "previousMonth": "Předchozí měsíc",
+    "today": "Dnes",
+    "nextMonth": "Další měsíc",
+    "notes": "Poznámky",
+    "deleteEntry": "Smazat záznam jídla",
+    "alsoRemoveShopping": "Také odstranit vygenerované položky nákupu"
+  },
+  "shoppingDialog": {
+    "title": "Vygenerovat nákupní seznam",
+    "subtractPantry": "Odečíst zásoby ve spajzce (přidat jen to, co chybí)",
+    "nothingToAdd": "Není co přidat"
+  },
+  "suggestion": {
+    "title": "Doporučit jídlo",
+    "placeholder": "Hledat recepty…"
+  },
+  "groupsActions": {
+    "createGroup": "Vytvořit skupinu",
+    "joinGroup": "Připojit se ke skupině",
+    "groupName": "Název skupiny",
+    "create": "Vytvořit",
+    "join": "Připojit se",
+    "inviteCode": "Pozvánkový kód"
+  },
+  "groupSelector": {
+    "currentGroup": "Aktuální skupina",
+    "goToProfile": "Přejít do profilu"
   },
   "mealPlan": {
     "title": "Jídelníček"
   },
   "history": {
     "title": "Historie",
-    "unnamed": "(bez názvu)"
+    "unnamed": "(bez názvu)",
+    "allActions": "Všechny akce",
+    "actions": {
+      "create": "Vytvořeno",
+      "update": "Aktualizováno",
+      "delete": "Smazáno",
+      "join": "Připojení",
+      "leave": "Odchod",
+      "kick": "Vyloučení",
+      "role_change": "Změna role"
+    },
+    "entities": {
+      "pantry": "položka spajzky",
+      "shopping": "položka nákupu",
+      "mealPlan": "jídelníček",
+      "recipe": "recept",
+      "tag": "štítek",
+      "item": "položka",
+      "group": "skupina"
+    },
+    "filterByType": "Filtr podle typu",
+    "action": "Akce",
+    "clearFilters": "Zrušit filtry",
+    "clearOlder": "Smazat starší než {n} dní",
+    "clearByRange": "Smazat podle rozsahu dat…",
+    "clearByRangeHint": "Smaže záznamy mezi těmito daty (včetně). Pokud je jedno pole prázdné, je rozsah otevřený.",
+    "clearAll": "Smazat celou historii",
+    "emptyHint": "Začněte něco měnit — uvidíte to zde.",
+    "loadMore": "Načíst další",
+    "from": "Od",
+    "to": "Do",
+    "deleteRange": "Smazat rozsah",
+    "unknownUser": "neznámý uživatel"
   },
   "groups": {
     "title": "Skupiny",

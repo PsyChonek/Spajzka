@@ -16,9 +16,20 @@ import SearchInput from '@/components/SearchInput.vue'
 import TagFilter from '@/components/TagFilter.vue'
 import { matchesQuery, normalizeForSearch } from '@/utils/search'
 import { formatQuantity, type UnitType } from '@shared/units'
+import { useContentLocale, tName } from '@/services/i18n/translateContent'
 
 const $q = useQuasar()
 const { t } = useI18n({ useScope: 'global' })
+const itemsLocale = useContentLocale()
+// Resolve a pantry row's display name through the items-store entry (which
+// carries the translations map) so the name re-renders when itemsLanguage
+// flips, even though the pantry row itself only has the legacy `name` field.
+const displayName = (row: { itemId?: string; name?: string | null }): string => {
+  const fallback = row?.name || t('items.unknown')
+  if (!row?.itemId) return fallback
+  const ref = itemsStore.sortedItems.find((i: any) => i._id === row.itemId)
+  return tName(ref, itemsLocale.value) || fallback
+}
 const pantryStore = usePantryStore()
 const itemsStore = useItemsStore()
 const authStore = useAuthStore()
@@ -33,7 +44,7 @@ const focusField = ref<'name' | 'quantity' | 'icon' | 'unit' | 'category'>('name
 
 const allColumns = computed(() => [
   { name: 'icon', label: '', align: 'center' as const, field: (r: PantryItem) => r.icon || '', sortable: false, classes: 'col-icon', headerClasses: 'col-icon' },
-  { name: 'name', required: true, label: t('common.name'), align: 'left' as const, field: (r: PantryItem) => r.name || t('items.unknown'), sortable: true, classes: 'col-name', headerClasses: 'col-name' },
+  { name: 'name', required: true, label: t('common.name'), align: 'left' as const, field: (r: PantryItem) => displayName(r), sortable: true, classes: 'col-name', headerClasses: 'col-name' },
   { name: 'quantity', label: t('common.quantity'), align: 'left' as const, field: (r: PantryItem) => r.quantity || 0, sortable: true, classes: 'col-quantity', headerClasses: 'col-quantity' },
   { name: 'unit', label: t('common.unit'), align: 'left' as const, field: (r: PantryItem) => r.defaultUnit || 'pcs', sortable: true, classes: 'col-unit', headerClasses: 'col-unit' },
   { name: 'createdAt', label: t('common.added'), align: 'left' as const, field: (r: PantryItem) => r.createdAt, format: (v: string) => new Date(v).toLocaleDateString(), sortable: true, hideOnMobile: true, classes: 'col-created', headerClasses: 'col-created' },
@@ -223,7 +234,7 @@ const subtitle = computed(() => {
           <q-card-section class="row items-center q-gutter-md no-wrap">
             <div class="sp-pantry-card__icon">{{ row.icon || '📦' }}</div>
             <div class="col">
-              <div class="sp-pantry-card__name">{{ row.name || t('items.unknown') }}</div>
+              <div class="sp-pantry-card__name">{{ displayName(row) }}</div>
               <div class="sp-pantry-card__meta">
                 <span>{{ formatQuantity(row.quantity || 0, row.defaultUnit || 'pcs', { promote: true }) }}</span>
               </div>
@@ -257,7 +268,7 @@ const subtitle = computed(() => {
           </template>
           <template v-slot:body-cell-name="props">
             <q-td :props="props" class="cursor-pointer" @click="openEditDialog(props.row, 'name')">
-              {{ props.row.name || t('items.unknown') }}
+              {{ displayName(props.row) }}
             </q-td>
           </template>
           <template v-slot:body-cell-quantity="props">

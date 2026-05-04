@@ -3,6 +3,9 @@ import { computed, onMounted } from 'vue'
 import type { RecipeIngredient } from '@shared/api-client'
 import { useItemsStore } from '@/stores/itemsStore'
 import { formatQuantity } from '@shared/units'
+import { useContentLocale, tName } from '@/services/i18n/translateContent'
+
+const itemsLocale = useContentLocale()
 
 interface Props {
   ingredients: RecipeIngredient[]
@@ -29,8 +32,12 @@ onMounted(() => {
 
 const itemNameById = computed(() => {
   const map = new Map<string, string>()
+  const loc = itemsLocale.value
   for (const item of itemsStore.allItems) {
-    if (item._id && item.name) map.set(item._id, item.name)
+    if (item._id) {
+      const name = tName(item, loc) || item.name
+      if (name) map.set(item._id, name)
+    }
   }
   return map
 })
