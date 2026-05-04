@@ -8,6 +8,10 @@ import {
   ApiError
 } from '@shared/api-client'
 import { Notify } from 'quasar'
+import { i18n } from '@/services/i18n'
+
+const t = (key: string, named?: Record<string, unknown>) =>
+  i18n.global.t(key, (named ?? {}) as any) as string
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
@@ -44,7 +48,7 @@ export const useAuthStore = defineStore('auth', () => {
 
       Notify.create({
         type: 'positive',
-        message: 'Account created successfully!',
+        message: t('auth.registerSuccess'),
         timeout: 2000
       })
 
@@ -52,7 +56,7 @@ export const useAuthStore = defineStore('auth', () => {
     } catch (error: any) {
       console.error('Registration failed:', error)
 
-      const message = error instanceof ApiError ? error.body?.message : 'Registration failed'
+      const message = error instanceof ApiError ? error.body?.message : t('auth.registerFailed')
       Notify.create({
         type: 'negative',
         message,
@@ -83,7 +87,7 @@ export const useAuthStore = defineStore('auth', () => {
 
       Notify.create({
         type: 'positive',
-        message: 'Logged in successfully!',
+        message: t('auth.loginSuccess'),
         timeout: 2000
       })
 
@@ -91,7 +95,7 @@ export const useAuthStore = defineStore('auth', () => {
     } catch (error: any) {
       console.error('Login failed:', error)
 
-      const message = error instanceof ApiError ? error.body?.message : 'Login failed'
+      const message = error instanceof ApiError ? error.body?.message : t('auth.loginFailed')
       Notify.create({
         type: 'negative',
         message,
@@ -132,7 +136,7 @@ export const useAuthStore = defineStore('auth', () => {
 
       Notify.create({
         type: 'info',
-        message: 'Logged out successfully',
+        message: t('auth.logoutSuccess'),
         timeout: 2000
       })
 
@@ -171,6 +175,21 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  // Set a language preference (interface or items) and persist via profile API
+  async function setLanguage(kind: 'interface' | 'items', locale: 'en' | 'cs') {
+    if (!user.value) return false
+    const field = kind === 'interface' ? 'interfaceLanguage' : 'itemsLanguage'
+    // Optimistic update so the UI reacts immediately even on slow networks
+    user.value = { ...user.value, [field]: locale } as User
+    try {
+      await AuthenticationService.putApiAuthProfile({ [field]: locale } as any)
+      return true
+    } catch (error) {
+      console.error('Failed to update language preference:', error)
+      return false
+    }
+  }
+
   // Update profile
   async function updateProfile(data: Partial<User>) {
     if (!isAuthenticated.value) {
@@ -183,15 +202,15 @@ export const useAuthStore = defineStore('auth', () => {
       
       Notify.create({
         type: 'positive',
-        message: 'Profile updated successfully!',
+        message: t('profile.profileUpdated'),
         timeout: 2000
       })
-      
+
       return true
     } catch (error: any) {
       console.error('Profile update failed:', error)
-      
-      const message = error instanceof ApiError ? error.body?.message : 'Update failed'
+
+      const message = error instanceof ApiError ? error.body?.message : t('profile.profileUpdateFailed')
       Notify.create({
         type: 'negative',
         message,
@@ -219,15 +238,15 @@ export const useAuthStore = defineStore('auth', () => {
       
       Notify.create({
         type: 'positive',
-        message: 'Password changed successfully!',
+        message: t('auth.passwordChanged'),
         timeout: 2000
       })
-      
+
       return true
     } catch (error: any) {
       console.error('Password change failed:', error)
-      
-      const message = error instanceof ApiError ? error.body?.message : 'Password change failed'
+
+      const message = error instanceof ApiError ? error.body?.message : t('auth.passwordChangeFailed')
       Notify.create({
         type: 'negative',
         message,
@@ -253,7 +272,7 @@ export const useAuthStore = defineStore('auth', () => {
 
       Notify.create({
         type: 'info',
-        message: 'Welcome! You can use the app without an account.',
+        message: t('auth.welcomeAnonymous'),
         timeout: 3000
       })
 
@@ -261,7 +280,7 @@ export const useAuthStore = defineStore('auth', () => {
     } catch (error: any) {
       console.error('Failed to create anonymous user:', error)
 
-      const message = error instanceof ApiError ? error.body?.message : 'Failed to start anonymous session'
+      const message = error instanceof ApiError ? error.body?.message : t('auth.anonymousFailed')
       Notify.create({
         type: 'negative',
         message,
@@ -325,7 +344,8 @@ export const useAuthStore = defineStore('auth', () => {
     updateProfile,
     changePassword,
     createAnonymous,
-    initialize
+    initialize,
+    setLanguage
   }
 }, {
   // `initialized` / `initializing` are runtime-only flags — persisting them

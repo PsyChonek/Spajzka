@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import GroupSelector from '@/components/GroupSelector.vue'
 import BottomNav from '@/components/common/BottomNav.vue'
 
@@ -11,17 +12,19 @@ interface NavLink {
   primary: boolean
 }
 
-const navLinks: NavLink[] = [
-  { to: '/', label: 'Home', icon: 'home', primary: true },
-  { to: '/pantry', label: 'Pantry', icon: 'kitchen', primary: true },
-  { to: '/shopping', label: 'Shopping', icon: 'shopping_cart', primary: true },
-  { to: '/recipes', label: 'Recipes', icon: 'restaurant_menu', primary: true },
-  { to: '/meal-plan', label: 'Meal Plan', icon: 'event', primary: true },
-  { to: '/items', label: 'Items', icon: 'inventory', primary: false },
-  { to: '/history', label: 'History', icon: 'history', primary: false },
-  { to: '/groups', label: 'Groups', icon: 'group', primary: false },
-  { to: '/profile', label: 'Profile', icon: 'account_circle', primary: false }
-]
+const { t } = useI18n({ useScope: 'global' })
+
+const navLinks = computed<NavLink[]>(() => [
+  { to: '/', label: t('nav.home'), icon: 'home', primary: true },
+  { to: '/pantry', label: t('nav.pantry'), icon: 'kitchen', primary: true },
+  { to: '/shopping', label: t('nav.shopping'), icon: 'shopping_cart', primary: true },
+  { to: '/recipes', label: t('nav.recipes'), icon: 'restaurant_menu', primary: true },
+  { to: '/meal-plan', label: t('nav.mealPlan'), icon: 'event', primary: true },
+  { to: '/items', label: t('nav.items'), icon: 'inventory', primary: false },
+  { to: '/history', label: t('nav.history'), icon: 'history', primary: false },
+  { to: '/groups', label: t('nav.groups'), icon: 'group', primary: false },
+  { to: '/profile', label: t('nav.profile'), icon: 'account_circle', primary: false }
+])
 
 const drawer = ref(false)
 const route = useRoute()

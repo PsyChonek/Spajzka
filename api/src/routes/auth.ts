@@ -5,6 +5,7 @@ import { ObjectId } from 'mongodb';
 import bcrypt from 'bcryptjs';
 import { authMiddleware, AuthRequest, generateToken } from '../middleware/auth';
 import { createRateLimiter } from '../utils/rateLimit';
+import { SUPPORTED_LOCALES } from '../utils/i18n';
 
 const router = Router();
 
@@ -48,6 +49,14 @@ function generateMcpToken(): string {
  *           items:
  *             type: string
  *           description: Array of all permissions from all groups the user is a member of
+ *         interfaceLanguage:
+ *           type: string
+ *           enum: [en, cs]
+ *           description: Preferred language for UI strings
+ *         itemsLanguage:
+ *           type: string
+ *           enum: [en, cs]
+ *           description: Preferred language for item/tag/recipe content
  *         createdAt:
  *           type: string
  *           format: date-time
@@ -98,6 +107,12 @@ function generateMcpToken(): string {
  *         email:
  *           type: string
  *           format: email
+ *         interfaceLanguage:
+ *           type: string
+ *           enum: [en, cs]
+ *         itemsLanguage:
+ *           type: string
+ *           enum: [en, cs]
  *     ChangePasswordRequest:
  *       type: object
  *       properties:
@@ -142,6 +157,8 @@ router.post('/auth/anonymous', async (req: AuthRequest, res: Response) => {
     const newUser = {
       name: 'Anonymous User',
       isAnonymous: true,
+      interfaceLanguage: 'cs',
+      itemsLanguage: 'cs',
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -178,6 +195,8 @@ router.post('/auth/anonymous', async (req: AuthRequest, res: Response) => {
       _id: userId,
       name: newUser.name,
       isAnonymous: true,
+      interfaceLanguage: 'cs',
+      itemsLanguage: 'cs',
       createdAt: newUser.createdAt
     };
 
@@ -258,6 +277,8 @@ router.post('/auth/register', async (req: AuthRequest, res: Response) => {
       email: email.toLowerCase(),
       password: hashedPassword,
       isAnonymous: false,
+      interfaceLanguage: 'cs',
+      itemsLanguage: 'cs',
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -295,6 +316,8 @@ router.post('/auth/register', async (req: AuthRequest, res: Response) => {
       name,
       email: email.toLowerCase(),
       isAnonymous: false,
+      interfaceLanguage: 'cs',
+      itemsLanguage: 'cs',
       createdAt: newUser.createdAt
     };
 
@@ -374,6 +397,8 @@ router.post('/auth/login', async (req: AuthRequest, res: Response) => {
       name: user.name,
       email: user.email,
       isAnonymous: user.isAnonymous || false,
+      interfaceLanguage: user.interfaceLanguage || 'cs',
+      itemsLanguage: user.itemsLanguage || 'cs',
       createdAt: user.createdAt
     };
 
@@ -474,6 +499,8 @@ router.get('/auth/me', authMiddleware, async (req: AuthRequest, res: Response) =
       isAnonymous: user.isAnonymous || false,
       globalPermissions,
       groupPermissions,
+      interfaceLanguage: user.interfaceLanguage || 'cs',
+      itemsLanguage: user.itemsLanguage || 'cs',
       activeGroupId: activeGroupId?.toString(),
       personalGroupId: user.personalGroupId?.toString(),
       createdAt: user.createdAt
@@ -538,11 +565,24 @@ router.post('/auth/logout', authMiddleware, async (req: AuthRequest, res: Respon
 router.put('/auth/profile', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const db = getDatabase();
-    const { name, email } = req.body;
+    const { name, email, interfaceLanguage, itemsLanguage } = req.body;
 
     const updateData: any = {
       updatedAt: new Date()
     };
+
+    if (interfaceLanguage !== undefined) {
+      if (!SUPPORTED_LOCALES.includes(interfaceLanguage)) {
+        return res.status(400).json({ message: 'Invalid interfaceLanguage', code: 'VALIDATION_ERROR' });
+      }
+      updateData.interfaceLanguage = interfaceLanguage;
+    }
+    if (itemsLanguage !== undefined) {
+      if (!SUPPORTED_LOCALES.includes(itemsLanguage)) {
+        return res.status(400).json({ message: 'Invalid itemsLanguage', code: 'VALIDATION_ERROR' });
+      }
+      updateData.itemsLanguage = itemsLanguage;
+    }
 
     if (name !== undefined) updateData.name = name;
     if (email !== undefined) {
@@ -580,6 +620,8 @@ router.put('/auth/profile', authMiddleware, async (req: AuthRequest, res: Respon
       name: result.name,
       email: result.email,
       isAnonymous: result.isAnonymous || false,
+      interfaceLanguage: result.interfaceLanguage || 'cs',
+      itemsLanguage: result.itemsLanguage || 'cs',
       createdAt: result.createdAt
     });
   } catch (error) {

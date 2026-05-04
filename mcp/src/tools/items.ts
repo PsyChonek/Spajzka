@@ -3,21 +3,33 @@ import { z } from 'zod';
 import { apiRequest } from '../apiClient';
 import { registerTool } from './helpers';
 
+// Translations are stored per-locale on items/tags/recipes. Reads return the
+// user's items language; pass `include=translations` to get the full map.
+// Writes accept a translations object to set both locales atomically.
+const translationsInputSchema = z.record(
+  z.enum(['en', 'cs']),
+  z.object({
+    name: z.string().optional(),
+    searchNames: z.array(z.string()).optional()
+  })
+).optional();
+
 export function registerItemsTools(server: McpServer): void {
   registerTool(
     server,
     'search_items',
-    'Search the item catalog by name. Searches global items plus — if groupId is provided — the group\'s custom items. Use this to turn "milk" into an itemId before add_pantry_item or add_shopping_item.',
+    'Search the item catalog by name. Searches across all locales (English + Czech) — a Czech-locale user can find items by typing the English name and vice-versa. Returns items localized to the caller\'s items language. Use to turn a name like "milk" into an itemId before add_pantry_item or add_shopping_item.',
     {
       query: z.string().min(1),
       groupId: z.string().optional(),
-      limit: z.number().int().positive().max(50).optional()
+      limit: z.number().int().positive().max(50).optional(),
+      includeTranslations: z.boolean().optional().describe('When true, returns full per-locale translations object instead of localized name')
     },
-    async ({ query, groupId, limit }) => {
+    async ({ query, groupId, limit, includeTranslations }) => {
       const items = await apiRequest({
         method: 'GET',
         path: '/api/items',
-        params: { search: query, groupId, limit }
+        params: { search: query, groupId, limit, ...(includeTranslations ? { include: 'translations' } : {}) }
       });
       return { items };
     }
@@ -26,17 +38,18 @@ export function registerItemsTools(server: McpServer): void {
   registerTool(
     server,
     'list_global_items',
-    'List items from the global catalog. Supports pagination and optional category filter.',
+    'List items from the global catalog. Names are localized to the caller\'s items language.',
     {
       category: z.string().optional(),
       limit: z.number().int().positive().max(100).optional(),
-      offset: z.number().int().nonnegative().optional()
+      offset: z.number().int().nonnegative().optional(),
+      includeTranslations: z.boolean().optional()
     },
-    async ({ category, limit, offset }) => {
+    async ({ category, limit, offset, includeTranslations }) => {
       const items = await apiRequest({
         method: 'GET',
         path: '/api/items/global',
-        params: { category, limit, offset }
+        params: { category, limit, offset, ...(includeTranslations ? { include: 'translations' } : {}) }
       });
       return { items };
     }
@@ -45,13 +58,13 @@ export function registerItemsTools(server: McpServer): void {
   registerTool(
     server,
     'list_group_items',
-    "List a group's custom items (its private extension of the catalog).",
-    { groupId: z.string() },
-    async ({ groupId }) => {
+    "List a group's custom items (its private extension of the catalog). Names are localized to the caller's items language.",
+    { groupId: z.string(), includeTranslations: z.boolean().optional() },
+    async ({ groupId, includeTranslations }) => {
       const items = await apiRequest({
         method: 'GET',
         path: '/api/items/group',
-        params: { groupId }
+        params: { groupId, ...(includeTranslations ? { include: 'translations' } : {}) }
       });
       return { items };
     }
@@ -60,7 +73,7 @@ export function registerItemsTools(server: McpServer): void {
   registerTool(
     server,
     'create_group_item',
-    'Create a new custom item in a group. Use when the required ingredient is not in the global catalog. unitType picks the unit family ("weight" → mg/g/kg, "volume" → ml/cl/dl/l, "count" → pcs, "length" → cm/m, "custom" for free-text units). defaultUnit must be a member of that family (or any string when unitType=custom).',
+    'Create a new custom item in a group. Pass `translations` to set both languages at once (e.g. {en:{name:"Milk"},cs:{name:"Mléko"}}). The `name` field seeds both locales when translations are absent. unitType picks the unit family ("weight" → mg/g/kg, "volume" → ml/cl/dl/l, "count" → pcs, "length" → cm/m, "custom" for free-text). defaultUnit must belong to that family (or any string when unitType=custom).',
     {
       groupId: z.string(),
       name: z.string().min(1),
@@ -70,7 +83,8 @@ export function registerItemsTools(server: McpServer): void {
       defaultUnit: z.string().min(1),
       barcode: z.string().optional(),
       searchNames: z.array(z.string()).optional(),
-      tags: z.array(z.string()).optional()
+      tags: z.array(z.string()).optional(),
+      translations: translationsInputSchema
     },
     async (args) => {
       return apiRequest({
@@ -84,7 +98,7 @@ export function registerItemsTools(server: McpServer): void {
   registerTool(
     server,
     'update_group_item',
-    "Update a custom group item's metadata. Changing unitType or defaultUnit re-validates them together.",
+    "Update a custom group item's metadata. Changing unitType or defaultUnit re-validates them together. Pass `translations` to update locale-specific names without touching the legacy flat fields.",
     {
       groupId: z.string(),
       itemId: z.string(),
@@ -95,7 +109,8 @@ export function registerItemsTools(server: McpServer): void {
       defaultUnit: z.string().optional(),
       barcode: z.string().optional(),
       searchNames: z.array(z.string()).optional(),
-      tags: z.array(z.string()).optional()
+      tags: z.array(z.string()).optional(),
+      translations: translationsInputSchema
     },
     async ({ groupId, itemId, ...fields }) => {
       return apiRequest({

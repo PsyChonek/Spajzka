@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useQuasar } from 'quasar'
+import { useI18n } from 'vue-i18n'
 import { usePantryStore } from '@/stores/pantryStore'
 import { useItemsStore } from '@/stores/itemsStore'
 import { useAuthStore } from '@/stores/authStore'
@@ -17,6 +18,7 @@ import { matchesQuery, normalizeForSearch } from '@/utils/search'
 import { formatQuantity, type UnitType } from '@shared/units'
 
 const $q = useQuasar()
+const { t } = useI18n({ useScope: 'global' })
 const pantryStore = usePantryStore()
 const itemsStore = useItemsStore()
 const authStore = useAuthStore()
@@ -29,16 +31,16 @@ const editingItem = ref<PantryItem | null>(null)
 const initialFormData = ref<Partial<ItemFormData>>({})
 const focusField = ref<'name' | 'quantity' | 'icon' | 'unit' | 'category'>('name')
 
-const allColumns = [
+const allColumns = computed(() => [
   { name: 'icon', label: '', align: 'center' as const, field: (r: PantryItem) => r.icon || '', sortable: false, classes: 'col-icon', headerClasses: 'col-icon' },
-  { name: 'name', required: true, label: 'Name', align: 'left' as const, field: (r: PantryItem) => r.name || 'Unknown Item', sortable: true, classes: 'col-name', headerClasses: 'col-name' },
-  { name: 'quantity', label: 'Quantity', align: 'left' as const, field: (r: PantryItem) => r.quantity || 0, sortable: true, classes: 'col-quantity', headerClasses: 'col-quantity' },
-  { name: 'unit', label: 'Unit', align: 'left' as const, field: (r: PantryItem) => r.defaultUnit || 'pcs', sortable: true, classes: 'col-unit', headerClasses: 'col-unit' },
-  { name: 'createdAt', label: 'Added', align: 'left' as const, field: (r: PantryItem) => r.createdAt, format: (v: string) => new Date(v).toLocaleDateString(), sortable: true, hideOnMobile: true, classes: 'col-created', headerClasses: 'col-created' },
+  { name: 'name', required: true, label: t('common.name'), align: 'left' as const, field: (r: PantryItem) => r.name || t('items.unknown'), sortable: true, classes: 'col-name', headerClasses: 'col-name' },
+  { name: 'quantity', label: t('common.quantity'), align: 'left' as const, field: (r: PantryItem) => r.quantity || 0, sortable: true, classes: 'col-quantity', headerClasses: 'col-quantity' },
+  { name: 'unit', label: t('common.unit'), align: 'left' as const, field: (r: PantryItem) => r.defaultUnit || 'pcs', sortable: true, classes: 'col-unit', headerClasses: 'col-unit' },
+  { name: 'createdAt', label: t('common.added'), align: 'left' as const, field: (r: PantryItem) => r.createdAt, format: (v: string) => new Date(v).toLocaleDateString(), sortable: true, hideOnMobile: true, classes: 'col-created', headerClasses: 'col-created' },
   { name: 'actions', label: '', align: 'center' as const, field: '', sortable: false, hideOnMobile: true, classes: 'col-actions', headerClasses: 'col-actions' }
-]
+])
 
-const columns = computed(() => $q.screen.lt.md ? allColumns.filter(c => !c.hideOnMobile) : allColumns)
+const columns = computed(() => $q.screen.lt.md ? allColumns.value.filter(c => !c.hideOnMobile) : allColumns.value)
 
 const filteredItems = computed(() => {
   let filtered = pantryStore.sortedItems
@@ -115,8 +117,9 @@ const saveNewItem = async (data: ItemFormData) => {
       category: data.category || 'Other',
       icon: data.icon || '📦',
       unitType: (data.unitType || 'count') as any,
-      defaultUnit: data.defaultUnit || 'pcs'
-    })
+      defaultUnit: data.defaultUnit || 'pcs',
+      ...(data.translations ? { translations: data.translations } : {})
+    } as any)
     const created = itemsStore.sortedItems.find(i => i.name === data.name && i.type === 'group')
     if (created) {
       await pantryStore.addItem({ itemId: created._id!, itemType: 'group' as any, quantity: data.quantity || 1 })
@@ -135,8 +138,9 @@ const saveEditedItem = async (data: ItemFormData) => {
         data.defaultUnit !== editingItem.value.defaultUnit ||
         data.category !== editingItem.value.category ||
         data.icon !== editingItem.value.icon
-      if (changed) {
+      if (changed || data.translations) {
         const updates: any = { name: data.name, unitType: data.unitType, defaultUnit: data.defaultUnit, category: data.category, icon: data.icon }
+        if (data.translations) updates.translations = data.translations
         if (editingItem.value.itemType === 'global') {
           await itemsStore.updateGlobalItem(editingItem.value.itemId, updates)
         } else {
@@ -172,10 +176,10 @@ const subtitle = computed(() => {
             unelevated
             no-caps
             icon="add"
-            label="Add"
+            :label="t('common.add')"
             class="gt-sm"
             @click="openAddDialog"
-            aria-label="Add to pantry"
+            :aria-label="t('pantry.addItem')"
           />
         </template>
       </PageHeader>
@@ -198,11 +202,11 @@ const subtitle = computed(() => {
       <EmptyState
         v-if="filteredItems.length === 0"
         :icon="searchQuery ? 'search_off' : 'kitchen'"
-        :title="searchQuery ? 'No items found' : 'Your pantry is empty'"
-        :hint="searchQuery ? 'Try a different search or tap Add to create a new item.' : 'Start tracking what you have. Tap the + button to add your first item.'"
+        :title="searchQuery ? t('common.search') : t('pantry.empty')"
+        :hint="searchQuery ? '' : t('pantry.emptyHint')"
       >
         <template #action>
-          <q-btn color="secondary" unelevated no-caps icon="add" label="Add item" @click="openAddDialog" />
+          <q-btn color="secondary" unelevated no-caps icon="add" :label="t('common.add')" @click="openAddDialog" />
         </template>
       </EmptyState>
 
@@ -219,7 +223,7 @@ const subtitle = computed(() => {
           <q-card-section class="row items-center q-gutter-md no-wrap">
             <div class="sp-pantry-card__icon">{{ row.icon || '📦' }}</div>
             <div class="col">
-              <div class="sp-pantry-card__name">{{ row.name || 'Unknown Item' }}</div>
+              <div class="sp-pantry-card__name">{{ row.name || t('items.unknown') }}</div>
               <div class="sp-pantry-card__meta">
                 <span>{{ formatQuantity(row.quantity || 0, row.defaultUnit || 'pcs', { promote: true }) }}</span>
               </div>
@@ -253,7 +257,7 @@ const subtitle = computed(() => {
           </template>
           <template v-slot:body-cell-name="props">
             <q-td :props="props" class="cursor-pointer" @click="openEditDialog(props.row, 'name')">
-              {{ props.row.name || 'Unknown Item' }}
+              {{ props.row.name || t('items.unknown') }}
             </q-td>
           </template>
           <template v-slot:body-cell-quantity="props">

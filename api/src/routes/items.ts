@@ -12,6 +12,14 @@ import {
   isUnitAllowed,
   normaliseUnit,
 } from '../../../shared/units';
+import {
+  resolveLocale,
+  localizeEntity,
+  shouldIncludeTranslations,
+  validateTranslationsInput,
+  mergeTranslationsIntoUpdate,
+  type Translations,
+} from '../utils/i18n';
 
 function normaliseItemUnit(input: { unitType?: unknown; defaultUnit?: unknown }):
   | { unitType: UnitType; defaultUnit: string }
@@ -40,14 +48,20 @@ function escapeRegex(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-// Case- + diacritic-insensitive substring filter over name + searchNames.
+// Case- + diacritic-insensitive substring filter over name + searchNames
+// across both legacy fields and the translations map (any locale).
 // Relies on MongoDB's Czech collation at strength 1 (folds both case and accents).
 function buildNameSearchFilter(search: string): Record<string, unknown> {
   const pattern = escapeRegex(search.trim());
+  const rx = { $regex: pattern, $options: 'i' };
   return {
     $or: [
-      { name: { $regex: pattern, $options: 'i' } },
-      { searchNames: { $regex: pattern, $options: 'i' } }
+      { name: rx },
+      { searchNames: rx },
+      { 'translations.en.name': rx },
+      { 'translations.cs.name': rx },
+      { 'translations.en.searchNames': rx },
+      { 'translations.cs.searchNames': rx }
     ]
   };
 }
@@ -229,7 +243,13 @@ router.get('/items', authMiddleware, async (req: AuthRequest, res: Response) => 
     const includeGlobal = req.query.includeGlobal === 'true';
     const search = typeof req.query.search === 'string' ? req.query.search.trim() : '';
     const limit = parseLimit(req.query.limit);
-    const groupId = await resolveGroupId(db, req, req.userId!);
+    const [groupId, locale] = await Promise.all([
+      resolveGroupId(db, req, req.userId!),
+      resolveLocale(req)
+    ]);
+
+    const includeTranslations = shouldIncludeTranslations(req);
+    const localize = (item: any) => includeTranslations ? item : localizeEntity(item, locale);
 
     const searchFilter = search ? buildNameSearchFilter(search) : {};
 
@@ -261,14 +281,14 @@ router.get('/items', authMiddleware, async (req: AuthRequest, res: Response) => 
           const globalItems = await globalCursor.toArray();
 
           res.json({
-            groupItems: groupItems.map(item => ({
+            groupItems: groupItems.map(item => localize({
               ...item,
               _id: item._id.toString(),
               groupId: item.groupId.toString(),
               globalItemRef: item.globalItemRef?.toString(),
               createdBy: item.createdBy?.toString()
             })),
-            globalItems: globalItems.map(item => ({
+            globalItems: globalItems.map(item => localize({
               ...item,
               _id: item._id.toString()
             }))
@@ -279,7 +299,7 @@ router.get('/items', authMiddleware, async (req: AuthRequest, res: Response) => 
     }
 
     // Default response: only group items
-    res.json(groupItems.map(item => ({
+    res.json(groupItems.map(item => localize({
       ...item,
       _id: item._id.toString(),
       groupId: item.groupId.toString(),
@@ -319,14 +339,16 @@ router.get('/items', authMiddleware, async (req: AuthRequest, res: Response) => 
 router.get('/items/global', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const db = getDatabase();
+    const locale = await resolveLocale(req);
+    const includeTranslations = shouldIncludeTranslations(req);
     const globalItems = await db.collection('items')
       .find({ itemType: 'global', isActive: true })
       .toArray();
 
-    res.json(globalItems.map(item => ({
-      ...item,
-      _id: item._id.toString()
-    })));
+    res.json(globalItems.map(item => {
+      const base = { ...item, _id: item._id.toString() };
+      return includeTranslations ? base : localizeEntity(base, locale);
+    }));
   } catch (error) {
     console.error('Error fetching global items:', error);
     res.status(500).json({
@@ -365,7 +387,7 @@ router.get('/items/global', authMiddleware, async (req: AuthRequest, res: Respon
 router.post('/items/global', authMiddleware, requireGlobalPermission('global_items:create'), async (req: AuthRequest, res: Response) => {
   try {
     const db = getDatabase();
-    const { name, category, icon, barcode, searchNames, tags } = req.body;
+    const { name, category, icon, barcode, searchNames, tags, translations: rawTranslations } = req.body;
 
     if (!name || !category) {
       return res.status(400).json({
@@ -379,6 +401,17 @@ router.post('/items/global', authMiddleware, requireGlobalPermission('global_ite
       return res.status(400).json({ message: unit.error, code: 'VALIDATION_ERROR' });
     }
 
+    const tx = validateTranslationsInput(rawTranslations);
+    if (!tx.ok) {
+      return res.status(400).json({ message: tx.error, code: 'VALIDATION_ERROR' });
+    }
+    const sNames = Array.isArray(searchNames) ? searchNames.map((n: string) => n.trim()).filter(Boolean) : [];
+    const translations: Translations = {
+      en: { name: name.trim(), searchNames: sNames },
+      cs: { name: name.trim(), searchNames: sNames },
+      ...(tx.value ?? {})
+    };
+
     const newItem = {
       name: name.trim(),
       category: category.trim(),
@@ -386,11 +419,12 @@ router.post('/items/global', authMiddleware, requireGlobalPermission('global_ite
       unitType: unit.unitType,
       defaultUnit: unit.defaultUnit,
       barcode: barcode || null,
-      searchNames: Array.isArray(searchNames) ? searchNames.map((n: string) => n.trim()).filter(Boolean) : [],
+      searchNames: sNames,
       tags: Array.isArray(tags) ? tags.filter(Boolean).map((t: string) => new ObjectId(t)) : [],
       itemType: 'global',
       createdBy: new ObjectId(req.userId),
       isActive: true,
+      translations,
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -412,6 +446,7 @@ router.post('/items/global', authMiddleware, requireGlobalPermission('global_ite
       searchNames: newItem.searchNames,
       tags: newItem.tags,
       itemType: 'group',
+      translations: newItem.translations,
       createdAt: new Date(),
       updatedAt: new Date()
     }));
@@ -467,7 +502,11 @@ router.put('/items/global/:id', authMiddleware, requireGlobalPermission('global_
   try {
     const db = getDatabase();
     const { id } = req.params;
-    const { name, category, icon, defaultUnit, unitType, barcode, searchNames, tags } = req.body;
+    const { name, category, icon, defaultUnit, unitType, barcode, searchNames, tags, translations: rawTranslations } = req.body;
+    const tx = validateTranslationsInput(rawTranslations);
+    if (!tx.ok) {
+      return res.status(400).json({ message: tx.error, code: 'VALIDATION_ERROR' });
+    }
 
     if (!ObjectId.isValid(id)) {
       return res.status(400).json({
@@ -506,6 +545,7 @@ router.put('/items/global/:id', authMiddleware, requireGlobalPermission('global_
     if (tags !== undefined) {
       updateData.tags = Array.isArray(tags) ? tags.filter(Boolean).map((t: string) => new ObjectId(t)) : [];
     }
+    mergeTranslationsIntoUpdate(updateData, tx.value);
 
     const result = await db.collection('items').findOneAndUpdate(
       { _id: new ObjectId(id), itemType: 'global' },
@@ -537,6 +577,7 @@ router.put('/items/global/:id', authMiddleware, requireGlobalPermission('global_
     if (tags !== undefined) {
       groupItemUpdateData.tags = Array.isArray(tags) ? tags.filter(Boolean).map((t: string) => new ObjectId(t)) : [];
     }
+    mergeTranslationsIntoUpdate(groupItemUpdateData, tx.value);
 
     // Update all group items that reference this global item
     const updateResult = await db.collection('items').updateMany(
@@ -656,18 +697,25 @@ router.delete('/items/global/:id', authMiddleware, requireGlobalPermission('glob
 router.get('/items/group', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const db = getDatabase();
-    const groupId = await resolveGroupId(db, req, req.userId!);
+    const [groupId, locale] = await Promise.all([
+      resolveGroupId(db, req, req.userId!),
+      resolveLocale(req)
+    ]);
+    const includeTranslations = shouldIncludeTranslations(req);
 
     const groupItems = await db.collection('items')
       .find({ itemType: 'group', groupId })
       .toArray();
 
-    res.json(groupItems.map(item => ({
-      ...item,
-      _id: item._id.toString(),
-      groupId: item.groupId.toString(),
-      createdBy: item.createdBy?.toString()
-    })));
+    res.json(groupItems.map(item => {
+      const base = {
+        ...item,
+        _id: item._id.toString(),
+        groupId: item.groupId.toString(),
+        createdBy: item.createdBy?.toString()
+      };
+      return includeTranslations ? base : localizeEntity(base, locale);
+    }));
   } catch (error) {
     if (handleGroupResolutionError(error, res)) return;
     console.error('Error fetching group items:', error);
@@ -707,7 +755,7 @@ router.get('/items/group', authMiddleware, async (req: AuthRequest, res: Respons
 router.post('/items/group', authMiddleware, requirePermission('group_items:create'), async (req: AuthRequest, res: Response) => {
   try {
     const db = getDatabase();
-    const { name, category, icon, barcode, searchNames, tags } = req.body;
+    const { name, category, icon, barcode, searchNames, tags, translations: rawTranslations } = req.body;
 
     if (!name || !category) {
       return res.status(400).json({
@@ -721,7 +769,18 @@ router.post('/items/group', authMiddleware, requirePermission('group_items:creat
       return res.status(400).json({ message: unit.error, code: 'VALIDATION_ERROR' });
     }
 
+    const tx = validateTranslationsInput(rawTranslations);
+    if (!tx.ok) {
+      return res.status(400).json({ message: tx.error, code: 'VALIDATION_ERROR' });
+    }
+
     const groupId = await resolveGroupId(db, req, req.userId!);
+    const sNames = Array.isArray(searchNames) ? searchNames.map((n: string) => n.trim()).filter(Boolean) : [];
+    const translations: Translations = {
+      en: { name: name.trim(), searchNames: sNames },
+      cs: { name: name.trim(), searchNames: sNames },
+      ...(tx.value ?? {})
+    };
 
     const newItem = {
       groupId,
@@ -731,10 +790,11 @@ router.post('/items/group', authMiddleware, requirePermission('group_items:creat
       unitType: unit.unitType,
       defaultUnit: unit.defaultUnit,
       barcode: barcode || null,
-      searchNames: Array.isArray(searchNames) ? searchNames.map((n: string) => n.trim()).filter(Boolean) : [],
+      searchNames: sNames,
       tags: Array.isArray(tags) ? tags.filter(Boolean).map((t: string) => new ObjectId(t)) : [],
       itemType: 'group',
       createdBy: new ObjectId(req.userId),
+      translations,
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -801,7 +861,11 @@ router.put('/items/group/:id', authMiddleware, requirePermission('group_items:up
   try {
     const db = getDatabase();
     const { id } = req.params;
-    const { name, category, icon, defaultUnit, unitType, barcode, searchNames, tags } = req.body;
+    const { name, category, icon, defaultUnit, unitType, barcode, searchNames, tags, translations: rawTranslations } = req.body;
+    const tx = validateTranslationsInput(rawTranslations);
+    if (!tx.ok) {
+      return res.status(400).json({ message: tx.error, code: 'VALIDATION_ERROR' });
+    }
 
     if (!ObjectId.isValid(id)) {
       return res.status(400).json({
@@ -841,6 +905,13 @@ router.put('/items/group/:id', authMiddleware, requirePermission('group_items:up
     }
     if (tags !== undefined) {
       updateData.tags = Array.isArray(tags) ? tags.filter(Boolean).map((t: string) => new ObjectId(t)) : [];
+    }
+    if (tx.value) {
+      for (const [loc, fields] of Object.entries(tx.value)) {
+        for (const [field, val] of Object.entries(fields ?? {})) {
+          updateData[`translations.${loc}.${field}`] = val;
+        }
+      }
     }
 
     const before = await db.collection('items').findOne({ _id: new ObjectId(id), itemType: 'group', groupId });

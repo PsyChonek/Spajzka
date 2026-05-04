@@ -4,6 +4,14 @@ import { ObjectId } from 'mongodb';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
 import { resolveGroupId, handleGroupResolutionError } from '../utils/resolveGroup';
 import { logHistory, computeDiff } from '../utils/historyLog';
+import {
+  resolveLocale,
+  localizeEntity,
+  shouldIncludeTranslations,
+  validateTranslationsInput,
+  mergeTranslationsIntoUpdate,
+  type Translations,
+} from '../utils/i18n';
 
 const router = Router();
 
@@ -102,16 +110,17 @@ router.get('/tags', authMiddleware, async (req: AuthRequest, res: Response) => {
       groupIds = groups.map(g => g._id);
     }
 
+    const locale = await resolveLocale(req);
+    const includeTranslations = shouldIncludeTranslations(req);
     const tags = await db.collection('tags')
       .find({ groupId: { $in: groupIds } })
       .sort({ name: 1 })
       .toArray();
 
-    res.json(tags.map(tag => ({
-      ...tag,
-      _id: tag._id.toString(),
-      groupId: tag.groupId.toString()
-    })));
+    res.json(tags.map(tag => {
+      const base = { ...tag, _id: tag._id.toString(), groupId: tag.groupId.toString() };
+      return includeTranslations ? base : localizeEntity(base, locale);
+    }));
   } catch (error) {
     if (handleGroupResolutionError(error, res)) return;
     console.error('Error fetching tags:', error);
@@ -149,13 +158,18 @@ router.get('/tags', authMiddleware, async (req: AuthRequest, res: Response) => {
 router.post('/tags', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const db = getDatabase();
-    const { name, color, icon, searchNames } = req.body;
+    const { name, color, icon, searchNames, translations: rawTranslations } = req.body;
 
     if (!name) {
       return res.status(400).json({
         message: 'Missing required field: name',
         code: 'VALIDATION_ERROR'
       });
+    }
+
+    const tx = validateTranslationsInput(rawTranslations);
+    if (!tx.ok) {
+      return res.status(400).json({ message: tx.error, code: 'VALIDATION_ERROR' });
     }
 
     const groupId = await resolveGroupId(db, req, req.userId!);
@@ -173,12 +187,20 @@ router.post('/tags', authMiddleware, async (req: AuthRequest, res: Response) => 
       });
     }
 
+    const sNames = Array.isArray(searchNames) ? searchNames.map((n: string) => n.trim()).filter(Boolean) : [];
+    const translations: Translations = {
+      en: { name: name.trim(), searchNames: sNames },
+      cs: { name: name.trim(), searchNames: sNames },
+      ...(tx.value ?? {})
+    };
+
     const newTag = {
       groupId,
       name: name.trim(),
       color: color?.trim() || '#6200EA', // Default purple color
       icon: icon?.trim() || null,
-      searchNames: Array.isArray(searchNames) ? searchNames.map((n: string) => n.trim()).filter(Boolean) : [],
+      searchNames: sNames,
+      translations,
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -242,7 +264,11 @@ router.put('/tags/:id', authMiddleware, async (req: AuthRequest, res: Response) 
   try {
     const db = getDatabase();
     const { id } = req.params;
-    const { name, color, icon, searchNames } = req.body;
+    const { name, color, icon, searchNames, translations: rawTranslations } = req.body;
+    const tx = validateTranslationsInput(rawTranslations);
+    if (!tx.ok) {
+      return res.status(400).json({ message: tx.error, code: 'VALIDATION_ERROR' });
+    }
 
     if (!ObjectId.isValid(id)) {
       return res.status(400).json({
@@ -302,6 +328,7 @@ router.put('/tags/:id', authMiddleware, async (req: AuthRequest, res: Response) 
         ? searchNames.map((n: string) => n.trim()).filter(Boolean)
         : [];
     }
+    mergeTranslationsIntoUpdate(updateData, tx.value);
 
     const result = await db.collection('tags').findOneAndUpdate(
       { _id: new ObjectId(id) },

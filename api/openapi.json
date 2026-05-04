@@ -67,6 +67,22 @@
             },
             "description": "Array of all permissions from all groups the user is a member of"
           },
+          "interfaceLanguage": {
+            "type": "string",
+            "enum": [
+              "en",
+              "cs"
+            ],
+            "description": "Preferred language for UI strings"
+          },
+          "itemsLanguage": {
+            "type": "string",
+            "enum": [
+              "en",
+              "cs"
+            ],
+            "description": "Preferred language for item/tag/recipe content"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time",
@@ -136,6 +152,20 @@
           "email": {
             "type": "string",
             "format": "email"
+          },
+          "interfaceLanguage": {
+            "type": "string",
+            "enum": [
+              "en",
+              "cs"
+            ]
+          },
+          "itemsLanguage": {
+            "type": "string",
+            "enum": [
+              "en",
+              "cs"
+            ]
           }
         }
       },

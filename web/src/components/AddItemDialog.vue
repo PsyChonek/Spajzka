@@ -1,8 +1,12 @@
 <script setup lang="ts">
 import { ref, watch, nextTick, computed } from 'vue'
 import { type QInput } from 'quasar'
+import { useI18n } from 'vue-i18n'
 import BaseDialog from './BaseDialog.vue'
 import TagSelector from './TagSelector.vue'
+import TranslationsDialog, { type TranslationsValue, type TranslatableField } from './TranslationsDialog.vue'
+import { useAuthStore } from '@/stores/authStore'
+import type { SupportedLocale } from '@/services/i18n'
 import {
   allowedUnits,
   DEFAULT_UNIT_FOR_TYPE,
@@ -20,6 +24,7 @@ export interface ItemFormData {
   searchNames?: string[]
   tags?: string[]
   isGlobal?: boolean
+  translations?: TranslationsValue
 }
 
 interface Props {
@@ -49,6 +54,10 @@ const emit = defineEmits<{
   (e: 'delete'): void
 }>()
 
+const { t } = useI18n({ useScope: 'global' })
+const authStore = useAuthStore()
+const itemsLocale = computed<SupportedLocale>(() => (authStore.user?.itemsLanguage as SupportedLocale | undefined) ?? 'cs')
+
 const formName = ref('')
 const formQuantity = ref<number | undefined>()
 const formDefaultUnit = ref('pcs')
@@ -58,6 +67,13 @@ const formIcon = ref('')
 const formSearchNames = ref('')
 const formTags = ref<string[]>([])
 const formIsGlobal = ref(false)
+const formTranslations = ref<TranslationsValue>({})
+const showTranslationsDialog = ref(false)
+
+const translationFields: TranslatableField[] = [
+  { key: 'name', label: 'Name', kind: 'text' },
+  { key: 'searchNames', label: 'Search names', kind: 'list', placeholder: 'comma-separated' }
+]
 
 const unitOptions = computed(() => allowedUnits(formUnitType.value))
 
@@ -86,8 +102,10 @@ watch(() => props.initialData, (newData) => {
     formSearchNames.value = Array.isArray(newData.searchNames) ? newData.searchNames.join(', ') : ''
     formTags.value = newData.tags || []
     formIsGlobal.value = newData.isGlobal || false
+    formTranslations.value = newData.translations ? JSON.parse(JSON.stringify(newData.translations)) : {}
   }
 }, { immediate: true })
+
 
 watch(() => props.modelValue, (isOpen) => {
   if (!isOpen) return
@@ -130,9 +148,42 @@ const handleSave = () => {
   if (props.showGlobalToggle) data.isGlobal = formIsGlobal.value
   data.tags = formTags.value
 
+  // Mirror the visible fields into the active items-locale slot so the
+  // translations dialog and the main form stay consistent without watchers.
+  const loc = itemsLocale.value
+  const merged: TranslationsValue = { ...formTranslations.value }
+  merged[loc] = { ...(merged[loc] ?? {}), name: data.name, searchNames: data.searchNames ?? [] }
+  const hasAny = Object.values(merged).some(slot =>
+    slot && Object.values(slot).some(v => (typeof v === 'string' ? v.trim() : Array.isArray(v) && v.length > 0))
+  )
+  if (hasAny) data.translations = merged
+
   emit('save', data)
   emit('update:modelValue', false)
   resetForm()
+}
+
+const openTranslationsDialog = () => {
+  // Mirror the visible fields into the active items-locale slot so the dialog
+  // shows what the user just typed instead of stale data.
+  const loc = itemsLocale.value
+  const next: TranslationsValue = { ...formTranslations.value }
+  next[loc] = {
+    ...(next[loc] ?? {}),
+    name: formName.value,
+    searchNames: formSearchNames.value.split(',').map(s => s.trim()).filter(Boolean)
+  }
+  formTranslations.value = next
+  showTranslationsDialog.value = true
+}
+
+const handleTranslationsSave = (value: TranslationsValue) => {
+  formTranslations.value = value
+  const loc = itemsLocale.value
+  const n = value[loc]?.name
+  if (typeof n === 'string') formName.value = n
+  const sn = value[loc]?.searchNames
+  if (Array.isArray(sn)) formSearchNames.value = sn.join(', ')
 }
 
 const resetForm = () => {
@@ -145,6 +196,7 @@ const resetForm = () => {
   formTags.value = []
   formSearchNames.value = ''
   formIsGlobal.value = false
+  formTranslations.value = {}
 }
 
 const isFormValid = () => {
@@ -168,16 +220,28 @@ const handleDelete = () => {
     @update:model-value="emit('update:modelValue', $event)"
     @close="handleClose"
   >
-    <q-input
-      ref="nameInputRef"
-      v-model="formName"
-      outlined
-      label="Item name *"
-      class="q-mb-md"
-      :readonly="readonlyItemFields"
-      :disable="readonlyItemFields"
-      @keyup.enter="handleSave"
-    />
+    <div class="row items-end no-wrap q-gutter-sm q-mb-md">
+      <q-input
+        ref="nameInputRef"
+        v-model="formName"
+        outlined
+        :label="t('common.name') + ' *'"
+        class="col"
+        :readonly="readonlyItemFields"
+        :disable="readonlyItemFields"
+        @keyup.enter="handleSave"
+      />
+      <q-btn
+        flat
+        dense
+        no-caps
+        icon="translate"
+        :label="t('common.translations')"
+        :disable="readonlyItemFields"
+        data-testid="open-translations-dialog"
+        @click="openTranslationsDialog"
+      />
+    </div>
 
     <q-select
       :model-value="formUnitType"
@@ -267,6 +331,13 @@ const handleDelete = () => {
         Global items are visible to all users and can only be managed by moderators
       </q-tooltip>
     </q-toggle>
+
+    <TranslationsDialog
+      v-model="showTranslationsDialog"
+      :fields="translationFields"
+      :translations="formTranslations"
+      @save="handleTranslationsSave"
+    />
 
     <template v-if="showPantryFields">
       <q-separator class="q-my-md" />

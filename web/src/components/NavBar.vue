@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import GroupSelector from '@/components/GroupSelector.vue'
 
 const drawer = ref(false)
 const router = useRouter()
+const { t } = useI18n({ useScope: 'global' })
 
 interface NavLink {
   to: string
@@ -12,17 +14,17 @@ interface NavLink {
   icon?: string
 }
 
-const navLinks: NavLink[] = [
-  { to: '/', label: 'Home', icon: 'home' },
-  { to: '/pantry', label: 'Pantry', icon: 'kitchen' },
-  { to: '/shopping', label: 'Shopping', icon: 'shopping_cart' },
-  { to: '/items', label: 'Items', icon: 'inventory' },
-  { to: '/recipes', label: 'Recipes', icon: 'restaurant_menu' },
-  { to: '/meal-plan', label: 'Meal Plan', icon: 'event' },
-  { to: '/history', label: 'History', icon: 'history' },
-  { to: '/groups', label: 'Groups', icon: 'group' },
-  { to: '/profile', label: 'Profile', icon: 'lock' }
-]
+const navLinks = computed<NavLink[]>(() => [
+  { to: '/', label: t('nav.home'), icon: 'home' },
+  { to: '/pantry', label: t('nav.pantry'), icon: 'kitchen' },
+  { to: '/shopping', label: t('nav.shopping'), icon: 'shopping_cart' },
+  { to: '/items', label: t('nav.items'), icon: 'inventory' },
+  { to: '/recipes', label: t('nav.recipes'), icon: 'restaurant_menu' },
+  { to: '/meal-plan', label: t('nav.mealPlan'), icon: 'event' },
+  { to: '/history', label: t('nav.history'), icon: 'history' },
+  { to: '/groups', label: t('nav.groups'), icon: 'group' },
+  { to: '/profile', label: t('nav.profile'), icon: 'lock' }
+])
 
 const navigateTo = (path: string) => {
   router.push(path)
@@ -77,7 +79,7 @@ const navigateTo = (path: string) => {
     <q-scroll-area class="fit">
       <q-list padding>
         <q-item-label header class="text-weight-bold">
-          Group
+          {{ t('nav.groups') }}
         </q-item-label>
 
         <!-- Group Selector in Drawer -->
@@ -86,7 +88,7 @@ const navigateTo = (path: string) => {
         <q-separator class="q-my-md" />
 
         <q-item-label header class="text-weight-bold">
-          Navigation
+          {{ t('common.more') }}
         </q-item-label>
 
         <q-item

@@ -28,8 +28,32 @@ export type User = {
      */
     groupPermissions?: Array<string>;
     /**
+     * Preferred language for UI strings
+     */
+    interfaceLanguage?: User.interfaceLanguage;
+    /**
+     * Preferred language for item/tag/recipe content
+     */
+    itemsLanguage?: User.itemsLanguage;
+    /**
      * Account creation timestamp
      */
     createdAt?: string;
 };
+export namespace User {
+    /**
+     * Preferred language for UI strings
+     */
+    export enum interfaceLanguage {
+        EN = 'en',
+        CS = 'cs',
+    }
+    /**
+     * Preferred language for item/tag/recipe content
+     */
+    export enum itemsLanguage {
+        EN = 'en',
+        CS = 'cs',
+    }
+}
 

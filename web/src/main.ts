@@ -6,6 +6,7 @@ import router from "./router";
 import { registerSW } from "virtual:pwa-register";
 import { Quasar, Notify, Dialog } from 'quasar';
 import { OpenAPI } from '@shared/api-client';
+import { i18n, setInterfaceLocale, type SupportedLocale } from '@/services/i18n';
 
 // Import icon libraries
 import '@quasar/extras/material-icons/material-icons.css';
@@ -28,6 +29,7 @@ const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);
 
 app.use(pinia);
+app.use(i18n);
 app.use(router);
 app.use(Quasar, {
 	plugins: {
@@ -35,6 +37,12 @@ app.use(Quasar, {
 		Dialog
 	}, // import Quasar plugins and add here
 });
+
+// Apply persisted interface locale (auth store hydrates from localStorage before this).
+const { useAuthStore } = await import('@/stores/authStore');
+const authStore = useAuthStore();
+const initialLocale = (authStore.user?.interfaceLanguage as SupportedLocale | undefined) ?? 'cs';
+setInterfaceLocale(initialLocale);
 
 // Restore last visited route before mounting the app
 const { useNavigationStore } = await import('@/stores/navigationStore');

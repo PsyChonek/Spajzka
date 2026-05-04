@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { Notify } from 'quasar'
+import { useI18n } from 'vue-i18n'
 import { useShoppingStore } from '@/stores/shoppingStore'
 import { useItemsStore } from '@/stores/itemsStore'
 import { usePantryStore } from '@/stores/pantryStore'
@@ -16,6 +17,7 @@ import TagFilter from '@/components/TagFilter.vue'
 import { matchesQuery, normalizeForSearch } from '@/utils/search'
 import { formatQuantity } from '@shared/units'
 
+const { t } = useI18n({ useScope: 'global' })
 const shoppingStore = useShoppingStore()
 const itemsStore = useItemsStore()
 const pantryStore = usePantryStore()
@@ -106,11 +108,11 @@ const toggleItem = async (item: ShoppingItem) => {
     })
     Notify.create({
       type: 'positive',
-      message: `${itemName} moved to pantry`,
+      message: t('shopping.movedToPantry', { name: itemName }),
       timeout: 5000,
       actions: [
         {
-          label: 'Undo',
+          label: t('shopping.undo'),
           color: 'white',
           handler: async () => {
             if (pantryItem?._id) await pantryStore.deleteItem(pantryItem._id)
@@ -160,9 +162,9 @@ const subtitle = computed(() => {
             unelevated
             no-caps
             icon="add"
-            label="Add"
+            :label="t('common.add')"
             class="gt-sm"
-            aria-label="Add to shopping list"
+            :aria-label="t('shopping.addItem')"
             @click="openAddDialog"
           />
         </template>
@@ -184,11 +186,11 @@ const subtitle = computed(() => {
       <EmptyState
         v-if="filteredItems.length === 0"
         :icon="searchQuery ? 'search_off' : 'shopping_cart'"
-        :title="searchQuery ? 'No items found' : 'Shopping list is empty'"
-        :hint="searchQuery ? 'Try a different search or tap Add to create one.' : 'Tap the + button to add what you need to buy.'"
+        :title="searchQuery ? t('common.search') : t('shopping.empty')"
+        :hint="searchQuery ? '' : t('shopping.emptyHint')"
       >
         <template #action>
-          <q-btn color="secondary" unelevated no-caps icon="add" label="Add item" @click="openAddDialog" />
+          <q-btn color="secondary" unelevated no-caps icon="add" :label="t('common.add')" @click="openAddDialog" />
         </template>
       </EmptyState>
 
@@ -210,7 +212,7 @@ const subtitle = computed(() => {
             />
             <div class="sp-shop-card__icon">{{ row.icon || '📦' }}</div>
             <div class="col sp-shop-card__body" @click="toggleItem(row)">
-              <div class="sp-shop-card__name">{{ row.name || 'Loading...' }}</div>
+              <div class="sp-shop-card__name">{{ row.name || t('common.loading') }}</div>
             </div>
             <div class="sp-shop-card__qty">
               <q-btn
@@ -259,7 +261,7 @@ const subtitle = computed(() => {
               />
               <div class="sp-shop-card__icon sp-shop-card__icon--muted">{{ row.icon || '📦' }}</div>
               <div class="col sp-shop-card__body" @click="toggleItem(row)">
-                <div class="sp-shop-card__name sp-shop-card__name--done">{{ row.name || 'Loading...' }}</div>
+                <div class="sp-shop-card__name sp-shop-card__name--done">{{ row.name || t('common.loading') }}</div>
               </div>
               <div class="text-grey-6 q-mr-sm">{{ formatQuantity(row.quantity || 1, row.defaultUnit || 'pcs', { promote: true }) }}</div>
             </q-card-section>
@@ -267,7 +269,7 @@ const subtitle = computed(() => {
         </div>
       </details>
 
-      <FabAdd class="lt-md" aria-label="Add to shopping list" @click="openAddDialog" />
+      <FabAdd class="lt-md" :aria-label="t('shopping.addItem')" @click="openAddDialog" />
 
       <AddItemDialog
         v-model="showAddDialog"

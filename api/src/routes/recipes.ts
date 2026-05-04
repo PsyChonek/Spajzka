@@ -6,6 +6,20 @@ import { requirePermission, requireGlobalPermission } from '../rbac/middleware';
 import { resolveGroupId, handleGroupResolutionError } from '../utils/resolveGroup';
 import { logHistory, computeDiff } from '../utils/historyLog';
 import { allowedUnits, isUnitAllowed, normaliseUnit } from '../../../shared/units';
+import {
+  resolveLocale,
+  localizeEntity,
+  shouldIncludeTranslations,
+  validateTranslationsInput,
+  type Locale,
+} from '../utils/i18n';
+
+const RECIPE_TEXT_FIELDS = ['name', 'description'];
+const RECIPE_ARRAY_FIELDS = ['searchNames', 'instructions'];
+
+function localizeRecipe(recipe: any, locale: Locale) {
+  return localizeEntity(recipe, locale, RECIPE_TEXT_FIELDS, RECIPE_ARRAY_FIELDS);
+}
 
 const router = Router();
 
@@ -295,7 +309,12 @@ router.get('/recipes', authMiddleware, async (req: AuthRequest, res: Response) =
   try {
     const db = getDatabase();
     const includeGlobal = req.query.includeGlobal === 'true';
-    const groupId = await resolveGroupId(db, req, req.userId!);
+    const [groupId, locale] = await Promise.all([
+      resolveGroupId(db, req, req.userId!),
+      resolveLocale(req)
+    ]);
+    const includeTranslations = shouldIncludeTranslations(req);
+    const localize = (r: any) => includeTranslations ? r : localizeRecipe(r, locale);
 
     const groupRecipes = await db.collection('recipes')
       .find({
@@ -328,7 +347,7 @@ router.get('/recipes', authMiddleware, async (req: AuthRequest, res: Response) =
             .toArray();
 
           res.json({
-            groupRecipes: groupRecipes.map(recipe => ({
+            groupRecipes: groupRecipes.map(recipe => localize({
               ...recipe,
               _id: recipe._id.toString(),
               groupId: recipe.groupId.toString(),
@@ -336,7 +355,7 @@ router.get('/recipes', authMiddleware, async (req: AuthRequest, res: Response) =
               globalRecipeRef: recipe.globalRecipeRef?.toString(),
               type: 'group'
             })),
-            globalRecipes: globalRecipes.map(recipe => ({
+            globalRecipes: globalRecipes.map(recipe => localize({
               ...recipe,
               _id: recipe._id.toString(),
               userId: recipe.userId?.toString(),
@@ -349,7 +368,7 @@ router.get('/recipes', authMiddleware, async (req: AuthRequest, res: Response) =
     }
 
     // Default response: only group recipes
-    res.json(groupRecipes.map(recipe => ({
+    res.json(groupRecipes.map(recipe => localize({
       ...recipe,
       _id: recipe._id.toString(),
       groupId: recipe.groupId.toString(),

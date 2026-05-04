@@ -47,8 +47,8 @@ export type { ShoppingPreviewResponse } from './models/ShoppingPreviewResponse';
 export type { Tag } from './models/Tag';
 export type { UpdateGroupRequest } from './models/UpdateGroupRequest';
 export type { UpdateMealPlanEntryRequest } from './models/UpdateMealPlanEntryRequest';
-export type { UpdateProfileRequest } from './models/UpdateProfileRequest';
-export type { User } from './models/User';
+export { UpdateProfileRequest } from './models/UpdateProfileRequest';
+export { User } from './models/User';
 
 export { AuthenticationService } from './services/AuthenticationService';
 export { GroupsService } from './services/GroupsService';

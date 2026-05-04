@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/authStore'
 import PageWrapper from '@/components/PageWrapper.vue'
 import PageHeader from '@/components/common/PageHeader.vue'
 import SectionCard from '@/components/common/SectionCard.vue'
 import McpAccessCard from '@/components/McpAccessCard.vue'
 import BaseDialog from '@/components/BaseDialog.vue'
+import LanguagePreferencesCard from '@/components/LanguagePreferencesCard.vue'
 
 const authStore = useAuthStore()
+const { t } = useI18n({ useScope: 'global' })
 
 // Form mode
 const mode = ref<'login' | 'register'>('login')
@@ -275,17 +278,19 @@ const changePassword = async () => {
           />
         </q-form>
       </SectionCard>
+
+      <LanguagePreferencesCard />
     </template>
 
     <!-- ── Authenticated ── -->
     <template v-else-if="authStore.isAuthenticated && !authStore.isAnonymous">
       <PageHeader
-        title="Profile"
+        :title="t('profile.title')"
         icon="account_circle"
       />
 
       <!-- Account section -->
-      <SectionCard title="Account">
+      <SectionCard :title="t('profile.account')">
         <q-list separator>
           <q-item>
             <q-item-section avatar>
@@ -294,7 +299,7 @@ const changePassword = async () => {
               </q-avatar>
             </q-item-section>
             <q-item-section>
-              <q-item-label class="sp-profile-name">{{ authStore.user?.name || 'No name set' }}</q-item-label>
+              <q-item-label class="sp-profile-name">{{ authStore.user?.name || t('profile.noNameSet') }}</q-item-label>
               <q-item-label caption class="sp-text-muted">{{ authStore.user?.email }}</q-item-label>
             </q-item-section>
           </q-item>
@@ -306,7 +311,7 @@ const changePassword = async () => {
             no-caps
             outline
             color="primary"
-            label="Edit Profile"
+            :label="t('profile.editProfile')"
             icon="edit"
             @click="openProfileDialog"
           />
@@ -315,15 +320,17 @@ const changePassword = async () => {
             no-caps
             outline
             color="primary"
-            label="Change Password"
+            :label="t('auth.changePassword')"
             icon="lock"
             @click="openPasswordDialog"
           />
         </div>
       </SectionCard>
 
+      <LanguagePreferencesCard />
+
       <!-- MCP Access -->
-      <SectionCard title="MCP Access">
+      <SectionCard :title="t('profile.mcpAccess')">
         <McpAccessCard />
       </SectionCard>
 
@@ -333,7 +340,7 @@ const changePassword = async () => {
           unelevated
           no-caps
           color="negative"
-          label="Logout"
+          :label="t('auth.logout')"
           icon="logout"
           @click="handleLogout"
         />
@@ -343,13 +350,13 @@ const changePassword = async () => {
     <!-- Edit Profile Dialog -->
     <BaseDialog
       v-model="showProfileDialog"
-      title="Edit profile"
+      :title="t('profile.editProfileTitle')"
       size="sm"
     >
       <q-form @submit.prevent="updateProfile" class="q-gutter-sm">
         <q-input
           v-model="profileName"
-          label="Name"
+          :label="t('common.name')"
           outlined
         >
           <template #prepend>
@@ -360,11 +367,11 @@ const changePassword = async () => {
         <q-input
           v-model="profileEmail"
           type="email"
-          label="Email"
+          :label="t('auth.email')"
           outlined
           :rules="[
-            val => !!val || 'Email is required',
-            val => validateEmail(val) || 'Invalid email address'
+            val => !!val || t('auth.emailRequired'),
+            val => validateEmail(val) || t('auth.emailInvalid')
           ]"
         >
           <template #prepend>
@@ -374,11 +381,11 @@ const changePassword = async () => {
       </q-form>
 
       <template #footer="{ close }">
-        <q-btn flat no-caps label="Cancel" color="grey-8" @click="close" />
+        <q-btn flat no-caps :label="t('common.cancel')" color="grey-8" @click="close" />
         <q-btn
           unelevated
           no-caps
-          label="Save"
+          :label="t('common.save')"
           color="primary"
           :loading="authStore.loading"
           @click="updateProfile"
@@ -389,7 +396,7 @@ const changePassword = async () => {
     <!-- Change Password Dialog -->
     <BaseDialog
       v-model="showPasswordDialog"
-      title="Change password"
+      :title="t('auth.changePassword')"
       header-icon="lock"
       size="sm"
     >
@@ -397,40 +404,40 @@ const changePassword = async () => {
         <q-input
           v-model="oldPassword"
           type="password"
-          label="Current password"
+          :label="t('auth.currentPassword')"
           outlined
-          :rules="[val => !!val || 'Current password is required']"
+          :rules="[val => !!val || t('auth.currentPasswordRequired')]"
         />
 
         <q-input
           v-model="newPassword"
           type="password"
-          label="New password"
+          :label="t('auth.newPassword')"
           outlined
           :rules="[
-            val => !!val || 'New password is required',
-            val => val.length >= 6 || 'Password must be at least 6 characters'
+            val => !!val || t('auth.newPasswordRequired'),
+            val => val.length >= 6 || t('auth.passwordTooShort')
           ]"
         />
 
         <q-input
           v-model="newPasswordConfirm"
           type="password"
-          label="Confirm new password"
+          :label="t('auth.confirmNewPassword')"
           outlined
           :rules="[
-            val => !!val || 'Please confirm new password',
-            val => val === newPassword || 'Passwords do not match'
+            val => !!val || t('auth.confirmPasswordRequired'),
+            val => val === newPassword || t('auth.passwordsDoNotMatch')
           ]"
         />
       </q-form>
 
       <template #footer="{ close }">
-        <q-btn flat no-caps label="Cancel" color="grey-8" @click="close" />
+        <q-btn flat no-caps :label="t('common.cancel')" color="grey-8" @click="close" />
         <q-btn
           unelevated
           no-caps
-          label="Change password"
+          :label="t('auth.changePassword')"
           color="primary"
           :loading="authStore.loading"
           @click="changePassword"
