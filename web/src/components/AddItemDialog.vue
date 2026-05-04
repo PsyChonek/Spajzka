@@ -70,10 +70,10 @@ const formIsGlobal = ref(false)
 const formTranslations = ref<TranslationsValue>({})
 const showTranslationsDialog = ref(false)
 
-const translationFields: TranslatableField[] = [
-  { key: 'name', label: 'Name', kind: 'text' },
-  { key: 'searchNames', label: 'Search names', kind: 'list', placeholder: 'comma-separated' }
-]
+const translationFields = computed<TranslatableField[]>(() => [
+  { key: 'name', label: t('common.name'), kind: 'text' },
+  { key: 'searchNames', label: t('items.searchNames'), kind: 'list', placeholder: t('common.commaSeparated') }
+])
 
 const unitOptions = computed(() => allowedUnits(formUnitType.value))
 

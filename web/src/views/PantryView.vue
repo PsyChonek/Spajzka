@@ -96,13 +96,21 @@ const openAddDialog = () => {
 const openEditDialog = (item: PantryItem, field: 'name' | 'quantity' | 'icon' | 'unit' | 'category' = 'name') => {
   editingItem.value = item
   focusField.value = field
+  // Pull translations / searchNames / tags from the catalog entry so the edit
+  // form has the full picture — the PantryItem only carries the legacy flat name.
+  const catalog: any = item.itemId
+    ? itemsStore.sortedItems.find((i: any) => i._id === item.itemId)
+    : undefined
   initialFormData.value = {
     name: item.name || 'Unknown Item',
     unitType: item.unitType as UnitType | undefined,
     defaultUnit: item.defaultUnit || 'pcs',
     category: item.category || '',
     icon: item.icon || '',
-    quantity: item.quantity || 0
+    quantity: item.quantity || 0,
+    searchNames: catalog?.searchNames || [],
+    tags: catalog?.tags || [],
+    translations: catalog?.translations || undefined
   }
   showEditDialog.value = true
 }

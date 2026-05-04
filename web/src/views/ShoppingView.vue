@@ -90,8 +90,9 @@ const saveNewItem = async (data: ItemFormData) => {
     category: data.category || 'Other',
     icon: data.icon || '📦',
     unitType: (data.unitType || 'count') as any,
-    defaultUnit: data.defaultUnit || 'pcs'
-  })
+    defaultUnit: data.defaultUnit || 'pcs',
+    ...(data.translations ? { translations: data.translations } : {})
+  } as any)
   const created = itemsStore.sortedItems.find(i => i.name === data.name && i.type === 'group')
   if (created) {
     await shoppingStore.addItem({ itemId: created._id!, itemType: CreateShoppingItemRequest.itemType.GROUP, quantity: 1 })

@@ -29,7 +29,8 @@
     "next": "Next",
     "done": "Done",
     "more": "More",
-    "translations": "Translations"
+    "translations": "Translations",
+    "commaSeparated": "comma-separated"
   },
   "nav": {
     "home": "Home",

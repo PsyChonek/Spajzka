@@ -93,7 +93,8 @@ const openEditDialog = (item: Item, field: 'name' | 'icon' | 'unit' | 'category'
     icon: item.icon || '',
     searchNames: item.searchNames || [],
     tags: item.tags || [],
-    isGlobal: item.type === 'global'
+    isGlobal: item.type === 'global',
+    translations: (item as any).translations || undefined
   }
   showEditDialog.value = true
 }
@@ -107,6 +108,7 @@ const saveNewItem = async (data: ItemFormData) => {
     icon: data.icon,
     searchNames: data.searchNames,
     tags: data.tags,
+    ...(data.translations ? { translations: data.translations } : {}),
   }
   if (data.isGlobal) {
     await itemsStore.addGlobalItem(payload)
@@ -126,6 +128,7 @@ const saveEditedItem = async (data: ItemFormData) => {
     icon: data.icon,
     searchNames: data.searchNames,
     tags: data.tags,
+    ...(data.translations ? { translations: data.translations } : {}),
   }
   const wasGlobal = editingItem.value.type === 'global'
   const isNowGlobal = data.isGlobal ?? wasGlobal

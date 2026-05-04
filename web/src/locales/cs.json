@@ -29,7 +29,8 @@
     "next": "Další",
     "done": "Hotovo",
     "more": "Více",
-    "translations": "Překlady"
+    "translations": "Překlady",
+    "commaSeparated": "oddělené čárkou"
   },
   "nav": {
     "home": "Domů",
