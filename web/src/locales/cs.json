@@ -86,7 +86,9 @@
     "itemsLanguageHint": "Názvy položek, štítků a receptů",
     "mcpAccess": "Přístup MCP",
     "profileUpdated": "Profil byl úspěšně aktualizován!",
-    "profileUpdateFailed": "Aktualizace se nezdařila"
+    "profileUpdateFailed": "Aktualizace se nezdařila",
+    "resetApp": "Resetovat aplikaci",
+    "resetAppHint": "Vymazat mezipaměť a stáhnout aplikaci znovu — použijte, pokud aktualizace zamrzla"
   },
   "pantry": {
     "title": "Spajzka",

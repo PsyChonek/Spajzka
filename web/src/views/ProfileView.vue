@@ -93,6 +93,27 @@ const handleLogout = async () => {
   await authStore.logout()
 }
 
+// Manual escape hatch: unregister all service workers + clear every cache,
+// then reload from the network. Use when the PWA is wedged on a stale build
+// (e.g. "stuck downloading update").
+const resetApp = async () => {
+  try {
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations()
+      await Promise.all(regs.map((r) => r.unregister()))
+    }
+    if ('caches' in window) {
+      const keys = await caches.keys()
+      await Promise.all(keys.map((k) => caches.delete(k)))
+    }
+  } catch (err) {
+    console.error('Reset failed:', err)
+  } finally {
+    // Hard reload bypassing the HTTP cache where supported.
+    window.location.reload()
+  }
+}
+
 const openProfileDialog = () => {
   profileName.value = authStore.user?.name || ''
   profileEmail.value = authStore.user?.email || ''
@@ -280,6 +301,19 @@ const changePassword = async () => {
       </SectionCard>
 
       <LanguagePreferencesCard />
+
+      <div class="sp-signout-row">
+        <q-btn
+          flat
+          no-caps
+          color="grey-7"
+          :label="t('profile.resetApp')"
+          icon="refresh"
+          @click="resetApp"
+        >
+          <q-tooltip>{{ t('profile.resetAppHint') }}</q-tooltip>
+        </q-btn>
+      </div>
     </template>
 
     <!-- ── Authenticated ── -->
@@ -336,6 +370,17 @@ const changePassword = async () => {
 
       <!-- Sign out -->
       <div class="sp-signout-row">
+        <q-btn
+          flat
+          no-caps
+          color="grey-7"
+          :label="t('profile.resetApp')"
+          icon="refresh"
+          class="q-mr-sm"
+          @click="resetApp"
+        >
+          <q-tooltip>{{ t('profile.resetAppHint') }}</q-tooltip>
+        </q-btn>
         <q-btn
           unelevated
           no-caps

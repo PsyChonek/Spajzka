@@ -14,7 +14,22 @@ export default defineConfig({
 		}),
 		VitePWA({
 			registerType: "autoUpdate",
-			manifest: false
+			manifest: false,
+			workbox: {
+				// Take over from any prior SW immediately and start serving the new
+				// build to all open tabs. Without these two flags the new SW sits in
+				// `waiting` state until every tab closes — that's the classic
+				// "stuck on downloading update" symptom on Android PWAs.
+				skipWaiting: true,
+				clientsClaim: true,
+				cleanupOutdatedCaches: true,
+				// SPA fallback: any navigation request that misses the precache
+				// falls back to index.html so deep links and reloads still work.
+				navigateFallback: 'index.html',
+				// Cap precache entry size; oversized assets will be runtime-cached
+				// instead and won't block the SW install if they hiccup.
+				maximumFileSizeToCacheInBytes: 4 * 1024 * 1024
+			}
 		})
 	],
 	resolve: {

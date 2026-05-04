@@ -86,7 +86,9 @@
     "itemsLanguageHint": "Item, tag, and recipe names",
     "mcpAccess": "MCP Access",
     "profileUpdated": "Profile updated successfully!",
-    "profileUpdateFailed": "Update failed"
+    "profileUpdateFailed": "Update failed",
+    "resetApp": "Reset app",
+    "resetAppHint": "Clear caches and force a fresh download — use when stuck on an update"
   },
   "pantry": {
     "title": "Pantry",

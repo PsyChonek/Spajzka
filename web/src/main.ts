@@ -56,21 +56,45 @@ if (lastRoute !== '/' && router.currentRoute.value.path !== lastRoute) {
 
 app.mount("#app");
 
-registerSW({
+// PWA update handling.
+//
+// `registerType: "autoUpdate"` (in vite.config.ts) downloads new SW versions
+// in the background, but the new SW sits in the `waiting` state until every
+// client closes — that's the "stuck on downloading update" symptom on Android
+// where users keep the app open. We force the new SW to take over by calling
+// the returned `updateSW(true)` whenever an update is detected, then reload.
+//
+// We also guard against a known PWA wedge: if a previous SW install failed
+// (e.g. precache 404 mid-deploy), the registration can stay in a broken
+// state. `onRegisterError` triggers a one-shot unregister so the next page
+// load gets a clean slate.
+const updateSW = registerSW({
 	immediate: true,
 	onNeedRefresh() {
-		// optionally show "New content available, please refresh."
-		console.log("New content available, please refresh.");
+		console.log("New content available — applying update.");
+		// Take over immediately and reload. updateSW(true) returns Promise<void>
+		// at runtime but the bundled type narrows it; cast to keep async-safe.
+		void Promise.resolve(updateSW(true) as unknown as Promise<void>)
+			.catch((err: unknown) => console.error("Failed to apply SW update:", err));
 	},
 	onOfflineReady() {
-		// optionally show "Ready to work offline"
 		console.log("App ready to work offline.");
 	},
-	onRegistered(registration) {
-		// registration is a ServiceWorkerRegistration instance
-		console.log("Service worker has been registered.", registration);
+	onRegistered(registration: ServiceWorkerRegistration | undefined) {
+		console.log("Service worker registered.", registration);
+		if (!registration) return;
+		// Periodically check for updates so long-lived sessions don't drift.
+		const HOUR = 60 * 60 * 1000;
+		setInterval(() => {
+			registration.update().catch((err: unknown) => console.warn("SW update check failed:", err));
+		}, HOUR);
 	},
-	onRegisterError(error) {
-		console.error("SW registration error", error);
+	onRegisterError(error: unknown) {
+		console.error("SW registration error — unregistering to recover:", error);
+		if ('serviceWorker' in navigator) {
+			navigator.serviceWorker.getRegistrations().then((regs) => {
+				regs.forEach((reg) => reg.unregister());
+			}).catch(() => { /* best-effort */ });
+		}
 	}
 })
