@@ -136,7 +136,9 @@
     "globalItem": "Globální",
     "groupItem": "Skupinová",
     "isGlobal": "Globální položka",
-    "searchNames": "Vyhledávací názvy",
+    "searchNames": "Další vyhledávací názvy",
+    "searchNamesHint": "Alternativní názvy pro hledání oddělené čárkou",
+    "iconEmoji": "Ikona (emoji)",
     "defaultUnit": "Výchozí jednotka",
     "unitType": "Typ jednotky",
     "barcode": "Čárový kód",
@@ -200,7 +202,12 @@
   },
   "suggestion": {
     "title": "Doporučit jídlo",
-    "placeholder": "Hledat recepty…"
+    "placeholder": "Hledat recepty…",
+    "all": "Vše",
+    "haveIngredients": "Mám ingredience",
+    "noItemsLinked": "Žádné propojené položky",
+    "inPantry": "{covered}/{total} ve spajzce",
+    "missing": "chybí"
   },
   "groupsActions": {
     "createGroup": "Vytvořit skupinu",
@@ -215,7 +222,19 @@
     "goToProfile": "Přejít do profilu"
   },
   "mealPlan": {
-    "title": "Jídelníček"
+    "title": "Jídelníček",
+    "month": "Měsíc",
+    "week": "Týden",
+    "suggest": "Doporučit",
+    "suggestMeal": "Doporučit jídlo",
+    "generateShopping": "Vygenerovat nákup",
+    "leftover": "zbytky",
+    "ingredientsAdded": "Ingredience přidány do nákupního seznamu",
+    "noMeals": "Žádná jídla",
+    "planFirst": "Naplánujte si první jídlo",
+    "planFirstHint": "Klikněte na den v kalendáři nebo na tlačítko Doporučit pro naplánování receptu.",
+    "tomorrow": "Zítra",
+    "mealsScheduled": "žádné naplánované jídlo | 1 naplánované jídlo | {n} naplánovaná jídla | {n} naplánovaných jídel"
   },
   "history": {
     "title": "Historie",

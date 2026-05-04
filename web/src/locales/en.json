@@ -136,7 +136,9 @@
     "globalItem": "Global",
     "groupItem": "Group",
     "isGlobal": "Global item",
-    "searchNames": "Search names",
+    "searchNames": "Additional search names",
+    "searchNamesHint": "Comma-separated alternative names for search",
+    "iconEmoji": "Icon (emoji)",
     "defaultUnit": "Default unit",
     "unitType": "Unit type",
     "barcode": "Barcode",
@@ -200,7 +202,12 @@
   },
   "suggestion": {
     "title": "Suggest a meal",
-    "placeholder": "Search recipes…"
+    "placeholder": "Search recipes…",
+    "all": "All",
+    "haveIngredients": "Have ingredients",
+    "noItemsLinked": "No items linked",
+    "inPantry": "{covered}/{total} in pantry",
+    "missing": "missing"
   },
   "groupsActions": {
     "createGroup": "Create Group",
@@ -215,7 +222,19 @@
     "goToProfile": "Go to Profile"
   },
   "mealPlan": {
-    "title": "Meal Plan"
+    "title": "Meal Plan",
+    "month": "Month",
+    "week": "Week",
+    "suggest": "Suggest",
+    "suggestMeal": "Suggest meal",
+    "generateShopping": "Generate shopping",
+    "leftover": "leftover",
+    "ingredientsAdded": "Ingredients added to shopping list",
+    "noMeals": "No meals",
+    "planFirst": "Plan your first meal",
+    "planFirstHint": "Click a day in the calendar or tap Suggest to schedule a recipe.",
+    "tomorrow": "Tomorrow",
+    "mealsScheduled": "no meals scheduled | 1 meal scheduled | {n} meals scheduled"
   },
   "history": {
     "title": "History",

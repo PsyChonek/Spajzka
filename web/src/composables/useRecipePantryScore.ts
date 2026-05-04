@@ -9,7 +9,11 @@ export interface PantryScore {
   missing: string[]
 }
 
-export function computePantryScore(recipe: Recipe, pantryItems: PantryItem[]): PantryScore {
+export function computePantryScore(
+  recipe: Recipe,
+  pantryItems: PantryItem[],
+  resolveName?: (itemId: string, fallback: string) => string
+): PantryScore {
   const linked = (recipe.ingredients ?? []).filter((i) => i.itemId)
   if (linked.length === 0) return { covered: 0, total: 0, pct: null, missing: [] }
 
@@ -23,7 +27,10 @@ export function computePantryScore(recipe: Recipe, pantryItems: PantryItem[]): P
     if (ing.itemId && inStock.has(ing.itemId)) {
       covered++
     } else {
-      missing.push(ing.itemName)
+      const name = ing.itemId && resolveName
+        ? resolveName(ing.itemId, ing.itemName)
+        : ing.itemName
+      missing.push(name)
     }
   }
 

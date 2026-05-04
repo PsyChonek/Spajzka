@@ -1,10 +1,21 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRecipesStore, type Recipe } from '@/stores/recipesStore'
 import { usePantryStore } from '@/stores/pantryStore'
+import { useItemsStore } from '@/stores/itemsStore'
 import { computePantryScore, pantryScoreSortKey, type PantryScore } from '@/composables/useRecipePantryScore'
 import { matchesQuery } from '@/utils/search'
 import BaseDialog from './BaseDialog.vue'
+import { useContentLocale, tName } from '@/services/i18n/translateContent'
+
+const { t } = useI18n({ useScope: 'global' })
+const itemsLocale = useContentLocale()
+const itemsStore = useItemsStore()
+const resolveItemName = (itemId: string, fallback: string): string => {
+  const item = itemsStore.allItems.find(i => i._id === itemId)
+  return item ? (tName(item, itemsLocale.value) || item.name || fallback) : fallback
+}
 
 interface Props {
   modelValue: boolean
@@ -34,9 +45,15 @@ watch(() => props.modelValue, (open) => {
 
 interface ScoredRecipe { recipe: Recipe; score: PantryScore }
 
-const scored = computed<ScoredRecipe[]>(() =>
-  recipesStore.items.map((r) => ({ recipe: r, score: computePantryScore(r, pantryStore.items) }))
-)
+const scored = computed<ScoredRecipe[]>(() => {
+  // Reactive deps: items language change should re-resolve missing-ingredient
+  // names via resolveItemName closure capturing itemsLocale.
+  void itemsLocale.value
+  return recipesStore.items.map((r) => ({
+    recipe: r,
+    score: computePantryScore(r, pantryStore.items, resolveItemName)
+  }))
+})
 
 const filtered = computed<ScoredRecipe[]>(() => {
   let list = scored.value
@@ -58,8 +75,8 @@ const filtered = computed<ScoredRecipe[]>(() => {
 })
 
 function coverageLabel(score: PantryScore): string {
-  if (score.pct === null) return 'No items linked'
-  return `${score.covered}/${score.total} in pantry`
+  if (score.pct === null) return t('suggestion.noItemsLinked')
+  return t('suggestion.inPantry', { covered: score.covered, total: score.total })
 }
 
 function coverageColor(score: PantryScore): string {
@@ -75,13 +92,17 @@ function coverageTextColor(score: PantryScore): string {
 }
 
 function captionText(recipe: Recipe, score: PantryScore): string {
-  const parts: string[] = [recipe.recipeType]
+  const parts: string[] = [recipe.recipeType === 'global' ? t('items.globalItem') : t('items.groupItem')]
   if (score.pct !== null && score.pct < 1 && score.missing.length) {
     const shown = score.missing.slice(0, 2).join(', ')
     const more = score.missing.length > 2 ? ` +${score.missing.length - 2}` : ''
-    parts.push(`missing: ${shown}${more}`)
+    parts.push(`${t('suggestion.missing')}: ${shown}${more}`)
   }
   return parts.join(' · ')
+}
+
+function recipeDisplayName(recipe: Recipe): string {
+  return tName(recipe as any, itemsLocale.value) || recipe.name
 }
 
 function handleSelect(recipe: Recipe) {
@@ -93,7 +114,7 @@ function handleSelect(recipe: Recipe) {
 <template>
   <BaseDialog
     :model-value="modelValue"
-    title="Suggest a meal"
+    :title="t('suggestion.title')"
     header-icon="auto_awesome"
     size="lg"
     @update:model-value="emit('update:modelValue', $event)"
@@ -102,7 +123,7 @@ function handleSelect(recipe: Recipe) {
     <div class="sp-sugg__toolbar">
       <q-input
         v-model="searchQuery"
-        placeholder="Search recipes…"
+        :placeholder="t('suggestion.placeholder')"
         dense
         outlined
         clearable
@@ -115,8 +136,8 @@ function handleSelect(recipe: Recipe) {
       <q-btn-toggle
         v-model="activeFilter"
         :options="[
-          { label: 'All', value: 'all' },
-          { label: 'Have ingredients', value: 'have' }
+          { label: t('suggestion.all'), value: 'all' },
+          { label: t('suggestion.haveIngredients'), value: 'have' }
         ]"
         toggle-color="primary"
         color="white"
@@ -150,7 +171,7 @@ function handleSelect(recipe: Recipe) {
           <span class="sp-sugg__icon">{{ recipe.icon || '🍽️' }}</span>
         </q-item-section>
         <q-item-section>
-          <q-item-label class="sp-sugg__name">{{ recipe.name }}</q-item-label>
+          <q-item-label class="sp-sugg__name">{{ recipeDisplayName(recipe) }}</q-item-label>
           <q-item-label caption class="sp-sugg__caption">{{ captionText(recipe, score) }}</q-item-label>
         </q-item-section>
         <q-item-section side>
@@ -166,7 +187,7 @@ function handleSelect(recipe: Recipe) {
 
       <q-item v-if="filtered.length === 0">
         <q-item-section class="text-center text-grey-5 q-py-md">
-          No recipes found
+          {{ t('items.noneFound') }}
         </q-item-section>
       </q-item>
     </q-list>

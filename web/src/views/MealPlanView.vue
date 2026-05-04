@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { useI18n } from 'vue-i18n'
 // The dist default export is the Quasar plugin wrapper `{ QCalendarMonth, install, … }`
 // — not the component itself. Pull the component off the plugin object.
 // (The package's .d.ts only declares the default, so named imports fail type-check.)
@@ -8,6 +9,10 @@ import QCalendarMonthPlugin from '@quasar/quasar-ui-qcalendar/QCalendarMonth'
 const QCalendarMonth = (QCalendarMonthPlugin as any).QCalendarMonth ?? QCalendarMonthPlugin
 import { useMealPlan } from '@/composables/useStores'
 import { useRecipesStore } from '@/stores/recipesStore'
+import { useContentLocale, tName } from '@/services/i18n/translateContent'
+
+const { t, locale } = useI18n({ useScope: 'global' })
+const itemsLocale = useContentLocale()
 import { toISODate } from '@/utils/date'
 import type { MealPlanEntry } from '@shared/api-client'
 import PageWrapper from '@/components/PageWrapper.vue'
@@ -27,13 +32,23 @@ const calendarView = ref<CalendarView>('month')
 const selectedDate = ref<string>(toISODate(new Date()))
 const todayStr = computed(() => toISODate(new Date()))
 
+const localizeRecipeName = (entry: MealPlanEntry): string => {
+  if (entry.recipeId) {
+    const recipe = recipesStore.items.find((r: any) => r._id === entry.recipeId)
+    if (recipe) return tName(recipe as any, itemsLocale.value) || recipe.name || entry.recipeName || ''
+  }
+  return entry.recipeName ?? ''
+}
+
 // Week starts Monday: [1,2,3,4,5,6,0] (Quasar uses 0=Sunday).
 const weekdaysMondayFirst = [1, 2, 3, 4, 5, 6, 0]
 
 // --- Header labels ---
+const localeTag = computed(() => locale.value === 'cs' ? 'cs-CZ' : 'en-US')
+
 const monthLabel = computed(() => {
   const d = new Date(selectedDate.value + 'T00:00:00Z')
-  return d.toLocaleDateString('en-US', { month: 'long', timeZone: 'UTC' })
+  return d.toLocaleDateString(localeTag.value, { month: 'long', timeZone: 'UTC' })
 })
 
 const yearLabel = computed(() => {
@@ -44,7 +59,7 @@ const yearLabel = computed(() => {
 const rangeLabel = computed(() => {
   const d = new Date(selectedDate.value + 'T00:00:00Z')
   if (calendarView.value === 'month') {
-    return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' })
+    return d.toLocaleDateString(localeTag.value, { month: 'long', year: 'numeric', timeZone: 'UTC' })
   }
   // Monday-first: Sunday(0) → 6 days back, otherwise (day - 1) days back.
   const offset = (d.getUTCDay() + 6) % 7
@@ -52,7 +67,7 @@ const rangeLabel = computed(() => {
   weekStart.setUTCDate(d.getUTCDate() - offset)
   const weekEnd = new Date(weekStart)
   weekEnd.setUTCDate(weekStart.getUTCDate() + 6)
-  const fmt = (dt: Date) => dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })
+  const fmt = (dt: Date) => dt.toLocaleDateString(localeTag.value, { month: 'short', day: 'numeric', timeZone: 'UTC' })
   return `${fmt(weekStart)} – ${fmt(weekEnd)}, ${weekStart.getUTCFullYear()}`
 })
 
@@ -71,7 +86,7 @@ const headerSubtitle = computed(() => {
   const label = calendarView.value === 'month'
     ? `${monthLabel.value} ${yearLabel.value}`
     : rangeLabel.value
-  return `${count} ${count === 1 ? 'meal' : 'meals'} scheduled · ${label}`
+  return `${t('mealPlan.mealsScheduled', count)} · ${label}`
 })
 
 // --- Date navigation ---
@@ -335,10 +350,10 @@ function formatAgendaHeading(dateStr: string): string {
   const d = new Date(dateStr + 'T00:00:00Z')
   const today = todayStr.value
   const tomorrow = toISODate(new Date(new Date(today + 'T00:00:00Z').getTime() + 86400_000))
-  const weekday = d.toLocaleDateString('en-US', { weekday: 'long', timeZone: 'UTC' })
-  const monthDay = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })
-  if (dateStr === today) return `Today · ${monthDay}`
-  if (dateStr === tomorrow) return `Tomorrow · ${monthDay}`
+  const weekday = d.toLocaleDateString(localeTag.value, { weekday: 'long', timeZone: 'UTC' })
+  const monthDay = d.toLocaleDateString(localeTag.value, { month: 'short', day: 'numeric', timeZone: 'UTC' })
+  if (dateStr === today) return `${t('mealPlanDialog.today')} · ${monthDay}`
+  if (dateStr === tomorrow) return `${t('mealPlan.tomorrow')} · ${monthDay}`
   return `${weekday} · ${monthDay}`
 }
 
@@ -413,14 +428,14 @@ onMounted(async () => {
     <PageWrapper max-width="1400px">
       <div class="sp-mp">
         <!-- Page header with meal count subtitle -->
-        <PageHeader title="Meal Plan" icon="event" :subtitle="headerSubtitle">
+        <PageHeader :title="t('nav.mealPlan')" icon="event" :subtitle="headerSubtitle">
           <template #actions>
             <!-- Desktop "Suggest meal" CTA -->
             <q-btn
               class="gt-sm sp-mp__suggest-btn"
               color="primary"
               icon="auto_awesome"
-              label="Suggest meal"
+              :label="t('mealPlan.suggestMeal')"
               no-caps
               unelevated
               @click="openSuggestionDialog()"
@@ -430,7 +445,7 @@ onMounted(async () => {
               class="gt-sm sp-mp__generate-btn"
               color="secondary"
               icon="shopping_cart"
-              label="Generate shopping"
+              :label="t('mealPlan.generateShopping')"
               no-caps
               unelevated
               @click="showShoppingPreview = true"
@@ -443,8 +458,8 @@ onMounted(async () => {
           <q-btn-toggle
             v-model="calendarView"
             :options="[
-              { label: 'Month', value: 'month', icon: 'calendar_view_month' },
-              { label: 'Week', value: 'week', icon: 'calendar_view_week' }
+              { label: t('mealPlan.month'), value: 'month', icon: 'calendar_view_month' },
+              { label: t('mealPlan.week'), value: 'week', icon: 'calendar_view_week' }
             ]"
             toggle-color="primary"
             color="white"
@@ -473,13 +488,13 @@ onMounted(async () => {
               class="sp-mp__nav-btn"
               @click="navigate(-1)"
             >
-              <q-tooltip>Previous</q-tooltip>
+              <q-tooltip>{{ t('common.back') }}</q-tooltip>
             </q-btn>
             <q-btn
               flat
               dense
               no-caps
-              label="Today"
+              :label="t('mealPlanDialog.today')"
               class="sp-mp__today-btn"
               @click="goToday"
             />
@@ -492,7 +507,7 @@ onMounted(async () => {
               class="sp-mp__nav-btn"
               @click="navigate(1)"
             >
-              <q-tooltip>Next</q-tooltip>
+              <q-tooltip>{{ t('common.next') }}</q-tooltip>
             </q-btn>
           </div>
         </div>
@@ -541,7 +556,7 @@ onMounted(async () => {
                       class="sp-mp__chip-icon"
                     />
                     <span v-else class="sp-mp__chip-dot">●</span>
-                    <span class="sp-mp__chip-name">{{ entry.recipeName }}</span>
+                    <span class="sp-mp__chip-name">{{ localizeRecipeName(entry) }}</span>
                     <span
                       v-if="entry.servings && entry.servings !== 1"
                       class="sp-mp__chip-servings"
@@ -607,7 +622,7 @@ onMounted(async () => {
                   <q-icon v-else name="restaurant" size="20px" />
                 </div>
                 <div class="col">
-                  <div class="sp-mp__agenda-name text-weight-medium">{{ entry.recipeName }}</div>
+                  <div class="sp-mp__agenda-name text-weight-medium">{{ localizeRecipeName(entry) }}</div>
                   <div
                     v-if="(entry.mealTypes && entry.mealTypes.length) || entry.servings"
                     class="sp-mp__agenda-meta text-caption"
@@ -624,13 +639,13 @@ onMounted(async () => {
                   color="positive"
                   class="q-mr-sm"
                 >
-                  <q-tooltip>Ingredients added to shopping list</q-tooltip>
+                  <q-tooltip>{{ t('mealPlan.ingredientsAdded') }}</q-tooltip>
                 </q-icon>
                 <q-badge
                   v-if="isLeftover(entry, day.date)"
                   outline
                   color="orange"
-                  label="leftover"
+                  :label="t('mealPlan.leftover')"
                   class="q-mr-sm"
                 />
               </div>
@@ -638,7 +653,7 @@ onMounted(async () => {
                 v-if="day.entries.length === 0"
                 class="sp-mp__agenda-empty text-caption text-grey-5"
               >
-                — No meals —
+                — {{ t('mealPlan.noMeals') }} —
               </div>
             </section>
           </div>
@@ -651,9 +666,9 @@ onMounted(async () => {
             >
               <div class="sp-mp__empty-card">
                 <q-icon name="restaurant_menu" size="56px" color="primary" class="q-mb-md" />
-                <div class="text-h6 text-weight-medium" style="color: var(--sp-text)">Plan your first meal</div>
+                <div class="text-h6 text-weight-medium" style="color: var(--sp-text)">{{ t('mealPlan.planFirst') }}</div>
                 <div class="text-body2 q-mt-xs" style="color: var(--sp-text-muted)">
-                  Click a day in the calendar or tap Suggest to schedule a recipe.
+                  {{ t('mealPlan.planFirstHint') }}
                 </div>
               </div>
             </div>
@@ -665,7 +680,7 @@ onMounted(async () => {
           class="lt-md sp-mp__suggest-btn-mobile"
           color="primary"
           icon="auto_awesome"
-          label="Suggest"
+          :label="t('mealPlan.suggest')"
           no-caps
           unelevated
           @click="openSuggestionDialog()"
@@ -676,7 +691,7 @@ onMounted(async () => {
           class="lt-md sp-mp__generate-btn-mobile"
           color="secondary"
           icon="shopping_cart"
-          label="Generate shopping"
+          :label="t('mealPlan.generateShopping')"
           no-caps
           unelevated
           @click="showShoppingPreview = true"

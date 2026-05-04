@@ -234,20 +234,22 @@ const handleDelete = () => {
       <q-btn
         flat
         dense
-        no-caps
+        round
         icon="translate"
-        :label="t('common.translations')"
+        :aria-label="t('common.translations')"
         :disable="readonlyItemFields"
         data-testid="open-translations-dialog"
         @click="openTranslationsDialog"
-      />
+      >
+        <q-tooltip>{{ t('common.translations') }}</q-tooltip>
+      </q-btn>
     </div>
 
     <q-select
       :model-value="formUnitType"
       :options="UNIT_TYPE_OPTIONS"
       outlined
-      label="Unit type *"
+      :label="t('items.unitType') + ' *'"
       emit-value
       map-options
       class="q-mb-md"
@@ -262,7 +264,7 @@ const handleDelete = () => {
       v-model="formDefaultUnit"
       :options="unitOptions"
       outlined
-      label="Default unit *"
+      :label="t('items.defaultUnit') + ' *'"
       class="q-mb-md"
       :readonly="readonlyItemFields"
       :disable="readonlyItemFields"
@@ -273,8 +275,7 @@ const handleDelete = () => {
       ref="unitInputRef"
       v-model="formDefaultUnit"
       outlined
-      label="Default unit *"
-      placeholder="e.g. bottle, packet"
+      :label="t('items.defaultUnit') + ' *'"
       class="q-mb-md"
       :readonly="readonlyItemFields"
       :disable="readonlyItemFields"
@@ -284,8 +285,7 @@ const handleDelete = () => {
       ref="categoryInputRef"
       v-model="formCategory"
       outlined
-      label="Category"
-      placeholder="e.g. Dairy, Vegetables"
+      :label="t('common.category')"
       class="q-mb-md"
       :readonly="readonlyItemFields"
       :disable="readonlyItemFields"
@@ -295,7 +295,7 @@ const handleDelete = () => {
       ref="iconInputRef"
       v-model="formIcon"
       outlined
-      label="Icon (emoji)"
+      :label="t('items.iconEmoji')"
       placeholder="📦"
       class="q-mb-md"
       :readonly="readonlyItemFields"
@@ -305,9 +305,8 @@ const handleDelete = () => {
     <q-input
       v-model="formSearchNames"
       outlined
-      label="Additional search names"
-      placeholder="e.g. tomato, tomate, rajčica"
-      hint="Comma-separated alternative names for search"
+      :label="t('items.searchNames')"
+      :hint="t('items.searchNamesHint')"
       class="q-mb-md"
       :readonly="readonlyItemFields"
       :disable="readonlyItemFields"
@@ -315,7 +314,7 @@ const handleDelete = () => {
 
     <TagSelector
       v-model="formTags"
-      label="Tags"
+      :label="t('common.tags')"
       class="q-mb-md"
       :readonly="readonlyItemFields"
     />
@@ -323,14 +322,10 @@ const handleDelete = () => {
     <q-toggle
       v-if="showGlobalToggle"
       v-model="formIsGlobal"
-      label="Add as global item"
+      :label="t('items.isGlobal')"
       color="primary"
       class="q-mb-md"
-    >
-      <q-tooltip>
-        Global items are visible to all users and can only be managed by moderators
-      </q-tooltip>
-    </q-toggle>
+    />
 
     <TranslationsDialog
       v-model="showTranslationsDialog"
@@ -341,12 +336,12 @@ const handleDelete = () => {
 
     <template v-if="showPantryFields">
       <q-separator class="q-my-md" />
-      <div class="sp-form-label">Pantry information</div>
+      <div class="sp-form-label">{{ t('pantry.title') }}</div>
       <q-input
         ref="quantityInputRef"
         v-model.number="formQuantity"
         outlined
-        label="Quantity"
+        :label="t('common.quantity')"
         type="number"
         min="1"
       />
@@ -357,17 +352,17 @@ const handleDelete = () => {
         v-if="showDeleteButton"
         flat
         no-caps
-        label="Delete"
+        :label="t('common.delete')"
         color="negative"
         icon="delete"
         class="sp-dlg-footer__leading"
         @click="handleDelete"
       />
-      <q-btn flat no-caps label="Cancel" color="grey-8" @click="handleClose" />
+      <q-btn flat no-caps :label="t('common.cancel')" color="grey-8" @click="handleClose" />
       <q-btn
         unelevated
         no-caps
-        label="Save"
+        :label="t('common.save')"
         color="primary"
         :disable="!isFormValid()"
         @click="handleSave"
