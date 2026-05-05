@@ -100,20 +100,19 @@ function handleCancel() {
     size="md"
     @update:model-value="emit('update:modelValue', $event)"
   >
-    <div class="sp-translations-grid">
-      <div class="sp-translations-grid__header">
-        <div></div>
-        <div v-for="loc in SUPPORTED_LOCALES" :key="loc" class="text-weight-medium">
-          {{ localeLabels[loc] }}
-        </div>
-      </div>
-      <div
+    <div class="sp-translations">
+      <section
         v-for="field in fields"
         :key="field.key"
-        class="sp-translations-grid__row"
+        class="sp-translations__field"
       >
-        <div class="sp-translations-grid__label">{{ field.label }}</div>
-        <template v-for="loc in SUPPORTED_LOCALES" :key="`${field.key}-${loc}`">
+        <h3 class="sp-translations__field-label">{{ field.label }}</h3>
+        <div
+          v-for="loc in SUPPORTED_LOCALES"
+          :key="`${field.key}-${loc}`"
+          class="sp-translations__locale"
+        >
+          <div class="sp-translations__locale-name">{{ localeLabels[loc] }}</div>
           <q-input
             v-if="field.kind === 'textarea'"
             outlined
@@ -133,8 +132,8 @@ function handleCancel() {
             :data-testid="`translation-${field.key}-${loc}`"
             @update:model-value="(v: any) => writeField(loc, field, String(v ?? ''))"
           />
-        </template>
-      </div>
+        </div>
+      </section>
     </div>
 
     <template #footer>
@@ -145,19 +144,33 @@ function handleCancel() {
 </template>
 
 <style scoped>
-.sp-translations-grid {
-  display: grid;
-  gap: 0.75rem;
+.sp-translations {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
 }
-.sp-translations-grid__header,
-.sp-translations-grid__row {
-  display: grid;
-  grid-template-columns: 110px 1fr 1fr;
-  gap: 0.75rem;
-  align-items: center;
+.sp-translations__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
-.sp-translations-grid__label {
+.sp-translations__field-label {
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--sp-text);
+  margin: 0;
+}
+.sp-translations__locale {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.sp-translations__locale-name {
+  font-size: 0.78rem;
   font-weight: 500;
   color: var(--sp-text-muted, #666);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 </style>
